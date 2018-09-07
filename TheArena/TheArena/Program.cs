@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 
 namespace TheArena
 {
@@ -7,7 +8,9 @@ namespace TheArena
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
+            Console.WriteLine("Hello Dude!");
+            int[] arr = new int[50];
+            var list=arr.ToList();
         }
     }
 }
