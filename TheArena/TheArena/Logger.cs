@@ -41,12 +41,6 @@ namespace Logger
 
     public static class Log
     {
-        private static bool doAll;
-        private static XmlDocument configFile;
-        private static readonly TraceSource ts = new TraceSource("Log");
-        //The classes which we want to debug.
-        private static string classes;
-
         //TraceEvent requires an id number, I just count the number of entries with this variable
         //I also use this to see if I need to initialize the config File info
         private static int iCnt = 1;
@@ -120,6 +114,12 @@ namespace Logger
         {
             string NavSymbol;
 
+            if(iCnt==1)
+            {
+                Stream myFile = File.Create("Log.txt");
+                Trace.AutoFlush = true;
+                Trace.Listeners.Add(new TextWriterTraceListener(myFile));
+            }
             if (functionNav == Nav.NavIn)
                 NavSymbol = "-->";
             else if (functionNav == Nav.NavOut)
@@ -132,83 +132,49 @@ namespace Logger
             int PathBreakPoint = filePath.LastIndexOf(@"\");
             string fileName = filePath.Substring(PathBreakPoint + 1);
 
-            if (iCnt == 1)
+
+            //We calculate some padding so the log file columns line up
+            int DatePad = 0;
+            if (type == TraceEventType.Error)
+                DatePad = DatePad + 6;
+            else if (type == TraceEventType.Warning)
+                DatePad = DatePad + 4;
+
+            string padding = new string(' ', 25);
+
+            if (iCnt < 10)
+                DatePad = DatePad + 2;
+            else if (iCnt < 100)
+                DatePad = DatePad + 1;
+
+            int FilePad = 20 - fileName.Length;
+            if (FilePad < 0)
+                FilePad = 0;
+
+            int MethPad = 20 - methodName.Length;
+            if (MethPad < 0)
+                MethPad = 0;
+
+            string Message = string.Format("{0}|{1}|{2}{3}[{4}]|{5}{6}|{7}",
+                                  padding.Substring(0, DatePad),
+                                  DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
+                                  padding.Substring(0, FilePad),
+                                  fileName,
+                                  lineNumber.ToString("D4"),
+                                  methodName,
+                                  padding.Substring(0, MethPad),
+                                  message);
+
+            try
             {
-                SourceSwitch sourceSwitch = new SourceSwitch("SourceSwitch", "Verbose");
-                ts.Switch = sourceSwitch;
-
-                Trace.AutoFlush = true;
-               
-                configFile = new XmlDocument();
-                configFile.Load("App.config");
-                string configFileText = configFile.InnerXml;
-                int spot = configFileText.IndexOf("<add name=\"ShowTheseClasses\"") + 28;
-                string restOfFile = configFileText.Substring(spot);
-                int endOfNode = restOfFile.IndexOf("/>");
-                string importantInfo = restOfFile.Substring(0, endOfNode);
-                if (!importantInfo.Contains("value=") || importantInfo.Contains("value=\"\""))
-                {
-                    doAll = true;
-                    classes = "";
-                }
-                else
-                {
-                    doAll = false;
-                    int start = importantInfo.IndexOf("value=\"") + 7;
-                    int end = importantInfo.LastIndexOf("\"");
-                    classes = importantInfo.Substring(start, end - start);
-                }
+                Trace.WriteLine(type+" "+ iCnt+ Message);
             }
-            if (classes.Contains(fileName) || doAll)
+            catch (Exception e)
             {
-                //We calculate some padding so the log file columns line up
-                int DatePad = 0;
-                if (type == TraceEventType.Error)
-                    DatePad = DatePad + 6;
-                else if (type == TraceEventType.Warning)
-                    DatePad = DatePad + 4;
-
-                string padding = new string(' ', 25);
-
-                if (iCnt < 10)
-                    DatePad = DatePad + 2;
-                else if (iCnt < 100)
-                    DatePad = DatePad + 1;
-
-                int FilePad = 20 - fileName.Length;
-                if (FilePad < 0)
-                    FilePad = 0;
-
-                int MethPad = 20 - methodName.Length;
-                if (MethPad < 0)
-                    MethPad = 0;
-
-                string Message = string.Format("{0}|{1}|{2}{3}[{4}]|{5}{6}|{7}",
-                                      padding.Substring(0, DatePad),
-                                      DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
-                                      padding.Substring(0, FilePad),
-                                      fileName,
-                                      lineNumber.ToString("D4"),
-                                      methodName,
-                                      padding.Substring(0, MethPad),
-                                      message);
-
-                try
-                {
-                    ts.TraceEvent(type, iCnt, Message);
-                    using (StreamWriter sw = new StreamWriter("Log.txt",true))
-                    {
-                        sw.AutoFlush = true;
-                        sw.WriteLine("Log Information: "+iCnt+" : "+Message);
-                    }
-                    LogEventSource.etwLog.Load(message);
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(String.Format("Logger exception: {0}", e.ToString()));
-                }
-                iCnt++;
+                Console.WriteLine(String.Format("Logger exception: {0}", e.ToString()));
             }
+            iCnt++;
+
         }
     }
 }

@@ -48,12 +48,11 @@ namespace TheArena
         public static string SendHTTP(string country, string plate)
         {
             //Authentication
-            string username = "Hunter";
-            string password = "MA20c111x";
+            string username = "";
+            string password = "";
 
             //Responses from Camera
             XmlDocument response = null;
-
 
             Console.WriteLine("Sending Request...");
             response = null;
