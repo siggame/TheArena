@@ -3,6 +3,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Threading;
 using static TheArena.ClientConnection;
 
 namespace TheArena
@@ -22,7 +23,9 @@ namespace TheArena
                 server.Start();
                 while(true)
                 {
-
+                    Thread.Sleep(10000);
+                    Console.WriteLine("Sending FTP Zip Test");
+                    FTPTester.Test_FTP();
                 }
             }
             catch (Exception er)
