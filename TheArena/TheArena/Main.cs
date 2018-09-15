@@ -1,5 +1,6 @@
 ﻿using Logger;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -34,9 +35,15 @@ namespace TheArena
             }
         }
 
+        static void StartOneVOneTourney()
+        {
+            Tournament t = new Tournament(new List<string> { "a", "b", "c", "d", "e", "f", "g","h","i","j","k","l","m","n","o" }, 7);
+        }
+
         static void RunHost()
         {
-            StartFTPServer();
+            //StartFTPServer();
+            StartOneVOneTourney();
         }
 
         static void RunClient()
