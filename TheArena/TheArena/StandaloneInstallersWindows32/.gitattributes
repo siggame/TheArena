@@ -1,0 +1,5 @@
+LuaForWindows_v5.1.5-52.exe filter=lfs diff=lfs merge=lfs -text
+jdk-8u181-windows-i586.exe filter=lfs diff=lfs merge=lfs -text
+python-3.7.0.exe filter=lfs diff=lfs merge=lfs -text
+full.exe filter=lfs diff=lfs merge=lfs -text
+node-v8.12.0-x86.msi filter=lfs diff=lfs merge=lfs -text
