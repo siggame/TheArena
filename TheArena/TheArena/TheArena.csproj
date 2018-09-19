@@ -3,13 +3,56 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp2.1</TargetFramework>
+    <ApplicationManifest>app1.manifest</ApplicationManifest>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="StandaloneInstallersLinux\**" />
+    <Compile Remove="StandaloneInstallersMac\**" />
+    <Compile Remove="StandaloneInstallersWindows\**" />
+    <EmbeddedResource Remove="StandaloneInstallersLinux\**" />
+    <EmbeddedResource Remove="StandaloneInstallersMac\**" />
+    <EmbeddedResource Remove="StandaloneInstallersWindows\**" />
+    <None Remove="StandaloneInstallersLinux\**" />
+    <None Remove="StandaloneInstallersMac\**" />
+    <None Remove="StandaloneInstallersWindows\**" />
+  </ItemGroup>
 
   <ItemGroup>
     <None Update="App.config">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="my_zip.zip">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="StandaloneInstallersWindows32\full.exe">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="StandaloneInstallersWindows32\jdk-8u181-windows-i586.exe">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="StandaloneInstallersWindows32\LuaForWindows_v5.1.5-52.exe">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="StandaloneInstallersWindows32\node-v8.12.0-x86.msi">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="StandaloneInstallersWindows32\python-3.7.0.exe">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="StandaloneInstallersWindows64\full.exe">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="StandaloneInstallersWindows64\jdk-10.0.2_windows-x64_bin.exe">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="StandaloneInstallersWindows64\LuaForWindows_v5.1.5-52.exe">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="StandaloneInstallersWindows64\node-v8.12.0-x64.msi">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="StandaloneInstallersWindows64\python-3.7.0-amd64.exe">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>

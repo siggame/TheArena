@@ -1,0 +1,2 @@
+StandaloneInstallersWindows32 filter=lfs diff=lfs merge=lfs -text
+StandaloneInstallersWindows64 filter=lfs diff=lfs merge=lfs -text

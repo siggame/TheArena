@@ -1,0 +1,1 @@
+Information 1  |2018-09-14 15:41:01|/mnt/c/Users/ArianaGrande/Documents/git/TheArena/TheArena/TheArena/Main.cs[0064]|-->Main             |START
