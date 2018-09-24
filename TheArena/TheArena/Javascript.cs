@@ -1,21 +1,24 @@
 ﻿using Logger;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Text;
 
 namespace TheArena
 {
-    static class Python
+    public static class Javascript
     {
-        static bool IsCommandLinePython = true;
+        static bool IsCommandLineJavascript = true;
 
-        public static void InstallPython()
+        public static void InstallJavascript()
         {
             bool isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
             bool isLinux = RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
             if (isWindows)
             {
-                Log.TraceMessage(Log.Nav.NavIn, "Is Windows. Starting Background Process...", Log.LogType.Info);
+                Log.TraceMessage(Log.Nav.NavIn, "Is Windows...", Log.LogType.Info);
+                Log.TraceMessage(Log.Nav.NavIn, "Starting Background Process...", Log.LogType.Info);
                 //Start commandline in the background
                 using (Process cmdProcess = new Process())
                 {
@@ -33,10 +36,9 @@ namespace TheArena
                         Console.WriteLine(cmdProcess.StandardOutput.ReadLine());
                     }
 
-                    //Check if Python 3 is installed
-                    Log.TraceMessage(Log.Nav.NavIn, "Checking if Python is installed...", Log.LogType.Info);
+                    Log.TraceMessage(Log.Nav.NavIn, "Checking if Node installed...", Log.LogType.Info);
                     cmdProcess.StandardInput.AutoFlush = true;
-                    cmdProcess.StandardInput.WriteLine("python -V");
+                    cmdProcess.StandardInput.WriteLine("node -v");
 
                     //Shows command in use
                     Console.WriteLine(cmdProcess.StandardOutput.ReadLine());
@@ -46,9 +48,9 @@ namespace TheArena
                     if (result.Length > 0)
                         Console.WriteLine(result);
 
-                    if (result.ToLower().StartsWith("python "))
+                    if (result.ToLower().StartsWith("v"))
                     {
-                        Log.TraceMessage(Log.Nav.NavOut, "Python Installed.", Log.LogType.Info);
+                        Log.TraceMessage(Log.Nav.NavOut, "Node Installed.", Log.LogType.Info);
                         return;
                     }
                     else
@@ -57,14 +59,14 @@ namespace TheArena
                         err += cmdProcess.StandardError.ReadLine();
                         Console.WriteLine(err);
 
-                        //If Python is not installed there will be an error
+                        //If Javascript is not installed there will be an error
                         if (err.Contains("not recognized"))
                         {
-                            Log.TraceMessage(Log.Nav.NavIn, "Not Recognized.", Log.LogType.Info);
-                            IsCommandLinePython = false;
+                            Log.TraceMessage(Log.Nav.NavIn, "Not Recognized...", Log.LogType.Info);
+                            IsCommandLineJavascript = false;
                             //see if we already installed -
 
-                            //Check if Python installed
+            
                             cmdProcess.StandardInput.AutoFlush = true;
 
                             //No we didn't install yet.
@@ -77,10 +79,10 @@ namespace TheArena
                                     Verb = "runas",
                                     CreateNoWindow = true,
                                     WindowStyle = ProcessWindowStyle.Hidden,
-                                    FileName = "StandaloneInstallersWindows32/python-3.7.0.exe",
+                                    FileName = "StandaloneInstallersWindows32/node-v8.12.0-x86.msi",
                                     UseShellExecute = false
                                 };
-                                Log.TraceMessage(Log.Nav.NavIn, "Running 32 bit Python installer.", Log.LogType.Info);
+                                Log.TraceMessage(Log.Nav.NavIn, "Installing 32 bit node...", Log.LogType.Info);
                                 Process p = Process.Start(psi);
                             }
                             else if (IntPtr.Size == 8)
@@ -91,10 +93,10 @@ namespace TheArena
                                     Verb = "runas",
                                     CreateNoWindow = true,
                                     WindowStyle = ProcessWindowStyle.Hidden,
-                                    FileName = "StandaloneInstallersWindows64/python-3.7.0-amd64.exe",
+                                    FileName = "StandaloneInstallersWindows64/node-v8.12.0-x64.msi",
                                     UseShellExecute = false
                                 };
-                                Log.TraceMessage(Log.Nav.NavIn, "Running 64 bit Python installer...", Log.LogType.Info);
+                                Log.TraceMessage(Log.Nav.NavIn, "Installing 64 bit node...", Log.LogType.Info);
                                 Process p = Process.Start(psi);
                             }
 
@@ -116,20 +118,17 @@ namespace TheArena
                     Log.TraceMessage(Log.Nav.NavIn, "Grabbing Shell Process...", Log.LogType.Info);
                     if (process.Start())
                     {
-                        process.StandardInput.WriteLine("python3.7 -V");
+                        process.StandardInput.WriteLine("node -v");
 
-                        Log.TraceMessage(Log.Nav.NavIn, "Checking if Python is Installed.", Log.LogType.Info);
-
-                        // Reads the python version if installed
+                        Log.TraceMessage(Log.Nav.NavIn, "Checking for node...", Log.LogType.Info);
                         string result = process.StandardOutput.ReadLine();
 
                         if (result.Length > 0)
                             Console.WriteLine(result);
 
-                        if (result.ToLower().StartsWith("python "))
+                        if (result.ToLower().StartsWith("v"))
                         {
-                            // Python has been installed
-                            Log.TraceMessage(Log.Nav.NavOut, "Python Installed.", Log.LogType.Info);
+                            Log.TraceMessage(Log.Nav.NavOut, "Node Installed.", Log.LogType.Info);
                             return;
                         }
                         else
@@ -143,12 +142,10 @@ namespace TheArena
 
                             Console.WriteLine(err);
 
-                            Log.TraceMessage(Log.Nav.NavIn, "Installing Python...", Log.LogType.Info);
-
                             //Need to install
-                            process.StandardInput.WriteLine("sudo add-apt-repository ppa:deadsnakes/ppa");
-                            process.StandardInput.WriteLine("sudo apt-get update");
-                            process.StandardInput.WriteLine("sudo apt-get install python3.7");
+                            Log.TraceMessage(Log.Nav.NavIn, "Installing node...", Log.LogType.Info);
+                            process.StandardInput.WriteLine("curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -");
+                            process.StandardInput.WriteLine("sudo apt-get install -y nodejs");
                         }
                     }
                 }

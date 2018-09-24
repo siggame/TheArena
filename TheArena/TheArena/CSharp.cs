@@ -1,22 +1,24 @@
 ﻿using Logger;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Text;
 
 namespace TheArena
 {
-    static class Python
+    public static class CSharp
     {
-        static bool IsCommandLinePython = true;
+        static bool IsCommandLineCSharp = true;
 
-        public static void InstallPython()
+        public static void InstallCSharp()
         {
             bool isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
             bool isLinux = RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
             if (isWindows)
             {
-                Log.TraceMessage(Log.Nav.NavIn, "Is Windows. Starting Background Process...", Log.LogType.Info);
-                //Start commandline in the background
+                Log.TraceMessage(Log.Nav.NavIn, "Windows Process.", Log.LogType.Info);
+                Log.TraceMessage(Log.Nav.NavIn, "Starting Background Process...", Log.LogType.Info);
                 using (Process cmdProcess = new Process())
                 {
                     cmdProcess.StartInfo.FileName = "cmd.exe";
@@ -33,10 +35,9 @@ namespace TheArena
                         Console.WriteLine(cmdProcess.StandardOutput.ReadLine());
                     }
 
-                    //Check if Python 3 is installed
-                    Log.TraceMessage(Log.Nav.NavIn, "Checking if Python is installed...", Log.LogType.Info);
+                    Log.TraceMessage(Log.Nav.NavIn, "Check if Csharp compile works csc...", Log.LogType.Info);
                     cmdProcess.StandardInput.AutoFlush = true;
-                    cmdProcess.StandardInput.WriteLine("python -V");
+                    cmdProcess.StandardInput.WriteLine("csc");
 
                     //Shows command in use
                     Console.WriteLine(cmdProcess.StandardOutput.ReadLine());
@@ -46,9 +47,9 @@ namespace TheArena
                     if (result.Length > 0)
                         Console.WriteLine(result);
 
-                    if (result.ToLower().StartsWith("python "))
+                    if (result.ToLower().StartsWith("microsoft"))
                     {
-                        Log.TraceMessage(Log.Nav.NavOut, "Python Installed.", Log.LogType.Info);
+                        Log.TraceMessage(Log.Nav.NavOut, "Csharp Installed.", Log.LogType.Info);
                         return;
                     }
                     else
@@ -57,14 +58,14 @@ namespace TheArena
                         err += cmdProcess.StandardError.ReadLine();
                         Console.WriteLine(err);
 
-                        //If Python is not installed there will be an error
+                        //If Java is not installed there will be an error
                         if (err.Contains("not recognized"))
                         {
                             Log.TraceMessage(Log.Nav.NavIn, "Not Recognized.", Log.LogType.Info);
-                            IsCommandLinePython = false;
+                            IsCommandLineCSharp = false;
                             //see if we already installed -
 
-                            //Check if Python installed
+    
                             cmdProcess.StandardInput.AutoFlush = true;
 
                             //No we didn't install yet.
@@ -72,30 +73,22 @@ namespace TheArena
                             if (IntPtr.Size == 4)
                             {
                                 // 32-bit
-                                ProcessStartInfo psi = new ProcessStartInfo
-                                {
-                                    Verb = "runas",
-                                    CreateNoWindow = true,
-                                    WindowStyle = ProcessWindowStyle.Hidden,
-                                    FileName = "StandaloneInstallersWindows32/python-3.7.0.exe",
-                                    UseShellExecute = false
-                                };
-                                Log.TraceMessage(Log.Nav.NavIn, "Running 32 bit Python installer.", Log.LogType.Info);
-                                Process p = Process.Start(psi);
+                                Log.TraceMessage(Log.Nav.NavIn, "Adding csc to path...", Log.LogType.Info);
+                                const string name = "PATH";
+                                string pathvar = System.Environment.GetEnvironmentVariable(name);
+                                var value = pathvar + @";C:\Windows\Microsoft.NET\Framework\v4.0.30319";
+                                var target = EnvironmentVariableTarget.Machine;
+                                System.Environment.SetEnvironmentVariable(name, value, target);
                             }
                             else if (IntPtr.Size == 8)
                             {
-                                // 64-bit
-                                ProcessStartInfo psi = new ProcessStartInfo
-                                {
-                                    Verb = "runas",
-                                    CreateNoWindow = true,
-                                    WindowStyle = ProcessWindowStyle.Hidden,
-                                    FileName = "StandaloneInstallersWindows64/python-3.7.0-amd64.exe",
-                                    UseShellExecute = false
-                                };
-                                Log.TraceMessage(Log.Nav.NavIn, "Running 64 bit Python installer...", Log.LogType.Info);
-                                Process p = Process.Start(psi);
+                                // 64 bit
+                                Log.TraceMessage(Log.Nav.NavIn, "Adding csc to path...", Log.LogType.Info);
+                                const string name = "PATH";
+                                string pathvar = System.Environment.GetEnvironmentVariable(name);
+                                var value = pathvar + @";C:\Windows\Microsoft.NET\Framework\v4.0.30319";
+                                var target = EnvironmentVariableTarget.Machine;
+                                System.Environment.SetEnvironmentVariable(name, value, target);
                             }
 
                         }
@@ -104,7 +97,7 @@ namespace TheArena
             }
             else if (isLinux)
             {
-                Log.TraceMessage(Log.Nav.NavIn, "Is Linux.", Log.LogType.Info);
+                Log.TraceMessage(Log.Nav.NavIn, "Linux Process.", Log.LogType.Info);
                 using (Process process = new Process())
                 {
                     process.StartInfo.CreateNoWindow = true;
@@ -116,20 +109,17 @@ namespace TheArena
                     Log.TraceMessage(Log.Nav.NavIn, "Grabbing Shell Process...", Log.LogType.Info);
                     if (process.Start())
                     {
-                        process.StandardInput.WriteLine("python3.7 -V");
+                        Log.TraceMessage(Log.Nav.NavIn, "Checking for csharp compiler mcs...", Log.LogType.Info);
+                        process.StandardInput.WriteLine("mcs --version");
 
-                        Log.TraceMessage(Log.Nav.NavIn, "Checking if Python is Installed.", Log.LogType.Info);
-
-                        // Reads the python version if installed
                         string result = process.StandardOutput.ReadLine();
 
                         if (result.Length > 0)
                             Console.WriteLine(result);
 
-                        if (result.ToLower().StartsWith("python "))
+                        if (result.ToLower().StartsWith("mono"))
                         {
-                            // Python has been installed
-                            Log.TraceMessage(Log.Nav.NavOut, "Python Installed.", Log.LogType.Info);
+                            Log.TraceMessage(Log.Nav.NavOut, "CSharp Installed.", Log.LogType.Info);
                             return;
                         }
                         else
@@ -143,12 +133,9 @@ namespace TheArena
 
                             Console.WriteLine(err);
 
-                            Log.TraceMessage(Log.Nav.NavIn, "Installing Python...", Log.LogType.Info);
-
                             //Need to install
-                            process.StandardInput.WriteLine("sudo add-apt-repository ppa:deadsnakes/ppa");
-                            process.StandardInput.WriteLine("sudo apt-get update");
-                            process.StandardInput.WriteLine("sudo apt-get install python3.7");
+                            Log.TraceMessage(Log.Nav.NavIn, "Installing Mono...", Log.LogType.Info);
+                            process.StandardInput.WriteLine("sudo apt-get install mono-devel");
                         }
                     }
                 }
