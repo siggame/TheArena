@@ -1,22 +1,24 @@
 ﻿using Logger;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Text;
 
 namespace TheArena
 {
-    static class Python
+    public static class Java
     {
-        static bool IsCommandLinePython = true;
+        static bool IsCommandLineJava = true;
 
-        public static void InstallPython()
+        public static void InstallJava()
         {
             bool isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
             bool isLinux = RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
             if (isWindows)
             {
-                Log.TraceMessage(Log.Nav.NavIn, "Is Windows. Starting Background Process...", Log.LogType.Info);
-                //Start commandline in the background
+                Log.TraceMessage(Log.Nav.NavIn, "Is Windows...", Log.LogType.Info);
+                Log.TraceMessage(Log.Nav.NavIn, "Starting Background Process...", Log.LogType.Info);
                 using (Process cmdProcess = new Process())
                 {
                     cmdProcess.StartInfo.FileName = "cmd.exe";
@@ -27,16 +29,15 @@ namespace TheArena
                     cmdProcess.StartInfo.RedirectStandardError = true;
                     cmdProcess.Start();
 
-                    Log.TraceMessage(Log.Nav.NavIn, "Printing Microsoft Information...", Log.LogType.Info);
+                    Log.TraceMessage(Log.Nav.NavIn, "Printing Microsoft Info...", Log.LogType.Info);
                     for (int i = 0; i < 3; i++)
                     {
                         Console.WriteLine(cmdProcess.StandardOutput.ReadLine());
                     }
 
-                    //Check if Python 3 is installed
-                    Log.TraceMessage(Log.Nav.NavIn, "Checking if Python is installed...", Log.LogType.Info);
+                    Log.TraceMessage(Log.Nav.NavIn, "Checking if Java Installed javac...", Log.LogType.Info);
                     cmdProcess.StandardInput.AutoFlush = true;
-                    cmdProcess.StandardInput.WriteLine("python -V");
+                    cmdProcess.StandardInput.WriteLine("javac");
 
                     //Shows command in use
                     Console.WriteLine(cmdProcess.StandardOutput.ReadLine());
@@ -46,9 +47,10 @@ namespace TheArena
                     if (result.Length > 0)
                         Console.WriteLine(result);
 
-                    if (result.ToLower().StartsWith("python "))
+                    if (result.ToLower().StartsWith("usage"))
                     {
-                        Log.TraceMessage(Log.Nav.NavOut, "Python Installed.", Log.LogType.Info);
+                        Log.TraceMessage(Log.Nav.NavOut, "Java installed.", Log.LogType.Info);
+                        // Java has been installed
                         return;
                     }
                     else
@@ -57,14 +59,14 @@ namespace TheArena
                         err += cmdProcess.StandardError.ReadLine();
                         Console.WriteLine(err);
 
-                        //If Python is not installed there will be an error
+                        //If Java is not installed there will be an error
                         if (err.Contains("not recognized"))
                         {
-                            Log.TraceMessage(Log.Nav.NavIn, "Not Recognized.", Log.LogType.Info);
-                            IsCommandLinePython = false;
+                            Log.TraceMessage(Log.Nav.NavIn, "Not Recognized...", Log.LogType.Info);
+                            IsCommandLineJava = false;
                             //see if we already installed -
 
-                            //Check if Python installed
+                            //Check if JDK installed
                             cmdProcess.StandardInput.AutoFlush = true;
 
                             //No we didn't install yet.
@@ -77,11 +79,17 @@ namespace TheArena
                                     Verb = "runas",
                                     CreateNoWindow = true,
                                     WindowStyle = ProcessWindowStyle.Hidden,
-                                    FileName = "StandaloneInstallersWindows32/python-3.7.0.exe",
+                                    FileName = "StandaloneInstallersWindows32/jdk-8u181-windows-i586.exe",
                                     UseShellExecute = false
                                 };
-                                Log.TraceMessage(Log.Nav.NavIn, "Running 32 bit Python installer.", Log.LogType.Info);
+                                Log.TraceMessage(Log.Nav.NavIn, "Installing 32 bit java...", Log.LogType.Info);
                                 Process p = Process.Start(psi);
+                                Log.TraceMessage(Log.Nav.NavIn, "Adding to PATH...", Log.LogType.Info);
+                                const string name = "PATH";
+                                string pathvar = System.Environment.GetEnvironmentVariable(name);
+                                var value = pathvar + @";C:\Program Files (x86)\Java\jdk1.8.0_181\bin";
+                                var target = EnvironmentVariableTarget.Machine;
+                                System.Environment.SetEnvironmentVariable(name, value, target);
                             }
                             else if (IntPtr.Size == 8)
                             {
@@ -91,11 +99,16 @@ namespace TheArena
                                     Verb = "runas",
                                     CreateNoWindow = true,
                                     WindowStyle = ProcessWindowStyle.Hidden,
-                                    FileName = "StandaloneInstallersWindows64/python-3.7.0-amd64.exe",
+                                    FileName = "StandaloneInstallersWindows64/jdk-10.0.2_windows-x64_bin.exe",
                                     UseShellExecute = false
                                 };
-                                Log.TraceMessage(Log.Nav.NavIn, "Running 64 bit Python installer...", Log.LogType.Info);
+                                Log.TraceMessage(Log.Nav.NavIn, "Installing 64 bit java...", Log.LogType.Info);
                                 Process p = Process.Start(psi);
+                                const string name = "PATH";
+                                string pathvar = System.Environment.GetEnvironmentVariable(name);
+                                var value = pathvar + @";C:\Program Files\Java\jdk-10.0.2\bin";
+                                var target = EnvironmentVariableTarget.Machine;
+                                System.Environment.SetEnvironmentVariable(name, value, target);
                             }
 
                         }
@@ -116,20 +129,17 @@ namespace TheArena
                     Log.TraceMessage(Log.Nav.NavIn, "Grabbing Shell Process...", Log.LogType.Info);
                     if (process.Start())
                     {
-                        process.StandardInput.WriteLine("python3.7 -V");
+                        process.StandardInput.WriteLine("javac");
 
-                        Log.TraceMessage(Log.Nav.NavIn, "Checking if Python is Installed.", Log.LogType.Info);
-
-                        // Reads the python version if installed
+                        Log.TraceMessage(Log.Nav.NavIn, "Check if JDK is installed...", Log.LogType.Info);
                         string result = process.StandardOutput.ReadLine();
 
                         if (result.Length > 0)
                             Console.WriteLine(result);
 
-                        if (result.ToLower().StartsWith("python "))
+                        if (result.ToLower().StartsWith("usage"))
                         {
-                            // Python has been installed
-                            Log.TraceMessage(Log.Nav.NavOut, "Python Installed.", Log.LogType.Info);
+                            Log.TraceMessage(Log.Nav.NavOut, "Java Installed.", Log.LogType.Info);
                             return;
                         }
                         else
@@ -143,12 +153,12 @@ namespace TheArena
 
                             Console.WriteLine(err);
 
-                            Log.TraceMessage(Log.Nav.NavIn, "Installing Python...", Log.LogType.Info);
-
                             //Need to install
-                            process.StandardInput.WriteLine("sudo add-apt-repository ppa:deadsnakes/ppa");
+                            Log.TraceMessage(Log.Nav.NavIn, "Installing...", Log.LogType.Info);
+                            process.StandardInput.WriteLine("sudo add-apt-repository ppa:webupd8team/java");
                             process.StandardInput.WriteLine("sudo apt-get update");
-                            process.StandardInput.WriteLine("sudo apt-get install python3.7");
+                            process.StandardInput.WriteLine("sudo apt-get install oracle-java8-installer");
+                            process.StandardInput.WriteLine("sudo apt-get install oracle-java8-set-default");
                         }
                     }
                 }
