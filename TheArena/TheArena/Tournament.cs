@@ -29,20 +29,28 @@ namespace TheArena
     public class Tournament : GenericTree<Player>
     {
 
-        static List<string> unfilledCompetitors;
+        static List<PlayerInfo> unfilledCompetitors;
         static List<Game> games=new List<Game>();
         int competitor_slots_in_bracket = 0;
         static int Rounds;
 
-        public Tournament(List<string> competitors, int players_per_game)
+        public Tournament(List<PlayerInfo> competitors, int players_per_game)
         {
             while (competitors.Count % players_per_game != 0)
             {
-                competitors.Add("BYE");
+                PlayerInfo pi = new PlayerInfo();
+                pi.TeamName = "BYE";
+                pi.Submission = "-1";
+                pi.lang = Languages.None;
+                competitors.Add(pi);
             }
             int number_of_rounds = (int)Math.Ceiling(Math.Log(competitors.Count) / Math.Log(players_per_game));
             TournamentExtensions.Shuffle(competitors);
-            Player champion = new Player("");
+            PlayerInfo blank = new PlayerInfo();
+            blank.lang = Languages.None;
+            blank.Submission = "0";
+            blank.TeamName = "";
+            Player champion = new Player(blank);
             champion.ParentNode = null;
             Rounds = number_of_rounds;
             unfilledCompetitors = competitors;
@@ -50,14 +58,14 @@ namespace TheArena
             champion.Traverse(AddCompetitorsToBottomRound);
             champion.Traverse(PrettyPrint);
             champion.Traverse(GetGames);
-            for(int i=0; i<games.Count; i++)
+            /*for(int i=0; i<games.Count; i++)
             {
                 if(games[i].RoundNumber==1)
                 {
-                    games[i].SetWinner(champion, this, games[i].Competitors[0].Name, "");
+                    games[i].SetWinner(champion, this, games[i].Competitors[0].Info.TeamName, "");
                 }
             }
-            champion.Traverse(PrettyPrint);
+            champion.Traverse(PrettyPrint);*/
         }
 
         public void AddLowerLevelRoundGame(Player parent, int round_number, int players_per_game)
@@ -70,7 +78,11 @@ namespace TheArena
             {
                 for(int i=0; i<players_per_game && competitor_slots_in_bracket<unfilledCompetitors.Count; i++)
                 {
-                    Player g = new Player("");
+                    PlayerInfo blank = new PlayerInfo();
+                    blank.lang = Languages.None;
+                    blank.Submission = "0";
+                    blank.TeamName = "";
+                    Player g = new Player(blank);
                     AddLowerLevelRoundGame(g, round_number - 1, players_per_game);
                     g.ParentNode = parent;
                     parent.AddChild(g);
@@ -110,14 +122,14 @@ namespace TheArena
         {
             if(depth==Rounds)
             {
-                node.Name = unfilledCompetitors[0];
+                node.Info = unfilledCompetitors[0];
                 unfilledCompetitors.RemoveAt(0);
             }
         }
 
         static void PrettyPrint(int depth, Player node)
         {                                // a little one-line string-concatenation (n-times)
-            Console.WriteLine("{0}{1}: {2}", String.Join("   ", new string[depth + 1]), depth, node.Name);
+            Console.WriteLine("{0}{1}: {2}", String.Join("   ", new string[depth + 1]), depth, node.Info.TeamName);
         }
     }
 }
