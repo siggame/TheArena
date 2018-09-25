@@ -7,16 +7,25 @@ using System.Text;
 
 namespace TheArena
 {
-    public class FTPTester
+    public class FTPSender
     {
-        public static void Test_FTP()
+        public static void Send_FTP(string path_to_file, string ip_to_send_to)
         {
             byte[] data = new byte[1024];
-            const string ARENA_HOST_IP = "192.168.0.13";
+            string ARENA_HOST_IP = ip_to_send_to;
             const int ARENA_HOST_PORT = 21;
-            const string WEB_SERVER_ZIP_FILE_IP = "127.0.0.1"; // This will not normally be the same as ARENA_HOST_IP - it will be where the web server is sending the zip file from.
+            string hostName = Dns.GetHostName();
+            var myIP = Dns.GetHostEntry(hostName).AddressList;
+            string WEB_SERVER_ZIP_FILE_IP = "127.0.0.1";        // This will not normally be the same as ARENA_HOST_IP - it will be where the web server is sending the zip file from.
+            foreach (var x in myIP)
+            {
+                if(x.ToString().Split('.').Length==4)
+                {
+                    WEB_SERVER_ZIP_FILE_IP = x.ToString();
+                }
+            }
             const int WEB_SERVER_ZIP_FILE_PORT = 300;          // Can be virtually any port
-            const string ZIP_FILE_NAME = "my_zip.zip";
+            string ZIP_FILE_NAME = path_to_file;
             byte[] zip_file_contents;
             using (StreamReader sr = new StreamReader(ZIP_FILE_NAME))
             {
@@ -49,7 +58,7 @@ namespace TheArena
                                 System.Threading.Thread.Sleep(10);                 //Wait for Processing
                                 Console.WriteLine("Response: " + sr.ReadLine());    //Read response contact from arena.
                                 Console.WriteLine("Sending EPRT- Will Listen on port 300");
-                                sw.WriteLine("EPRT |1|127.0.0.1|300|");             //Tell arena we want to send a zip file to it. It should connect to our IP at port 300.
+                                sw.WriteLine("EPRT |1|"+ WEB_SERVER_ZIP_FILE_IP+"|300|");             //Tell arena we want to send a zip file to it. It should connect to our IP at port 300.
                                 sw.Flush();                                         //Push it out of the buffer
                                 System.Threading.Thread.Sleep(10);                 //Wait for Processing
                                 Console.WriteLine("Response: " + sr.ReadLine());    //Read response contact from arena

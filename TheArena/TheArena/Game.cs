@@ -33,7 +33,7 @@ namespace TheArena
             Game_URL = url;
             if (Competitors.Count > 0)
             {
-                Competitors[0].ParentNode.Name=name;
+                Competitors[0].ParentNode.Info.TeamName=name;
             }
             champion.Traverse(t.GetGames);
         }

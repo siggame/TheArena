@@ -6,13 +6,14 @@ namespace TheArena
 {
     public class Player : GenericTree<Player> // concrete derivation 
     { 
-        public string Name { get; set; }
+        public PlayerInfo Info { get; set; }
 
         public Player ParentNode { get; set; }
 
-        public Player(string name)
+
+        public Player(PlayerInfo info)
         {
-            Name = name;
+            Info = info;
         }
     }
 }
