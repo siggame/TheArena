@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Sockets;
 using System.Threading;
 using static TheArena.ClientConnection;
 
@@ -30,26 +31,35 @@ namespace TheArena
     class Runner
     {
         const string HOST_ADDR = "192.168.0.13";
-        const string ARENA_FILES_PATH = @"C:\Users\ArianaGrande\Documents\ArenaFiles";
+        const string ARENA_FILES_PATH = @"ArenaFiles";
         const int HOST_PORT = 21;
+        const int UDP_ASK_PORT = 234;
+        const int UDP_CONFIRM_PORT = 432;
         static FtpServer server;
         static List<PlayerInfo> eligible_players = new List<PlayerInfo>();
 
-        static void StartFTPServer()
+        static void StartFTPServer(bool is_host)
         {
             try
             {
                 Log.TraceMessage(Log.Nav.NavIn, "Starting FTP Server", Log.LogType.Info);
+                if (!Directory.Exists(ARENA_FILES_PATH))
+                {
+                    Directory.CreateDirectory(ARENA_FILES_PATH);
+                }
                 server = new FtpServer(IPAddress.Parse(HOST_ADDR), HOST_PORT, ARENA_FILES_PATH);
                 server.Start();
-                Log.TraceMessage(Log.Nav.NavIn, "Started -- now waiting for commands forever on this thread", Log.LogType.Info);
-                while (true)
+                if (is_host)
                 {
-                    Console.WriteLine("Type T2 to start a tourney with 2 people per game. T3 to start a tourney with 3 people per game etc.");
-                    string command = Console.ReadLine();
-                    if(command=="T2")
+                    Log.TraceMessage(Log.Nav.NavIn, "Started -- now waiting for commands forever on this thread", Log.LogType.Info);
+                    while (true)
                     {
-                        StartTourney(2);
+                        Console.WriteLine("Type T2 to start a tourney with 2 people per game. T3 to start a tourney with 3 people per game etc.");
+                        string command = Console.ReadLine();
+                        if (command == "T2")
+                        {
+                            StartTourney(2);
+                        }
                     }
                 }
             }
@@ -147,8 +157,8 @@ namespace TheArena
         {
             Log.TraceMessage(Log.Nav.NavIn, "This Arena is Host.", Log.LogType.Info);
             FillEligiblePlayers();
-            StartFTPServer();
             SetUpWatcher();
+            StartFTPServer(true);
         }
 
         static void RunClient()
@@ -166,7 +176,57 @@ namespace TheArena
             Lua.InstallLua();
             Log.TraceMessage(Log.Nav.NavIn, "Checking for and installing if need be C#...", Log.LogType.Info);
             CSharp.InstallCSharp();
+            StartFTPServer(false);
+            UdpClient check_for_game = new UdpClient(UDP_ASK_PORT);
+            BuildAndRunGame();
+            while (true)
+            {
+                var remoteEP = new IPEndPoint(IPAddress.Parse(HOST_ADDR), UDP_CONFIRM_PORT);
+                check_for_game.Send(new byte[] { 1 }, 1, remoteEP); // Ping -- we are still here
+                var data = check_for_game.Receive(ref remoteEP);
+                string str_data=System.Text.Encoding.Default.GetString(data);
+                if (str_data!=null)
+               {
+                    BuildAndRunGame();
+               }
+            }
+        }
 
+        static void BuildAndRunGame()
+        {
+            if(!Directory.Exists(ARENA_FILES_PATH))
+            {
+                Directory.CreateDirectory(ARENA_FILES_PATH);
+            }
+            var files= Directory.GetFiles(ARENA_FILES_PATH);
+            foreach(var file in files)
+            {
+                ZipExtracter.ExtractZip(file, file.Substring(0, file.IndexOf(".")));
+                if(file.ToLower().Contains("javascript"))
+                {
+                    Javascript.BuildAndRun(file+"/Joueur.js/main.js");
+                }
+                else if(file.ToLower().Contains("cpp"))
+                {
+                    Cpp.BuildAndRun(file + "/Joueur.cpp/main.cpp");
+                }
+                else if(file.ToLower().Contains("python"))
+                {
+                    Python.BuildAndRun(file + "/Joueur.py/main.py");
+                }
+                else if(file.ToLower().Contains("lua"))
+                {
+                    Lua.BuildAndRun(file + "/Joueur.lua/main.lua");
+                }
+                else if(file.ToLower().Contains("java"))
+                {
+                    Java.BuildAndRun(file + "/Joueur.java/main.java");
+                }
+                else if(file.ToLower().Contains("csharp"))
+                {
+                    CSharp.BuildAndRun(file + "/Joueur.cs/main.cs");
+                }
+            }
         }
 
         static void Main(string[] args)
@@ -174,7 +234,7 @@ namespace TheArena
             try
             {
                 Log.TraceMessage(Log.Nav.NavIn, "START", Log.LogType.Info);
-                string hostName = Dns.GetHostName(); // Retrive the Name of HOST  
+                /*string hostName = Dns.GetHostName(); // Retrive the Name of HOST  
                 var myIP = Dns.GetHostEntry(hostName).AddressList;
                 IPAddress arena_host_address = IPAddress.Parse(HOST_ADDR);
                 if (myIP.ToList().Contains(arena_host_address))
@@ -182,9 +242,9 @@ namespace TheArena
                     RunHost();
                 }
                 else
-                {
+                {*/
                     RunClient();
-                }
+                //}
             }
             catch(Exception ex)
             {
