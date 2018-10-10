@@ -12,7 +12,7 @@ namespace TheArena
     {
         static bool IsCommandLineCpp = true;
 
-        public static void InstallCpp()
+        public static bool InstallCpp()
         {
             bool isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
             bool isLinux = RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
@@ -102,6 +102,7 @@ namespace TheArena
                                 Log.TraceMessage(Log.Nav.NavIn, "Running 64 bit installer...", Log.LogType.Info);
                                 Process p = Process.Start(psi);
                             }
+                            return true;
                         }
                     }
                     else
@@ -145,10 +146,12 @@ namespace TheArena
                             //Need to install
                             Log.TraceMessage(Log.Nav.NavIn, "Installing...", Log.LogType.Info);
                             process.StandardInput.WriteLine("apt-get install g++");
+                            return true;
                         }
                     }
                 }
             }
+            return false;
         }
 
         public static bool BuildAndRun(string file)

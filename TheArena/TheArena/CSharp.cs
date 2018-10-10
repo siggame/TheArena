@@ -9,7 +9,7 @@ namespace TheArena
 {
     public static class CSharp
     {
-        public static void InstallCSharp()
+        public static bool InstallCSharp()
         {
             bool isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
             bool isLinux = RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
@@ -48,7 +48,7 @@ namespace TheArena
                     if (result.ToLower().StartsWith("microsoft"))
                     {
                         Log.TraceMessage(Log.Nav.NavOut, "Csharp Installed.", Log.LogType.Info);
-                        return;
+                        return false;
                     }
                     else
                     {
@@ -56,7 +56,7 @@ namespace TheArena
                         err += cmdProcess.StandardError.ReadLine();
                         Console.WriteLine(err);
 
-                        //If Java is not installed there will be an error
+                        //If CSharp is not installed there will be an error
                         if (err.Contains("not recognized"))
                         {
                             Log.TraceMessage(Log.Nav.NavIn, "Not Recognized.", Log.LogType.Info);
@@ -84,10 +84,10 @@ namespace TheArena
                                 const string name = "PATH";
                                 string pathvar = System.Environment.GetEnvironmentVariable(name);
                                 var value = pathvar + @";C:\Windows\Microsoft.NET\Framework\v4.0.30319";
-                                var target = EnvironmentVariableTarget.Machine;
+                                var target = EnvironmentVariableTarget.User;
                                 System.Environment.SetEnvironmentVariable(name, value, target);
                             }
-
+                            return true;
                         }
                     }
                 }
@@ -117,7 +117,7 @@ namespace TheArena
                         if (result.ToLower().StartsWith("mono"))
                         {
                             Log.TraceMessage(Log.Nav.NavOut, "CSharp Installed.", Log.LogType.Info);
-                            return;
+                            return false;
                         }
                         else
                         {
@@ -133,10 +133,12 @@ namespace TheArena
                             //Need to install
                             Log.TraceMessage(Log.Nav.NavIn, "Installing Mono...", Log.LogType.Info);
                             process.StandardInput.WriteLine("sudo apt-get install mono-devel");
+                            return true;
                         }
                     }
                 }
             }
+            return false;
         }
 
         public static bool BuildAndRun(string file)

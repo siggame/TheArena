@@ -1,6 +1,7 @@
 ﻿using Logger;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -30,7 +31,7 @@ namespace TheArena
 
     class Runner
     {
-        const string HOST_ADDR = "192.168.0.13";
+        const string HOST_ADDR = "131.151.113.141";
         const string ARENA_FILES_PATH = @"ArenaFiles";
         const int HOST_PORT = 21;
         const int UDP_ASK_PORT = 234;
@@ -47,7 +48,14 @@ namespace TheArena
                 {
                     Directory.CreateDirectory(ARENA_FILES_PATH);
                 }
-                server = new FtpServer(IPAddress.Parse(HOST_ADDR), HOST_PORT, ARENA_FILES_PATH);
+                if (is_host)
+                {
+                    server = new FtpServer(IPAddress.Parse(HOST_ADDR), HOST_PORT, ARENA_FILES_PATH);
+                }
+                else
+                {
+                    server = new FtpServer(IPAddress.Any, HOST_PORT, ARENA_FILES_PATH);
+                }
                 server.Start();
                 if (is_host)
                 {
@@ -163,19 +171,34 @@ namespace TheArena
 
         static void RunClient()
         {
+            bool restartNeeded = false;
             Log.TraceMessage(Log.Nav.NavIn, "This Arena is Client.", Log.LogType.Info);
             Log.TraceMessage(Log.Nav.NavIn, "Checking for and installing if need be C++...", Log.LogType.Info);
-            Cpp.InstallCpp();
+            restartNeeded=Cpp.InstallCpp() || restartNeeded;
             Log.TraceMessage(Log.Nav.NavIn, "Checking for and installing if need be Python...", Log.LogType.Info);
-            Python.InstallPython();
+            restartNeeded=Python.InstallPython() || restartNeeded;
             Log.TraceMessage(Log.Nav.NavIn, "Checking for and installing if need be Java...", Log.LogType.Info);
-            Java.InstallJava();
+            restartNeeded=Java.InstallJava() || restartNeeded;
             Log.TraceMessage(Log.Nav.NavIn, "Checking for and installing if need be Javascript...", Log.LogType.Info);
-            Javascript.InstallJavascript();
+            restartNeeded=Javascript.InstallJavascript() || restartNeeded;
             Log.TraceMessage(Log.Nav.NavIn, "Checking for and installing if need be Lua...", Log.LogType.Info);
-            Lua.InstallLua();
+            restartNeeded=Lua.InstallLua() || restartNeeded;
             Log.TraceMessage(Log.Nav.NavIn, "Checking for and installing if need be C#...", Log.LogType.Info);
-            CSharp.InstallCSharp();
+            restartNeeded=CSharp.InstallCSharp() || restartNeeded;
+            if(restartNeeded)
+            {
+                var rootDir = System.Reflection.Assembly.GetExecutingAssembly().CodeBase;
+                rootDir = rootDir.Substring(rootDir.IndexOf("//") + 3);
+                rootDir = rootDir.Substring(0, rootDir.LastIndexOf(@"/TheArena/"))+"/TheArena.sln";
+                Process proc = new Process();
+                proc.EnableRaisingEvents = true;
+                proc.StartInfo.UseShellExecute = true;
+                proc.StartInfo.FileName=rootDir;
+                proc.Start();
+                Process[] process = Process.GetProcessesByName("devenv");
+                process[0].Kill();
+                Environment.Exit(0);
+            }
             StartFTPServer(false);
             UdpClient check_for_game = new UdpClient(UDP_ASK_PORT);
             BuildAndRunGame();
@@ -234,7 +257,7 @@ namespace TheArena
             try
             {
                 Log.TraceMessage(Log.Nav.NavIn, "START", Log.LogType.Info);
-                /*string hostName = Dns.GetHostName(); // Retrive the Name of HOST  
+                string hostName = Dns.GetHostName(); // Retrive the Name of HOST  
                 var myIP = Dns.GetHostEntry(hostName).AddressList;
                 IPAddress arena_host_address = IPAddress.Parse(HOST_ADDR);
                 if (myIP.ToList().Contains(arena_host_address))
@@ -242,9 +265,9 @@ namespace TheArena
                     RunHost();
                 }
                 else
-                {*/
+                {
                     RunClient();
-                //}
+                }
             }
             catch(Exception ex)
             {

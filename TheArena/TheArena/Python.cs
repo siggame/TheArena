@@ -8,7 +8,7 @@ namespace TheArena
     static class Python
     {
 
-        public static void InstallPython()
+        public static bool InstallPython()
         {
             bool isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
             bool isLinux = RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
@@ -35,7 +35,7 @@ namespace TheArena
                     //Check if Python 3 is installed
                     Log.TraceMessage(Log.Nav.NavIn, "Checking if Python is installed...", Log.LogType.Info);
                     cmdProcess.StandardInput.AutoFlush = true;
-                    cmdProcess.StandardInput.WriteLine("python -V");
+                    cmdProcess.StandardInput.WriteLine("python3 -V");
 
                     //Shows command in use
                     Console.WriteLine(cmdProcess.StandardOutput.ReadLine());
@@ -45,10 +45,10 @@ namespace TheArena
                     if (result.Length > 0)
                         Console.WriteLine(result);
 
-                    if (result.ToLower().StartsWith("python "))
+                    if (result.ToLower().StartsWith("python"))
                     {
                         Log.TraceMessage(Log.Nav.NavOut, "Python Installed.", Log.LogType.Info);
-                        return;
+                        return false;
                     }
                     else
                     {
@@ -95,7 +95,7 @@ namespace TheArena
                                 Log.TraceMessage(Log.Nav.NavIn, "Running 64 bit Python installer...", Log.LogType.Info);
                                 Process p = Process.Start(psi);
                             }
-
+                            return true;
                         }
                     }
                 }
@@ -114,7 +114,7 @@ namespace TheArena
                     Log.TraceMessage(Log.Nav.NavIn, "Grabbing Shell Process...", Log.LogType.Info);
                     if (process.Start())
                     {
-                        process.StandardInput.WriteLine("python3.7 -V");
+                        process.StandardInput.WriteLine("python3 -V");
 
                         Log.TraceMessage(Log.Nav.NavIn, "Checking if Python is Installed.", Log.LogType.Info);
 
@@ -124,11 +124,11 @@ namespace TheArena
                         if (result.Length > 0)
                             Console.WriteLine(result);
 
-                        if (result.ToLower().StartsWith("python "))
+                        if (result.ToLower().StartsWith("python"))
                         {
                             // Python has been installed
                             Log.TraceMessage(Log.Nav.NavOut, "Python Installed.", Log.LogType.Info);
-                            return;
+                            return false;
                         }
                         else
                         {
@@ -147,10 +147,12 @@ namespace TheArena
                             process.StandardInput.WriteLine("sudo add-apt-repository ppa:deadsnakes/ppa");
                             process.StandardInput.WriteLine("sudo apt-get update");
                             process.StandardInput.WriteLine("sudo apt-get install python3.7");
+                            return true;
                         }
                     }
                 }
             }
+            return false;
         }
 
         public static bool BuildAndRun(string file)

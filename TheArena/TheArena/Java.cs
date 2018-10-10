@@ -9,7 +9,7 @@ namespace TheArena
 {
     public static class Java
     {
-        public static void InstallJava()
+        public static bool InstallJava()
         {
             bool isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
             bool isLinux = RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
@@ -49,7 +49,7 @@ namespace TheArena
                     {
                         Log.TraceMessage(Log.Nav.NavOut, "Java installed.", Log.LogType.Info);
                         // Java has been installed
-                        return;
+                        return false;
                     }
                     else
                     {
@@ -107,7 +107,7 @@ namespace TheArena
                                 var target = EnvironmentVariableTarget.Machine;
                                 System.Environment.SetEnvironmentVariable(name, value, target);
                             }
-
+                            return true;
                         }
                     }
                 }
@@ -137,7 +137,7 @@ namespace TheArena
                         if (result.ToLower().StartsWith("usage"))
                         {
                             Log.TraceMessage(Log.Nav.NavOut, "Java Installed.", Log.LogType.Info);
-                            return;
+                            return false;
                         }
                         else
                         {
@@ -156,10 +156,12 @@ namespace TheArena
                             process.StandardInput.WriteLine("sudo apt-get update");
                             process.StandardInput.WriteLine("sudo apt-get install oracle-java8-installer");
                             process.StandardInput.WriteLine("sudo apt-get install oracle-java8-set-default");
+                            return true;
                         }
                     }
                 }
             }
+            return false;
         }
 
         public static bool BuildAndRun(string file)
