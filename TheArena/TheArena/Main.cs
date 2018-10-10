@@ -1,6 +1,7 @@
 ﻿using Logger;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -47,7 +48,14 @@ namespace TheArena
                 {
                     Directory.CreateDirectory(ARENA_FILES_PATH);
                 }
-                server = new FtpServer(IPAddress.Parse(HOST_ADDR), HOST_PORT, ARENA_FILES_PATH);
+                if (is_host)
+                {
+                    server = new FtpServer(IPAddress.Parse(HOST_ADDR), HOST_PORT, ARENA_FILES_PATH);
+                }
+                else
+                {
+                    server = new FtpServer(IPAddress.Any, HOST_PORT, ARENA_FILES_PATH);
+                }
                 server.Start();
                 if (is_host)
                 {
@@ -199,19 +207,34 @@ namespace TheArena
 
         static void RunClient()
         {
+            bool restartNeeded = false;
             Log.TraceMessage(Log.Nav.NavIn, "This Arena is Client.", Log.LogType.Info);
             Log.TraceMessage(Log.Nav.NavIn, "Checking for and installing if need be C++...", Log.LogType.Info);
-            Cpp.InstallCpp();
+            restartNeeded=Cpp.InstallCpp() || restartNeeded;
             Log.TraceMessage(Log.Nav.NavIn, "Checking for and installing if need be Python...", Log.LogType.Info);
-            Python.InstallPython();
+            restartNeeded=Python.InstallPython() || restartNeeded;
             Log.TraceMessage(Log.Nav.NavIn, "Checking for and installing if need be Java...", Log.LogType.Info);
-            Java.InstallJava();
+            restartNeeded=Java.InstallJava() || restartNeeded;
             Log.TraceMessage(Log.Nav.NavIn, "Checking for and installing if need be Javascript...", Log.LogType.Info);
-            Javascript.InstallJavascript();
+            restartNeeded=Javascript.InstallJavascript() || restartNeeded;
             Log.TraceMessage(Log.Nav.NavIn, "Checking for and installing if need be Lua...", Log.LogType.Info);
-            Lua.InstallLua();
+            restartNeeded=Lua.InstallLua() || restartNeeded;
             Log.TraceMessage(Log.Nav.NavIn, "Checking for and installing if need be C#...", Log.LogType.Info);
-            CSharp.InstallCSharp();
+            restartNeeded=CSharp.InstallCSharp() || restartNeeded;
+            if(restartNeeded)
+            {
+                var rootDir = System.Reflection.Assembly.GetExecutingAssembly().CodeBase;
+                rootDir = rootDir.Substring(rootDir.IndexOf("//") + 3);
+                rootDir = rootDir.Substring(0, rootDir.LastIndexOf(@"/TheArena/"))+"/TheArena.sln";
+                Process proc = new Process();
+                proc.EnableRaisingEvents = true;
+                proc.StartInfo.UseShellExecute = true;
+                proc.StartInfo.FileName=rootDir;
+                proc.Start();
+                Process[] process = Process.GetProcessesByName("devenv");
+                process[0].Kill();
+                Environment.Exit(0);
+            }
             StartFTPServer(false);
             UdpClient check_for_game = new UdpClient(UDP_ASK_PORT);
             BuildAndRunGame();

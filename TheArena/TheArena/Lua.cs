@@ -10,7 +10,7 @@ namespace TheArena
     public static class Lua
     {
 
-        public static void InstallLua()
+        public static bool InstallLua()
         {
             bool isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
             bool isLinux = RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
@@ -46,10 +46,12 @@ namespace TheArena
                     if (result.Length > 0)
                         Console.WriteLine(result);
 
-                    if (result.ToLower().StartsWith("luac"))
+                    result = cmdProcess.StandardError.ReadLine();
+
+                    if (result.ToLower().StartsWith("luac: no"))
                     {
                         Log.TraceMessage(Log.Nav.NavOut, "Lua Installed.", Log.LogType.Info);
-                        return;
+                        return false;
                     }
                     else
                     {
@@ -96,7 +98,7 @@ namespace TheArena
                                 Log.TraceMessage(Log.Nav.NavIn, "Installing 64 bit Lua...", Log.LogType.Info);
                                 Process p = Process.Start(psi);
                             }
-
+                            return true;
                         }
                     }
                 }
@@ -124,11 +126,13 @@ namespace TheArena
                         if (result.Length > 0)
                             Console.WriteLine(result);
 
-                        if (result.ToLower().StartsWith("luac"))
+                        result = process.StandardError.ReadLine();
+
+                        if (result.ToLower().StartsWith("luac: no"))
                         {
                             // Lua has been installed
                             Log.TraceMessage(Log.Nav.NavOut, "Lua Installed.", Log.LogType.Info);
-                            return;
+                            return false;
                         }
                         else
                         {
@@ -144,10 +148,12 @@ namespace TheArena
                             //Need to install
                             Log.TraceMessage(Log.Nav.NavIn, "Installing Lua...", Log.LogType.Info);
                             process.StandardInput.WriteLine("sudo apt-get install lua5.3");
+                            return true;
                         }
                     }
                 }
             }
+            return false;
         }
 
         public static bool BuildAndRun(string file)

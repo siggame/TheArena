@@ -10,7 +10,7 @@ namespace TheArena
     public static class Javascript
     {
 
-        public static void InstallJavascript()
+        public static bool InstallJavascript()
         {
             bool isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
             bool isLinux = RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
@@ -50,7 +50,7 @@ namespace TheArena
                     if (result.ToLower().StartsWith("v"))
                     {
                         Log.TraceMessage(Log.Nav.NavOut, "Node Installed.", Log.LogType.Info);
-                        return;
+                        return false;
                     }
                     else
                     {
@@ -97,7 +97,7 @@ namespace TheArena
                                 Log.TraceMessage(Log.Nav.NavIn, "Installing 64 bit node...", Log.LogType.Info);
                                 Process p = Process.Start(psi);
                             }
-
+                            return true;
                         }
                     }
                 }
@@ -127,7 +127,7 @@ namespace TheArena
                         if (result.ToLower().StartsWith("v"))
                         {
                             Log.TraceMessage(Log.Nav.NavOut, "Node Installed.", Log.LogType.Info);
-                            return;
+                            return false;
                         }
                         else
                         {
@@ -144,10 +144,12 @@ namespace TheArena
                             Log.TraceMessage(Log.Nav.NavIn, "Installing node...", Log.LogType.Info);
                             process.StandardInput.WriteLine("curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -");
                             process.StandardInput.WriteLine("sudo apt-get install -y nodejs");
+                            return true;
                         }
                     }
                 }
             }
+            return false;
         }
 
         public static bool BuildAndRun(string file)
