@@ -31,7 +31,7 @@ namespace TheArena
 
     class Runner
     {
-        const string HOST_ADDR = "131.151.113.141";
+        const string HOST_ADDR = "131.151.115.47";
         const string ARENA_FILES_PATH = @"ArenaFiles";
         const int HOST_PORT = 21;
         const int UDP_ASK_PORT = 234;
@@ -223,6 +223,9 @@ namespace TheArena
             restartNeeded=CSharp.InstallCSharp() || restartNeeded;
             if(restartNeeded)
             {
+                Log.TraceMessage(Log.Nav.NavIn, "An install was done and we must restart Visual Studio to use it...", Log.LogType.Info);
+                Log.TraceMessage(Log.Nav.NavIn, "Waiting 1 minute for all installs to finish...", Log.LogType.Info);
+                Thread.Sleep(1000*60);
                 var rootDir = System.Reflection.Assembly.GetExecutingAssembly().CodeBase;
                 rootDir = rootDir.Substring(rootDir.IndexOf("//") + 3);
                 rootDir = rootDir.Substring(0, rootDir.LastIndexOf(@"/TheArena/"))+"/TheArena.sln";
@@ -230,23 +233,42 @@ namespace TheArena
                 proc.EnableRaisingEvents = true;
                 proc.StartInfo.UseShellExecute = true;
                 proc.StartInfo.FileName=rootDir;
+                Log.TraceMessage(Log.Nav.NavIn, "Starting new Visual Studio...", Log.LogType.Info);
                 proc.Start();
                 Process[] process = Process.GetProcessesByName("devenv");
+                Log.TraceMessage(Log.Nav.NavIn, "Killing This --- Goodbye!...", Log.LogType.Info);
                 process[0].Kill();
                 Environment.Exit(0);
             }
+            Log.TraceMessage(Log.Nav.NavIn, "Starting Client FTP Server...", Log.LogType.Info);
             StartFTPServer(false);
-            UdpClient check_for_game = new UdpClient(UDP_ASK_PORT);
-            BuildAndRunGame();
-            while (true)
+            Log.TraceMessage(Log.Nav.NavIn, "Creating the Keep-Alive Ping that let's the host know we are here and ready to run games...", Log.LogType.Info);
+            using (UdpClient check_for_game = new UdpClient(UDP_ASK_PORT))
             {
-                var remoteEP = new IPEndPoint(IPAddress.Parse(HOST_ADDR), UDP_CONFIRM_PORT);
-                check_for_game.Send(new byte[] { 1 }, 1, remoteEP); // Ping -- we are still here
-                var data = check_for_game.Receive(ref remoteEP);
-                string str_data = System.Text.Encoding.Default.GetString(data);
-                if (str_data != null)
+                Log.TraceMessage(Log.Nav.NavIn, "Only allow 5 seconds for sending and receiving...", Log.LogType.Info);
+                check_for_game.Client.SendTimeout = 5000;
+                check_for_game.Client.ReceiveTimeout = 5000;
+                //BuildAndRunGame();
+                while (true)
                 {
-                    BuildAndRunGame();
+                    try
+                    {
+                        Log.TraceMessage(Log.Nav.NavIn, "Sending Ping...", Log.LogType.Info);
+                        var remoteEP = new IPEndPoint(IPAddress.Parse(HOST_ADDR), UDP_CONFIRM_PORT);
+                        check_for_game.Send(new byte[] { 1 }, 1, remoteEP); // Ping -- we are still here
+                        Log.TraceMessage(Log.Nav.NavIn, "Waiting for game...", Log.LogType.Info);
+                        var data = check_for_game.Receive(ref remoteEP);
+                        string str_data = System.Text.Encoding.Default.GetString(data);
+                        if (str_data != null)
+                        {
+                            Log.TraceMessage(Log.Nav.NavIn, "We have been told to run game--LET'S GO!", Log.LogType.Info);
+                            BuildAndRunGame();
+                        }
+                    }
+                    catch(Exception ex)
+                    {
+                        Log.TraceMessage(Log.Nav.NavIn, "5 second timeout on receiving game...", Log.LogType.Info);
+                    }
                 }
             }
         }

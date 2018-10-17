@@ -9,7 +9,7 @@ namespace TheArena
 {
     public static class Lua
     {
-
+        public const string LUA_PATH = @"C:\Users\sjkyv5\Documents\5.1\";
         public static bool InstallLua()
         {
             bool isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
@@ -36,7 +36,7 @@ namespace TheArena
 
                     Log.TraceMessage(Log.Nav.NavIn, "Checking if Lua installed...", Log.LogType.Info);
                     cmdProcess.StandardInput.AutoFlush = true;
-                    cmdProcess.StandardInput.WriteLine("luac");
+                    cmdProcess.StandardInput.WriteLine(LUA_PATH+"luac");
 
                     //Shows command in use
                     Console.WriteLine(cmdProcess.StandardOutput.ReadLine());
@@ -55,9 +55,7 @@ namespace TheArena
                     }
                     else
                     {
-                        string err = cmdProcess.StandardError.ReadLine();
-                        err += cmdProcess.StandardError.ReadLine();
-                        Console.WriteLine(err);
+                        string err = result;
 
                         //If Lua is not installed there will be an error
                         if (err.Contains("not recognized"))
@@ -183,7 +181,7 @@ namespace TheArena
 
                     Log.TraceMessage(Log.Nav.NavIn, "Building file...", Log.LogType.Info);
                     cmdProcess.StandardInput.AutoFlush = true;
-                    cmdProcess.StandardInput.WriteLine("luac " + file);
+                    cmdProcess.StandardInput.WriteLine(LUA_PATH+"luac " + file);
 
 
                     //Shows command in use
