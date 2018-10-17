@@ -74,7 +74,7 @@ namespace TheArena
                                 const string name = "PATH";
                                 string pathvar = System.Environment.GetEnvironmentVariable(name);
                                 var value = pathvar + @";C:\Windows\Microsoft.NET\Framework\v4.0.30319";
-                                var target = EnvironmentVariableTarget.Machine;
+                                var target = EnvironmentVariableTarget.User;
                                 System.Environment.SetEnvironmentVariable(name, value, target);
                             }
                             else if (IntPtr.Size == 8)
