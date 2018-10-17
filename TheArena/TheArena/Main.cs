@@ -1,5 +1,6 @@
 ﻿using Logger;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -31,13 +32,14 @@ namespace TheArena
 
     class Runner
     {
-        const string HOST_ADDR = "131.151.113.141";
+        const string HOST_ADDR = "131.151.115.47";
         const string ARENA_FILES_PATH = @"ArenaFiles";
         const int HOST_PORT = 21;
         const int UDP_ASK_PORT = 234;
         const int UDP_CONFIRM_PORT = 432;
         static FtpServer server;
         static List<PlayerInfo> eligible_players = new List<PlayerInfo>();
+        static ConcurrentQueue<ClientInfo> clients = new ConcurrentQueue<ClientInfo>();
 
         static void StartFTPServer(bool is_host)
         {
@@ -92,6 +94,7 @@ namespace TheArena
         {
             Log.TraceMessage(Log.Nav.NavIn, "Setting up client listener...", Log.LogType.Info);
             Thread clientListener = new Thread(ForeverQueueClients);
+            clientListener.Start();
         }
 
         public struct ClientInfo
@@ -102,18 +105,48 @@ namespace TheArena
 
         private static void ForeverQueueClients()
         {
-            List<ClientInfo> clients = new List<ClientInfo>();
-            long counter = 0;
-            while(true)
+            using (UdpClient listener = new UdpClient(UDP_CONFIRM_PORT))
             {
-                for(int i=0; i<clients.Count; i++)
+                listener.Client.SendTimeout = 5000;
+                listener.Client.ReceiveTimeout = 1000;
+                IPEndPoint anyIP = new IPEndPoint(IPAddress.Any, 0);
+                long counter = 0;
+                while (true)
                 {
-                    ClientInfo ci = clients[i];
-                    ci.countsSinceLastPing++;
-                    clients[i] = ci;
-                    if(ci.countsSinceLastPing>1000000)
+                    for (int i = 0; i < clients.Count; i++)
                     {
-                        clients.Remove(ci);
+                        ClientInfo ci;
+                        bool dequeued = clients.TryDequeue(out ci);
+                        if (dequeued)
+                        {
+                            ci.countsSinceLastPing++;
+                            if (ci.countsSinceLastPing < 1000000)
+                            {
+                                clients.Enqueue(ci);
+                            }
+                        }
+                        else
+                        {
+                            i--;
+                        }
+                    }
+                    try
+                    {
+                        byte[] bytes = listener.Receive(ref anyIP);
+                        while (true)
+                        {
+                            ClientInfo newClient = new ClientInfo();
+                            newClient.clientIP = anyIP.Address;
+                            newClient.countsSinceLastPing = 0;
+                            if (!clients.Contains(newClient))
+                            {
+                                clients.Enqueue(newClient);
+                            }
+                        }
+                    }
+                    catch(Exception ex)
+                    {
+
                     }
                 }
             }
