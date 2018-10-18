@@ -32,7 +32,7 @@ namespace TheArena
 
     class Runner
     {
-        const string HOST_ADDR = "131.151.115.47";
+        const string HOST_ADDR = "127.0.0.1";
         const string ARENA_FILES_PATH = @"ArenaFiles";
         const int HOST_PORT = 21;
         const int UDP_ASK_PORT = 234;
@@ -142,6 +142,7 @@ namespace TheArena
                             {
                                 clients.Enqueue(newClient);
                             }
+                            listener.Receive(ref anyIP);
                         }
                     }
                     catch(Exception ex)
@@ -240,6 +241,7 @@ namespace TheArena
 
         static void RunClient()
         {
+            /*
             bool restartNeeded = false;
             Log.TraceMessage(Log.Nav.NavIn, "This Arena is Client.", Log.LogType.Info);
             Log.TraceMessage(Log.Nav.NavIn, "Checking for and installing if need be C++...", Log.LogType.Info);
@@ -275,12 +277,12 @@ namespace TheArena
             }
             Log.TraceMessage(Log.Nav.NavIn, "Starting Client FTP Server...", Log.LogType.Info);
             StartFTPServer(false);
-            Log.TraceMessage(Log.Nav.NavIn, "Creating the Keep-Alive Ping that let's the host know we are here and ready to run games...", Log.LogType.Info);
-            using (UdpClient check_for_game = new UdpClient(UDP_ASK_PORT))
+            Log.TraceMessage(Log.Nav.NavIn, "Creating the Keep-Alive Ping that let's the host know we are here and ready to run games...", Log.LogType.Info);*/
+            using (Socket check_for_game = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp))
             {
                 Log.TraceMessage(Log.Nav.NavIn, "Only allow 5 seconds for sending and receiving...", Log.LogType.Info);
-                check_for_game.Client.SendTimeout = 5000;
-                check_for_game.Client.ReceiveTimeout = 5000;
+                //check_for_game.Client.SendTimeout = 5000;
+                //check_for_game.Client.ReceiveTimeout = 5000;
                 //BuildAndRunGame();
                 while (true)
                 {
@@ -288,9 +290,10 @@ namespace TheArena
                     {
                         Log.TraceMessage(Log.Nav.NavIn, "Sending Ping...", Log.LogType.Info);
                         var remoteEP = new IPEndPoint(IPAddress.Parse(HOST_ADDR), UDP_CONFIRM_PORT);
-                        check_for_game.Send(new byte[] { 1 }, 1, remoteEP); // Ping -- we are still here
+                        check_for_game.SendTo(new byte[] { 1 }, remoteEP); // Ping -- we are still here
                         Log.TraceMessage(Log.Nav.NavIn, "Waiting for game...", Log.LogType.Info);
-                        var data = check_for_game.Receive(ref remoteEP);
+                        byte[] data = new byte[1024];
+                        //check_for_game.Receive(data);
                         string str_data = System.Text.Encoding.Default.GetString(data);
                         if (str_data != null)
                         {
@@ -298,7 +301,7 @@ namespace TheArena
                             BuildAndRunGame();
                         }
                     }
-                    catch(Exception ex)
+                    catch (Exception ex)
                     {
                         Log.TraceMessage(Log.Nav.NavIn, "5 second timeout on receiving game...", Log.LogType.Info);
                     }
@@ -350,15 +353,15 @@ namespace TheArena
                 Log.TraceMessage(Log.Nav.NavIn, "START", Log.LogType.Info);
                 string hostName = Dns.GetHostName(); // Retrive the Name of HOST  
                 var myIP = Dns.GetHostEntry(hostName).AddressList;
-                IPAddress arena_host_address = IPAddress.Parse(HOST_ADDR);
+                /*PAddress arena_host_address = IPAddress.Parse(HOST_ADDR);
                 if (myIP.ToList().Contains(arena_host_address))
-                {
+                {*/
                     RunHost();
-                }
+                /*}
                 else
-                {
-                    RunClient();
-                }
+                {*/
+                  //  RunClient();
+                //}
             }
             catch (Exception ex)
             {
