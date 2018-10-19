@@ -32,7 +32,7 @@ namespace TheArena
 
     class Runner
     {
-        const string HOST_ADDR = "127.0.0.1";
+        const string HOST_ADDR = "10.106.68.140";
         const string ARENA_FILES_PATH = @"ArenaFiles";
         const int HOST_PORT = 21;
         const int UDP_ASK_PORT = 234;
@@ -101,23 +101,27 @@ namespace TheArena
         {
             using (UdpClient listener = new UdpClient(UDP_CONFIRM_PORT))
             {
-                listener.Client.ReceiveTimeout = 30;
-                IPEndPoint anyIP = new IPEndPoint(IPAddress.Any, 0);
-                long counter = 0;
-                while (true)
+                using (Socket start_game = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp))
                 {
-                    try
+                    listener.Client.ReceiveTimeout = 30;
+                    IPEndPoint anyIP = new IPEndPoint(IPAddress.Any, 0);
+                    long counter = 0;
+                    while (true)
                     {
-                        byte[] bytes = listener.Receive(ref anyIP);
-                        IPAddress newClient = anyIP.Address;
-                        if (!clients.Contains(newClient))
+                        try
                         {
-                            clients.Enqueue(newClient);
+                            byte[] bytes = listener.Receive(ref anyIP);
+                            IPAddress newClient = anyIP.Address;
+                            if (!clients.Contains(newClient))
+                            {
+                                clients.Enqueue(newClient);
+                                start_game.SendTo(new byte[1], new IPEndPoint(newClient,UDP_ASK_PORT));
+                            }
                         }
-                    }
-                    catch(Exception ex)
-                    {
-                       
+                        catch (Exception ex)
+                        {
+
+                        }
                     }
                 }
             }
