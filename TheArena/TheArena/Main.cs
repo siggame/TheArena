@@ -252,32 +252,31 @@ namespace TheArena
             Log.TraceMessage(Log.Nav.NavIn, "Starting Client FTP Server...", Log.LogType.Info);
             StartFTPServer(false);
             Log.TraceMessage(Log.Nav.NavIn, "Creating the Keep-Alive Ping that let's the host know we are here and ready to run games...", Log.LogType.Info);*/
-            using (Socket check_for_game = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp))
+            using (Socket ping = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp))
             {
-                Log.TraceMessage(Log.Nav.NavIn, "Only allow 5 seconds for sending and receiving...", Log.LogType.Info);
-                //check_for_game.Client.SendTimeout = 5000;
-                //check_for_game.Client.ReceiveTimeout = 5000;
-                //BuildAndRunGame();
-                while (true)
+                using (UdpClient ask_for_game = new UdpClient(UDP_ASK_PORT))
                 {
-                    try
+                    Log.TraceMessage(Log.Nav.NavIn, "Only allow 5 seconds for sending and receiving...", Log.LogType.Info);
+                    while (true)
                     {
-                        Log.TraceMessage(Log.Nav.NavIn, "Sending Ping...", Log.LogType.Info);
-                        var remoteEP = new IPEndPoint(IPAddress.Parse(HOST_ADDR), UDP_CONFIRM_PORT);
-                        check_for_game.SendTo(new byte[] { 1 }, remoteEP); // Ping -- we are still here
-                        Log.TraceMessage(Log.Nav.NavIn, "Waiting for game...", Log.LogType.Info);
-                        byte[] data = new byte[1024];
-                        //check_for_game.Receive(data);
-                        string str_data = System.Text.Encoding.Default.GetString(data);
-                        if (str_data != null)
+                        try
                         {
-                            Log.TraceMessage(Log.Nav.NavIn, "We have been told to run game--LET'S GO!", Log.LogType.Info);
-                            BuildAndRunGame();
+                            Log.TraceMessage(Log.Nav.NavIn, "Sending Ping...", Log.LogType.Info);
+                            var remoteEP = new IPEndPoint(IPAddress.Parse(HOST_ADDR), UDP_CONFIRM_PORT);
+                            ping.SendTo(new byte[] { 1 }, remoteEP); // Ping -- we are still here
+                            Log.TraceMessage(Log.Nav.NavIn, "Waiting for game...", Log.LogType.Info);
+                            byte[] data = ask_for_game.Receive(ref remoteEP);
+                            string str_data = System.Text.Encoding.Default.GetString(data);
+                            if (str_data != null)
+                            {
+                                Log.TraceMessage(Log.Nav.NavIn, "We have been told to run game--LET'S GO!", Log.LogType.Info);
+                                BuildAndRunGame();
+                            }
                         }
-                    }
-                    catch (Exception ex)
-                    {
-                        Log.TraceMessage(Log.Nav.NavIn, "5 second timeout on receiving game...", Log.LogType.Info);
+                        catch (Exception ex)
+                        {
+                            Log.TraceMessage(Log.Nav.NavIn, "5 second timeout on receiving game...", Log.LogType.Info);
+                        }
                     }
                 }
             }
@@ -328,14 +327,14 @@ namespace TheArena
                 string hostName = Dns.GetHostName(); // Retrive the Name of HOST  
                 var myIP = Dns.GetHostEntry(hostName).AddressList;
                 IPAddress arena_host_address = IPAddress.Parse(HOST_ADDR);
-               /* if (myIP.ToList().Contains(arena_host_address))
-                {*/
+                if (myIP.ToList().Contains(arena_host_address))
+                {
                     RunHost();
-                /*}
+                }
                 else
                 {
                     RunClient();
-                }*/
+                }
             }
             catch (Exception ex)
             {
