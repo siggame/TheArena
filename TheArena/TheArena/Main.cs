@@ -36,10 +36,10 @@ namespace TheArena
         const string ARENA_FILES_PATH = @"ArenaFiles";
         const int HOST_PORT = 21;
         const int UDP_ASK_PORT = 234;
-        const int UDP_CONFIRM_PORT = 432;
+        const int UDP_CONFIRM_PORT = 1100;
         static FtpServer server;
         static List<PlayerInfo> eligible_players = new List<PlayerInfo>();
-        static ConcurrentQueue<ClientInfo> clients = new ConcurrentQueue<ClientInfo>();
+        static ConcurrentQueue<IPAddress> clients = new ConcurrentQueue<IPAddress>();
 
         static void StartFTPServer(bool is_host)
         {
@@ -97,57 +97,27 @@ namespace TheArena
             clientListener.Start();
         }
 
-        public struct ClientInfo
-        {
-            public long countsSinceLastPing;
-            public IPAddress clientIP;
-        }
-
         private static void ForeverQueueClients()
         {
             using (UdpClient listener = new UdpClient(UDP_CONFIRM_PORT))
             {
-                listener.Client.SendTimeout = 5000;
-                listener.Client.ReceiveTimeout = 1000;
+                listener.Client.ReceiveTimeout = 30;
                 IPEndPoint anyIP = new IPEndPoint(IPAddress.Any, 0);
                 long counter = 0;
                 while (true)
                 {
-                    for (int i = 0; i < clients.Count; i++)
-                    {
-                        ClientInfo ci;
-                        bool dequeued = clients.TryDequeue(out ci);
-                        if (dequeued)
-                        {
-                            ci.countsSinceLastPing++;
-                            if (ci.countsSinceLastPing < 1000000)
-                            {
-                                clients.Enqueue(ci);
-                            }
-                        }
-                        else
-                        {
-                            i--;
-                        }
-                    }
                     try
                     {
                         byte[] bytes = listener.Receive(ref anyIP);
-                        while (true)
+                        IPAddress newClient = anyIP.Address;
+                        if (!clients.Contains(newClient))
                         {
-                            ClientInfo newClient = new ClientInfo();
-                            newClient.clientIP = anyIP.Address;
-                            newClient.countsSinceLastPing = 0;
-                            if (!clients.Contains(newClient))
-                            {
-                                clients.Enqueue(newClient);
-                            }
-                            listener.Receive(ref anyIP);
+                            clients.Enqueue(newClient);
                         }
                     }
                     catch(Exception ex)
                     {
-
+                       
                     }
                 }
             }
@@ -353,15 +323,15 @@ namespace TheArena
                 Log.TraceMessage(Log.Nav.NavIn, "START", Log.LogType.Info);
                 string hostName = Dns.GetHostName(); // Retrive the Name of HOST  
                 var myIP = Dns.GetHostEntry(hostName).AddressList;
-                /*PAddress arena_host_address = IPAddress.Parse(HOST_ADDR);
-                if (myIP.ToList().Contains(arena_host_address))
+                IPAddress arena_host_address = IPAddress.Parse(HOST_ADDR);
+               /* if (myIP.ToList().Contains(arena_host_address))
                 {*/
                     RunHost();
                 /*}
                 else
-                {*/
-                  //  RunClient();
-                //}
+                {
+                    RunClient();
+                }*/
             }
             catch (Exception ex)
             {
