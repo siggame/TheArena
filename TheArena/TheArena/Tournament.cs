@@ -33,9 +33,33 @@ namespace TheArena
         static List<Game> games=new List<Game>();
         int competitor_slots_in_bracket = 0;
         static int Rounds;
+        public bool IsDone { get; set; }
+
+        public void GetNextNonRunningGame(out Game toReturn)
+        {
+            bool allGamesComplete = true;
+            for(int i=0; i<games.Count; i++)
+            {
+                if(!games[i].IsComplete)
+                {
+                    allGamesComplete = false;
+                    if (!games[i].IsRunning && games[i].Competitors.Count > 1)
+                    {
+                        toReturn= games[i];
+                        return;
+                    }
+                }
+            }
+            if(allGamesComplete)
+            {
+                IsDone = true;
+            }
+            toReturn=null;
+        }
 
         public Tournament(List<PlayerInfo> competitors, int players_per_game)
         {
+            IsDone = false;
             while (competitors.Count % players_per_game != 0)
             {
                 PlayerInfo pi = new PlayerInfo();

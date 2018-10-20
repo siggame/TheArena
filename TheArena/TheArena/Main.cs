@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Text;
 using System.Threading;
 using static TheArena.ClientConnection;
 
@@ -30,16 +31,25 @@ namespace TheArena
         public string Submission { get; set; }
     }
 
+    public class RunGameInfo
+    {
+        public IPAddress clientRunningGame { get; set; }
+        public Game GameRan { get; set; }
+        public int startTimeTicks { get; set; }
+    }
+
     class Runner
     {
-        const string HOST_ADDR = "10.106.68.140";
-        const string ARENA_FILES_PATH = @"ArenaFiles";
+        const string HOST_ADDR = "127.0.0.1";
+        const string ARENA_FILES_PATH = @"C:\Users\ArianaGrande\Documents\git\TheArena\TheArena\TheArena\bin\Debug\netcoreapp2.0\ArenaFiles\";
         const int HOST_PORT = 21;
         const int UDP_ASK_PORT = 234;
         const int UDP_CONFIRM_PORT = 1100;
         static FtpServer server;
         static List<PlayerInfo> eligible_players = new List<PlayerInfo>();
         static ConcurrentQueue<IPAddress> clients = new ConcurrentQueue<IPAddress>();
+        static List<RunGameInfo> currentlyRunningGames = new List<RunGameInfo>();
+        static Tournament currentlyRunningTourney;
 
         static void StartFTPServer(bool is_host)
         {
@@ -101,27 +111,47 @@ namespace TheArena
         {
             using (UdpClient listener = new UdpClient(UDP_CONFIRM_PORT))
             {
-                using (Socket start_game = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp))
+                listener.Client.ReceiveTimeout = 30;
+                IPEndPoint anyIP = new IPEndPoint(IPAddress.Any, 0);
+                long counter = 0;
+                while (true)
                 {
-                    listener.Client.ReceiveTimeout = 30;
-                    IPEndPoint anyIP = new IPEndPoint(IPAddress.Any, 0);
-                    long counter = 0;
-                    while (true)
+                    try
                     {
-                        try
+                        byte[] bytes = listener.Receive(ref anyIP);
+                        if (bytes[0] == 1) //Ping
                         {
-                            byte[] bytes = listener.Receive(ref anyIP);
                             IPAddress newClient = anyIP.Address;
                             if (!clients.Contains(newClient))
                             {
                                 clients.Enqueue(newClient);
-                                start_game.SendTo(new byte[1], new IPEndPoint(newClient,UDP_ASK_PORT));
                             }
                         }
-                        catch (Exception ex)
+                        else //Game Finished
                         {
-
+                            for (int i = 0; i < currentlyRunningGames.Count; i++)
+                            {
+                                if (currentlyRunningGames[i].clientRunningGame == anyIP.Address)
+                                {
+                                    string[] str_data = Encoding.ASCII.GetString(bytes).Split(';');
+                                    Game toCheck = currentlyRunningGames[i].GameRan;
+                                    for (int j = 0; j < toCheck.Competitors.Count; j++)
+                                    {
+                                        if (toCheck.Competitors[j].Info.TeamName.Contains(str_data[0]))
+                                        {
+                                            toCheck.SetWinner(toCheck.Competitors[j], currentlyRunningTourney, toCheck.Competitors[j].Info.TeamName, str_data[1]);
+                                            toCheck.IsComplete = true;
+                                            toCheck.IsRunning = false;
+                                        }
+                                    }
+                                }
+                            }
+                            SendComplete(anyIP.Address);
                         }
+                    }
+                    catch (Exception ex)
+                    {
+
                     }
                 }
             }
@@ -178,10 +208,74 @@ namespace TheArena
             }
         }
 
+        static void SendRunGame(IPAddress toRun)
+        {
+            using (Socket start_game = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp))
+            {
+                start_game.SendTo(new byte[1] { 0 }, new IPEndPoint(toRun, UDP_ASK_PORT));
+            }
+        }
+
+        static void SendComplete(IPAddress toComplete)
+        {
+            using (Socket start_game = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp))
+            {
+                start_game.SendTo(new byte[1] { 1 }, new IPEndPoint(toComplete, UDP_ASK_PORT));
+            }
+        }
+
         static void StartTourney(int people_per_game)
         {
             Log.TraceMessage(Log.Nav.NavOut, "Starting Tourney with " + people_per_game + " per game.", Log.LogType.Info);
             Tournament t = new Tournament(eligible_players, people_per_game);
+            currentlyRunningTourney = t;
+            while (!t.IsDone)
+            {
+                for (int i = 0; i < currentlyRunningGames.Count; i++)
+                {
+                    if ((new TimeSpan(DateTime.Now.Ticks - currentlyRunningGames[i].startTimeTicks)).TotalMinutes > 5)
+                    {
+                        currentlyRunningGames[i].GameRan.IsRunning = false;
+                        currentlyRunningGames[i].GameRan.IsComplete = false;
+                        currentlyRunningGames.RemoveAt(i);
+                        i--;
+                    }
+                }
+                Game toAssign;
+                t.GetNextNonRunningGame(out toAssign);
+                if (toAssign != null)
+                {
+                    IPAddress clientToRun;
+                    bool dequeuedSuccess = clients.TryDequeue(out clientToRun);
+                    if (dequeuedSuccess)
+                    {
+                        var files = Directory.GetFiles(ARENA_FILES_PATH);
+                        for (int i = 0; i < toAssign.Competitors.Count; i++)
+                        {
+                            int maxSubmissionNumber = int.MinValue;
+                            string maxSubmission = "";
+                            for (int j = 0; j < files.Length; j++)
+                            {
+                                if (files[j].Split('_')[0].Contains(toAssign.Competitors[i].Info.TeamName))
+                                {
+                                    if (int.Parse(files[j].Split('_')[1]) > maxSubmissionNumber)
+                                    {
+                                        maxSubmissionNumber = int.Parse(files[j].Split('_')[1]);
+                                        maxSubmission = files[j];
+                                    }
+                                }
+                            }
+                            FTPSender.Send_FTP(maxSubmission, clientToRun.ToString());
+                        }
+                        SendRunGame(clientToRun);
+                        toAssign.IsRunning = true;
+                    }
+                }
+                else
+                {
+                    Thread.Sleep(5000);
+                }
+            }
         }
 
         static void FillEligiblePlayers()
@@ -248,14 +342,15 @@ namespace TheArena
                 Log.TraceMessage(Log.Nav.NavIn, "Killing This --- Goodbye!...", Log.LogType.Info);
                 process[0].Kill();
                 Environment.Exit(0);
-            }
+            }*/
             Log.TraceMessage(Log.Nav.NavIn, "Starting Client FTP Server...", Log.LogType.Info);
             StartFTPServer(false);
-            Log.TraceMessage(Log.Nav.NavIn, "Creating the Keep-Alive Ping that let's the host know we are here and ready to run games...", Log.LogType.Info);*/
+            Log.TraceMessage(Log.Nav.NavIn, "Creating the Keep-Alive Ping that let's the host know we are here and ready to run games...", Log.LogType.Info);
             using (Socket ping = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp))
             {
                 using (UdpClient ask_for_game = new UdpClient(UDP_ASK_PORT))
                 {
+                    ask_for_game.Client.ReceiveTimeout = 50;
                     Log.TraceMessage(Log.Nav.NavIn, "Only allow 5 seconds for sending and receiving...", Log.LogType.Info);
                     while (true)
                     {
@@ -327,14 +422,14 @@ namespace TheArena
                 string hostName = Dns.GetHostName(); // Retrive the Name of HOST  
                 var myIP = Dns.GetHostEntry(hostName).AddressList;
                 IPAddress arena_host_address = IPAddress.Parse(HOST_ADDR);
-                if (myIP.ToList().Contains(arena_host_address))
-                {
+                /*if (myIP.ToList().Contains(arena_host_address))
+                {*/
                     RunHost();
-                }
+                /*}
                 else
                 {
                     RunClient();
-                }
+                }*/
             }
             catch (Exception ex)
             {

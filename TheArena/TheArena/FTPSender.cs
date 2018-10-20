@@ -77,12 +77,12 @@ namespace TheArena
                                 int sent = SendVarData(newClient, zip_file_contents); //Send Zip File
                                 newClient.Shutdown(SocketShutdown.Both);              //Kill the communication on port 300.
                                 newClient.Close();
-                                System.Threading.Thread.Sleep(10);                 //Wait for processing
+                                System.Threading.Thread.Sleep(100);                 //Wait for processing
                                 Console.WriteLine("Response: " + sr.ReadLine());    //Read Arena's response.
                                 Console.WriteLine("Sending Quit: ");                //Disconnect from Arena.
                                 sw.WriteLine("QUIT 221");
                                 sw.Flush();                                         //Push it out of buffer.
-                                System.Threading.Thread.Sleep(10);                 //Wait for processing.
+                                System.Threading.Thread.Sleep(100);                 //Wait for processing.
                                 Console.WriteLine("Response: " + sr.ReadLine());    //Read Arena's response.
                             }
                         }

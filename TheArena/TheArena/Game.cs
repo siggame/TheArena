@@ -7,14 +7,16 @@ namespace TheArena
     public class Game
     {
         public List<Player> Competitors;
-        public bool IsRunning=false;
-        public bool IsComplete=false;
+        public bool IsRunning { get; set; }
+        public bool IsComplete { get; set; }
         public int RoundNumber;
         public string Game_URL;
         
         public Game()
         {
             Competitors = new List<Player>();
+            IsRunning = false;
+            IsComplete = false;
         }
 
         public Player GetParentOfPlayersInThisGame()
