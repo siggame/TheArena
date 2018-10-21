@@ -1,6 +1,7 @@
 ﻿using Logger;
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.Runtime.InteropServices;
 
 namespace TheArena
@@ -218,17 +219,32 @@ namespace TheArena
                     Log.TraceMessage(Log.Nav.NavIn, "Grabbing Shell Process...", Log.LogType.Info);
                     if (process.Start())
                     {
-
+                        process.StandardInput.WriteLine("cd " + file.Substring(0, file.LastIndexOf('/')));
                         Log.TraceMessage(Log.Nav.NavIn, "Building...", Log.LogType.Info);
-                        process.StandardInput.WriteLine("python3 " + file);
                         string result = process.StandardOutput.ReadLine();
+                        if (File.Exists("testRun"))
+                        {
+                            File.Delete("testRun");
+                        }
+                        using (StreamWriter sw = new StreamWriter("testRun"))
+                        {
+                            sw.AutoFlush = true;
+                            sw.WriteLine("#!/bin/bash");
+                            sw.WriteLine("if [ -z \"$1\" ]");
+                            sw.WriteLine("  then");
+                            sw.WriteLine("    echo \"No argument(s) supplied. Please specify game session you want to join or make.\"");
+                            sw.WriteLine("  else");
+                            sw.WriteLine("    ./run ANARCHY -s dev.siggame.tk -r \"$@\"");
+                            sw.WriteLine("fi");
+                        }
+                        process.StandardInput.WriteLine("./testRun abxds");
 
-                        while (result.Length > 0 && !result.ToUpper().Contains("WIN") && !result.ToUpper().Contains("LOSE"))
+                        while (result.Length > 0 && !result.ToUpper().Contains("I WON") && !result.ToUpper().Contains("I LOST"))
                         {
                             Console.WriteLine(result);
                             result = process.StandardOutput.ReadLine();
                         }
-                        if (result.ToUpper().Contains("WIN"))
+                        if (result.ToUpper().Contains("I WON"))
                         {
                             return true;
                         }

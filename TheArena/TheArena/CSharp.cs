@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -106,33 +107,28 @@ namespace TheArena
                     Log.TraceMessage(Log.Nav.NavIn, "Grabbing Shell Process...", Log.LogType.Info);
                     if (process.Start())
                     {
-                        Log.TraceMessage(Log.Nav.NavIn, "Checking for csharp compiler mcs...", Log.LogType.Info);
-                        process.StandardInput.WriteLine("mcs --version");
+                        Log.TraceMessage(Log.Nav.NavIn, "Checking for csharp compiler dotnet...", Log.LogType.Info);
+                        process.StandardInput.WriteLine("dotnet");
 
                         string result = process.StandardOutput.ReadLine();
 
                         if (result.Length > 0)
                             Console.WriteLine(result);
 
-                        if (result.ToLower().StartsWith("mono"))
+                        if (result.ToLower().StartsWith("usage"))
                         {
                             Log.TraceMessage(Log.Nav.NavOut, "CSharp Installed.", Log.LogType.Info);
                             return false;
                         }
                         else
                         {
-                            //Shows command in use
-                            string err = "";
-                            for (int i = 0; i < 9; i++)
-                            {
-                                err += process.StandardError.ReadLine();
-                            }
-
-                            Console.WriteLine(err);
 
                             //Need to install
-                            Log.TraceMessage(Log.Nav.NavIn, "Installing Mono...", Log.LogType.Info);
-                            process.StandardInput.WriteLine("sudo apt-get install mono-devel");
+                            Log.TraceMessage(Log.Nav.NavIn, "Installing Dotnet...", Log.LogType.Info);
+                            process.StandardInput.WriteLine("wget -q https://packages.microsoft.com/config/ubuntu/18.04/packages-microsoft-prod.deb");
+                            process.StandardInput.WriteLine("sudo dpkg -i packages-microsoft-prod.deb");
+                            process.StandardInput.WriteLine("sudo apt-get update");
+                            process.StandardInput.WriteLine("sudo apt-get install dotnet-sdk-2.1");
                             return true;
                         }
                     }
@@ -195,29 +191,35 @@ namespace TheArena
                 Log.TraceMessage(Log.Nav.NavIn, "Is Linux.", Log.LogType.Info);
                 using (Process process = new Process())
                 {
-                    process.StartInfo.CreateNoWindow = true;
-                    process.StartInfo.RedirectStandardError = true;
-                    process.StartInfo.RedirectStandardInput = true;
-                    process.StartInfo.RedirectStandardOutput = true;
-                    process.StartInfo.UseShellExecute = false;
-                    process.StartInfo.FileName = Environment.GetEnvironmentVariable("SHELL");
-                    Log.TraceMessage(Log.Nav.NavIn, "Grabbing Shell Process...", Log.LogType.Info);
-                    if (process.Start())
+                    process.StandardInput.WriteLine("cd " + file.Substring(0, file.LastIndexOf('/')));
+                    Log.TraceMessage(Log.Nav.NavIn, "Building...", Log.LogType.Info);
+                    process.StandardInput.WriteLine("make");
+                    string result = process.StandardOutput.ReadLine();
+                    if (File.Exists("testRun"))
                     {
+                        File.Delete("testRun");
+                    }
+                    using (StreamWriter sw = new StreamWriter("testRun"))
+                    {
+                        sw.AutoFlush = true;
+                        sw.WriteLine("#!/bin/bash");
+                        sw.WriteLine("if [ -z \"$1\" ]");
+                        sw.WriteLine("  then");
+                        sw.WriteLine("    echo \"No argument(s) supplied. Please specify game session you want to join or make.\"");
+                        sw.WriteLine("  else");
+                        sw.WriteLine("    ./run ANARCHY -s dev.siggame.tk -r \"$@\"");
+                        sw.WriteLine("fi");
+                    }
+                    process.StandardInput.WriteLine("./testRun abxds");
 
-                        Log.TraceMessage(Log.Nav.NavIn, "Building...", Log.LogType.Info);
-                        process.StandardInput.WriteLine("mcs " + file);
-                        string result = process.StandardOutput.ReadLine();
-
-                        while (result.Length > 0 && !result.ToUpper().Contains("WIN") && !result.ToUpper().Contains("LOSE"))
-                        {
-                            Console.WriteLine(result);
-                            result = process.StandardOutput.ReadLine();
-                        }
-                        if (result.ToUpper().Contains("WIN"))
-                        {
-                            return true;
-                        }
+                    while (result.Length > 0 && !result.ToUpper().Contains("I WON") && !result.ToUpper().Contains("I LOST"))
+                    {
+                        Console.WriteLine(result);
+                        result = process.StandardOutput.ReadLine();
+                    }
+                    if (result.ToUpper().Contains("I WON"))
+                    {
+                        return true;
                     }
                 }
             }

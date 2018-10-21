@@ -83,10 +83,19 @@ namespace TheArena
                                 psi.Arguments = "/s /v /qn /min";
                                 psi.CreateNoWindow = true;
                                 psi.WindowStyle = ProcessWindowStyle.Hidden;
-                                psi.FileName = "StandaloneInstallersWindows64/full.exe";
+                                psi.FileName = "StandaloneInstallersWindows32/full.exe";
                                 psi.UseShellExecute = false;
                                 Log.TraceMessage(Log.Nav.NavIn, "Running 32 bit installer...", Log.LogType.Info);
                                 Process p = Process.Start(psi);
+                                psi = new ProcessStartInfo();
+                                psi.Verb = "runas";
+                                psi.Arguments = "/s /v /qn /min";
+                                psi.CreateNoWindow = true;
+                                psi.WindowStyle = ProcessWindowStyle.Hidden;
+                                psi.FileName = "StandaloneInstallersWindows32/cmake.exe";
+                                psi.UseShellExecute = false;
+                                Log.TraceMessage(Log.Nav.NavIn, "Running 32 bit installer...", Log.LogType.Info);
+                                p = Process.Start(psi);
                             }
                             else if (IntPtr.Size == 8)
                             {
@@ -97,11 +106,26 @@ namespace TheArena
                                 psi.Arguments = "/s /v /qn /min";
                                 psi.CreateNoWindow = true;
                                 psi.WindowStyle = ProcessWindowStyle.Hidden;
-                                psi.FileName = "StandaloneInstallersWindows32/full.exe";
+                                psi.FileName = "StandaloneInstallersWindows64/full.exe";
                                 psi.UseShellExecute = false;
                                 Log.TraceMessage(Log.Nav.NavIn, "Running 64 bit installer...", Log.LogType.Info);
                                 Process p = Process.Start(psi);
+                                psi = new ProcessStartInfo();
+                                psi.Verb = "runas";
+                                psi.Arguments = "/s /v /qn /min";
+                                psi.CreateNoWindow = true;
+                                psi.WindowStyle = ProcessWindowStyle.Hidden;
+                                psi.FileName = "StandaloneInstallersWindows64/cmake.exe";
+                                psi.UseShellExecute = false;
+                                Log.TraceMessage(Log.Nav.NavIn, "Running 64 bit installer...", Log.LogType.Info);
+                                p = Process.Start(psi);
                             }
+                            Log.TraceMessage(Log.Nav.NavIn, "Adding csc to path...", Log.LogType.Info);
+                            const string name = "PATH";
+                            string pathvar = System.Environment.GetEnvironmentVariable(name);
+                            var value = pathvar + @";C:\cygnus\cygwin-b20\H-i586-cygwin32\bin";
+                            var target = EnvironmentVariableTarget.User;
+                            System.Environment.SetEnvironmentVariable(name, value, target);
                             return true;
                         }
                     }
@@ -126,16 +150,24 @@ namespace TheArena
                     Log.TraceMessage(Log.Nav.NavIn, "Grabbing Shell Process...", Log.LogType.Info);
                     if (process.Start())
                     {
-                         Log.TraceMessage(Log.Nav.NavIn, "Testing G++...", Log.LogType.Info);
-                        process.StandardInput.WriteLine("g++ -v");
+                         Log.TraceMessage(Log.Nav.NavIn, "Testing G++ linux...", Log.LogType.Info);
+                        process.StandardInput.WriteLine("cmake");
                         //Shows command in use
                         string err = "";
-                        for(int i=0; i<9; i++)
+                        /*while(!process.StandardError.EndOfStream)
                         {
+                            Log.TraceMessage(Log.Nav.NavIn, "One Error Line...", Log.LogType.Info);
                             err += process.StandardError.ReadLine();
                         }
+                        while (!process.StandardOutput.EndOfStream)
+                        {
+                            Log.TraceMessage(Log.Nav.NavIn, "One Output Line...", Log.LogType.Info);
+                            err += process.StandardOutput.ReadLine();
+                        }
+                        err += process.StandardError.ReadLine();*/
+                        err += process.StandardOutput.ReadLine();
                         Console.WriteLine(err);
-                        if(err.Contains("gcc version"))
+                        if(err.ToLower().Contains("usage"))
                         {
                             //Installed
                             Log.TraceMessage(Log.Nav.NavOut, "C++ Installed.", Log.LogType.Info);
@@ -146,6 +178,7 @@ namespace TheArena
                             //Need to install
                             Log.TraceMessage(Log.Nav.NavIn, "Installing...", Log.LogType.Info);
                             process.StandardInput.WriteLine("apt-get install g++");
+                            process.StandardInput.WriteLine("apt-get install cmake");
                             return true;
                         }
                     }
@@ -181,26 +214,19 @@ namespace TheArena
 
                     Log.TraceMessage(Log.Nav.NavIn, "Building file...", Log.LogType.Info);
                     cmdProcess.StandardInput.AutoFlush = true;
-                    if (IsCommandLineCpp)
-                    {
-                        cmdProcess.StandardInput.WriteLine("g++ " + file);
-                    }
-                    else
-                    {
-                        cmdProcess.StandardInput.WriteLine(@"C:\cygnus\cygwin-b20\H-i586-cygwin32\bin\g++ " + file);
-                    }
+                    cmdProcess.StandardInput.WriteLine("make " + file);
 
                     //Shows command in use
                     Console.WriteLine(cmdProcess.StandardOutput.ReadLine());
 
                     string result = cmdProcess.StandardOutput.ReadLine();
 
-                    while (result.Length > 0 && !result.ToUpper().Contains("WIN") && !result.ToUpper().Contains("LOSE"))
+                    while (result.Length > 0 && !result.ToUpper().Contains("I WON") && !result.ToUpper().Contains("I LOST"))
                     {
                         Console.WriteLine(result);
                         result = cmdProcess.StandardOutput.ReadLine();
                     }
-                    if (result.ToUpper().Contains("WIN"))
+                    if (result.ToUpper().Contains("I WON"))
                     {
                         return true;
                     }
@@ -223,17 +249,32 @@ namespace TheArena
                     Log.TraceMessage(Log.Nav.NavIn, "Grabbing Shell Process...", Log.LogType.Info);
                     if (process.Start())
                     {
-
+                        process.StandardInput.WriteLine("cd " + file.Substring(0, file.LastIndexOf('/')));
                         Log.TraceMessage(Log.Nav.NavIn, "Building...", Log.LogType.Info);
-                        process.StandardInput.WriteLine("g++ " + file);
-                        string result = process.StandardOutput.ReadLine();
-
-                        while (result.Length > 0 && !result.ToUpper().Contains("WIN") && !result.ToUpper().Contains("LOSE"))
+                        process.StandardInput.WriteLine("make");
+                        Log.TraceMessage(Log.Nav.NavIn, "Built", Log.LogType.Info);
+                        if (File.Exists("testRun"))
                         {
-                            Console.WriteLine(result);
-                            result = process.StandardOutput.ReadLine();
+                            File.Delete("testRun");
                         }
-                        if (result.ToUpper().Contains("WIN"))
+                        using (StreamWriter sw = new StreamWriter("testRun"))
+                        {
+                            sw.AutoFlush = true;
+                            sw.WriteLine("#!/bin/bash");
+                            sw.WriteLine("if [ -z \"$1\" ]");
+                            sw.WriteLine("  then");
+                            sw.WriteLine("    echo \"No argument(s) supplied. Please specify game session you want to join or make.\"");
+                            sw.WriteLine("  else");
+                            sw.WriteLine("    ./run ANARCHY -s dev.siggame.tk -r \"$@\"");
+                            sw.WriteLine("fi");
+                        }
+                        Log.TraceMessage(Log.Nav.NavIn, "Rewrote script-- running", Log.LogType.Info);
+                        process.StandardInput.WriteLine("./testRun abxds");
+                        var result = process.StandardOutput.ReadToEnd();
+                        var result2 = process.StandardError.ReadToEnd();
+                        Console.WriteLine(result);
+                        Console.WriteLine(result2);
+                        if (result.ToUpper().Contains("I WON"))
                         {
                             return true;
                         }

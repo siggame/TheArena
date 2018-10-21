@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
 
@@ -119,12 +120,10 @@ namespace TheArena
 
                         Log.TraceMessage(Log.Nav.NavIn, "Checking if Lua is Installed...", Log.LogType.Info);
                         // Reads the Lua version if installed
-                        string result = process.StandardOutput.ReadLine();
+                        string result = process.StandardError.ReadLine();
 
                         if (result.Length > 0)
                             Console.WriteLine(result);
-
-                        result = process.StandardError.ReadLine();
 
                         if (result.ToLower().StartsWith("luac: no"))
                         {
@@ -134,18 +133,12 @@ namespace TheArena
                         }
                         else
                         {
-                            //Shows command in use
-                            string err = "";
-                            for (int i = 0; i < 9; i++)
-                            {
-                                err += process.StandardError.ReadLine();
-                            }
-
-                            Console.WriteLine(err);
 
                             //Need to install
                             Log.TraceMessage(Log.Nav.NavIn, "Installing Lua...", Log.LogType.Info);
-                            process.StandardInput.WriteLine("sudo apt-get install lua5.3");
+                            process.StandardInput.WriteLine("sudo apt-get install luajit");
+                            process.StandardInput.WriteLine("sudo apt-get install luarocks");
+                            process.StandardInput.WriteLine("sudo luarocks install luasocket");
                             return true;
                         }
                     }
@@ -217,17 +210,32 @@ namespace TheArena
                     Log.TraceMessage(Log.Nav.NavIn, "Grabbing Shell Process...", Log.LogType.Info);
                     if (process.Start())
                     {
-
+                        process.StandardInput.WriteLine("cd " + file.Substring(0, file.LastIndexOf('/')));
                         Log.TraceMessage(Log.Nav.NavIn, "Building...", Log.LogType.Info);
-                        process.StandardInput.WriteLine("luac " + file);
                         string result = process.StandardOutput.ReadLine();
+                        if (File.Exists("testRun"))
+                        {
+                            File.Delete("testRun");
+                        }
+                        using (StreamWriter sw = new StreamWriter("testRun"))
+                        {
+                            sw.AutoFlush = true;
+                            sw.WriteLine("#!/bin/bash");
+                            sw.WriteLine("if [ -z \"$1\" ]");
+                            sw.WriteLine("  then");
+                            sw.WriteLine("    echo \"No argument(s) supplied. Please specify game session you want to join or make.\"");
+                            sw.WriteLine("  else");
+                            sw.WriteLine("    ./run ANARCHY -s dev.siggame.tk -r \"$@\"");
+                            sw.WriteLine("fi");
+                        }
+                        process.StandardInput.WriteLine("./testRun abxds");
 
-                        while (result.Length > 0 && !result.ToUpper().Contains("WIN") && !result.ToUpper().Contains("LOSE"))
+                        while (result.Length > 0 && !result.ToUpper().Contains("I WON") && !result.ToUpper().Contains("I LOST"))
                         {
                             Console.WriteLine(result);
                             result = process.StandardOutput.ReadLine();
                         }
-                        if (result.ToUpper().Contains("WIN"))
+                        if (result.ToUpper().Contains("I WON"))
                         {
                             return true;
                         }

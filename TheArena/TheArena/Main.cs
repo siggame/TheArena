@@ -41,7 +41,7 @@ namespace TheArena
     class Runner
     {
         const string HOST_ADDR = "127.0.0.1";
-        const string ARENA_FILES_PATH = @"C:\Users\ArianaGrande\Documents\git\TheArena\TheArena\TheArena\bin\Debug\netcoreapp2.0\ArenaFiles\";
+        const string ARENA_FILES_PATH = @"/mnt/d/git/second/TheArena/TheArena/TheArena/bin/Release/netcoreapp2.0/ArenaFiles/";
         const int HOST_PORT = 21;
         const int UDP_ASK_PORT = 234;
         const int UDP_CONFIRM_PORT = 1100;
@@ -58,14 +58,17 @@ namespace TheArena
                 Log.TraceMessage(Log.Nav.NavIn, "Starting FTP Server", Log.LogType.Info);
                 if (!Directory.Exists(ARENA_FILES_PATH))
                 {
+                    Log.TraceMessage(Log.Nav.NavIn, "Arena File Directory didn't exist.. creating now", Log.LogType.Info);
                     Directory.CreateDirectory(ARENA_FILES_PATH);
                 }
                 if (is_host)
                 {
+                    Log.TraceMessage(Log.Nav.NavIn, "Starting FTP Server on Host Address", Log.LogType.Info);
                     server = new FtpServer(IPAddress.Parse(HOST_ADDR), HOST_PORT, ARENA_FILES_PATH);
                 }
                 else
                 {
+                    Log.TraceMessage(Log.Nav.NavIn, "Starting FTP Server on Any Address", Log.LogType.Info);
                     server = new FtpServer(IPAddress.Any, HOST_PORT, ARENA_FILES_PATH);
                 }
                 server.Start();
@@ -109,8 +112,10 @@ namespace TheArena
 
         private static void ForeverQueueClients()
         {
+            Log.TraceMessage(Log.Nav.NavIn, "Starting UDP Client on port "+UDP_CONFIRM_PORT, Log.LogType.Info);
             using (UdpClient listener = new UdpClient(UDP_CONFIRM_PORT))
             {
+                Log.TraceMessage(Log.Nav.NavIn, "30 milliseconds before receive will timeout... ", Log.LogType.Info);
                 listener.Client.ReceiveTimeout = 30;
                 IPEndPoint anyIP = new IPEndPoint(IPAddress.Any, 0);
                 long counter = 0;
@@ -118,27 +123,34 @@ namespace TheArena
                 {
                     try
                     {
+                        Log.TraceMessage(Log.Nav.NavIn, "Trying to receive...", Log.LogType.Info);
                         byte[] bytes = listener.Receive(ref anyIP);
                         if (bytes[0] == 1) //Ping
                         {
+                            Log.TraceMessage(Log.Nav.NavIn, "Hey someone pinged us! "+anyIP.Address, Log.LogType.Info);
                             IPAddress newClient = anyIP.Address;
                             if (!clients.Contains(newClient))
                             {
+                                Log.TraceMessage(Log.Nav.NavIn, "They were new adding them to the client queue.", Log.LogType.Info);
                                 clients.Enqueue(newClient);
                             }
                         }
                         else //Game Finished
                         {
+                            Log.TraceMessage(Log.Nav.NavIn, "Hey a client is saying they finished their assigned game...", Log.LogType.Info);
                             for (int i = 0; i < currentlyRunningGames.Count; i++)
                             {
                                 if (currentlyRunningGames[i].clientRunningGame == anyIP.Address)
                                 {
+                                    Log.TraceMessage(Log.Nav.NavIn, "Found a currently running game they should have been running...", Log.LogType.Info);
+                                    Log.TraceMessage(Log.Nav.NavIn, "They sent us " + Encoding.ASCII.GetString(bytes), Log.LogType.Info);
                                     string[] str_data = Encoding.ASCII.GetString(bytes).Split(';');
                                     Game toCheck = currentlyRunningGames[i].GameRan;
                                     for (int j = 0; j < toCheck.Competitors.Count; j++)
                                     {
                                         if (toCheck.Competitors[j].Info.TeamName.Contains(str_data[0]))
                                         {
+                                            Log.TraceMessage(Log.Nav.NavIn, "We found a complete match--setting winner." + Encoding.ASCII.GetString(bytes), Log.LogType.Info);
                                             toCheck.SetWinner(toCheck.Competitors[j], currentlyRunningTourney, toCheck.Competitors[j].Info.TeamName, str_data[1]);
                                             toCheck.IsComplete = true;
                                             toCheck.IsRunning = false;
@@ -146,12 +158,13 @@ namespace TheArena
                                     }
                                 }
                             }
+                            Log.TraceMessage(Log.Nav.NavIn, "Sending Complete right back at em! " + Encoding.ASCII.GetString(bytes), Log.LogType.Info);
                             SendComplete(anyIP.Address);
                         }
                     }
                     catch (Exception ex)
                     {
-
+                        Log.TraceMessage(Log.Nav.NavIn, "Probably just receive timeouted but error="+ex.Message, Log.LogType.Error);
                     }
                 }
             }
@@ -164,6 +177,7 @@ namespace TheArena
             string[] split = fs.Split('_');
             if (split.Length == 3)
             {
+                Log.TraceMessage(Log.Nav.NavIn, "Adding Player To Arena " + e.FullPath, Log.LogType.Info);
                 AddPlayerToArena(split[0], split[1], split[2]);
             }
         }
@@ -175,26 +189,32 @@ namespace TheArena
             to_add.Submission = Submission;
             if (lang.ToLower().Contains("cpp"))
             {
+                Log.TraceMessage(Log.Nav.NavIn, "Cpp ", Log.LogType.Info);
                 to_add.lang = Languages.Cpp;
             }
             else if (lang.ToLower().Contains("javascript"))
             {
+                Log.TraceMessage(Log.Nav.NavIn, "Js ", Log.LogType.Info);
                 to_add.lang = Languages.Javascript;
             }
             else if (lang.ToLower().Contains("csharp"))
             {
+                Log.TraceMessage(Log.Nav.NavIn, "Csharp ", Log.LogType.Info);
                 to_add.lang = Languages.CSharp;
             }
             else if (lang.Contains("java"))
             {
+                Log.TraceMessage(Log.Nav.NavIn, "Java ", Log.LogType.Info);
                 to_add.lang = Languages.Java;
             }
             else if (lang.Contains("lua"))
             {
+                Log.TraceMessage(Log.Nav.NavIn, "Lua ", Log.LogType.Info);
                 to_add.lang = Languages.Lua;
             }
             else if (lang.Contains("python"))
             {
+                Log.TraceMessage(Log.Nav.NavIn, "Python ", Log.LogType.Info);
                 to_add.lang = Languages.Python;
             }
             if (!eligible_players.Contains(to_add))
@@ -210,6 +230,7 @@ namespace TheArena
 
         static void SendRunGame(IPAddress toRun)
         {
+            Log.TraceMessage(Log.Nav.NavIn, "Sending Run Game! ", Log.LogType.Info);
             using (Socket start_game = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp))
             {
                 start_game.SendTo(new byte[1] { 0 }, new IPEndPoint(toRun, UDP_ASK_PORT));
@@ -218,6 +239,7 @@ namespace TheArena
 
         static void SendComplete(IPAddress toComplete)
         {
+            Log.TraceMessage(Log.Nav.NavIn, "Sending Complete! ", Log.LogType.Info);
             using (Socket start_game = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp))
             {
                 start_game.SendTo(new byte[1] { 1 }, new IPEndPoint(toComplete, UDP_ASK_PORT));
@@ -231,10 +253,12 @@ namespace TheArena
             currentlyRunningTourney = t;
             while (!t.IsDone)
             {
+                Log.TraceMessage(Log.Nav.NavIn, "Tourney not done yet ", Log.LogType.Info);
                 for (int i = 0; i < currentlyRunningGames.Count; i++)
                 {
                     if ((new TimeSpan(DateTime.Now.Ticks - currentlyRunningGames[i].startTimeTicks)).TotalMinutes > 5)
                     {
+                        Log.TraceMessage(Log.Nav.NavIn, "It's been 5 minutes and game as not returned -- giving it to another client ", Log.LogType.Info);
                         currentlyRunningGames[i].GameRan.IsRunning = false;
                         currentlyRunningGames[i].GameRan.IsComplete = false;
                         currentlyRunningGames.RemoveAt(i);
@@ -245,10 +269,12 @@ namespace TheArena
                 t.GetNextNonRunningGame(out toAssign);
                 if (toAssign != null)
                 {
+                    Log.TraceMessage(Log.Nav.NavIn, "Game to assign is not null ", Log.LogType.Info);
                     IPAddress clientToRun;
                     bool dequeuedSuccess = clients.TryDequeue(out clientToRun);
                     if (dequeuedSuccess)
                     {
+                        Log.TraceMessage(Log.Nav.NavIn, "Dequeued Client ", Log.LogType.Info);
                         var files = Directory.GetFiles(ARENA_FILES_PATH);
                         for (int i = 0; i < toAssign.Competitors.Count; i++)
                         {
@@ -262,17 +288,21 @@ namespace TheArena
                                     {
                                         maxSubmissionNumber = int.Parse(files[j].Split('_')[1]);
                                         maxSubmission = files[j];
+                                        Log.TraceMessage(Log.Nav.NavIn, "Max submission number is now "+maxSubmissionNumber+" and "+maxSubmission, Log.LogType.Info);
                                     }
                                 }
                             }
+                            Log.TraceMessage(Log.Nav.NavIn, "Sending it over FTP", Log.LogType.Info);
                             FTPSender.Send_FTP(maxSubmission, clientToRun.ToString());
                         }
+                        Log.TraceMessage(Log.Nav.NavIn, "Sending run game", Log.LogType.Info);
                         SendRunGame(clientToRun);
                         toAssign.IsRunning = true;
                     }
                 }
                 else
                 {
+                    Log.TraceMessage(Log.Nav.NavIn, "Sleeping 5 seconds ", Log.LogType.Info);
                     Thread.Sleep(5000);
                 }
             }
@@ -283,17 +313,22 @@ namespace TheArena
             Log.TraceMessage(Log.Nav.NavIn, "Checking in Arena Directory for files to create eligible players...", Log.LogType.Info);
             if (!Directory.Exists(ARENA_FILES_PATH))
             {
+                Log.TraceMessage(Log.Nav.NavOut, "Arena File Directory Didn't Exist..Creating it now.", Log.LogType.Info);
                 Directory.CreateDirectory(ARENA_FILES_PATH);
             }
             var files = Directory.GetFiles(ARENA_FILES_PATH);
-            foreach (string f in files)
+            if (files != null && files.Length > 0)
             {
-                var fs = f.Substring(f.LastIndexOf('\\') + 1);
-                string[] split = fs.Split('_');
-                if (split.Length == 3)
+                Log.TraceMessage(Log.Nav.NavOut, files.Length+" Files existed in Arena Files Directory.", Log.LogType.Info);
+                foreach (string f in files)
                 {
-                    Log.TraceMessage(Log.Nav.NavIn, "Adding team: " + split[0], Log.LogType.Info);
-                    AddPlayerToArena(split[0], split[1], split[2]);
+                    var fs = f.Substring(f.LastIndexOf('\\') + 1);
+                    string[] split = fs.Split('_');
+                    if (split.Length == 3)
+                    {
+                        Log.TraceMessage(Log.Nav.NavIn, "Adding team: " + split[0], Log.LogType.Info);
+                        AddPlayerToArena(split[0], split[1], split[2]);
+                    }
                 }
             }
         }
@@ -301,41 +336,45 @@ namespace TheArena
         static void RunHost()
         {
             Log.TraceMessage(Log.Nav.NavIn, "This Arena is Host.", Log.LogType.Info);
+            Log.TraceMessage(Log.Nav.NavOut, "Filling Eligible Players.", Log.LogType.Info);
             FillEligiblePlayers();
+            Log.TraceMessage(Log.Nav.NavOut, "Setting Up Directory Watcher.", Log.LogType.Info);
             SetUpWatcher();
+            Log.TraceMessage(Log.Nav.NavOut, "Setting Up Client Listener.", Log.LogType.Info);
             SetUpClientListener();
+            Log.TraceMessage(Log.Nav.NavOut, "Setting Up FTP Server.", Log.LogType.Info);
             StartFTPServer(true);
         }
 
         static void RunClient()
         {
-            /*
+
             bool restartNeeded = false;
             Log.TraceMessage(Log.Nav.NavIn, "This Arena is Client.", Log.LogType.Info);
             Log.TraceMessage(Log.Nav.NavIn, "Checking for and installing if need be C++...", Log.LogType.Info);
-            restartNeeded=Cpp.InstallCpp() || restartNeeded;
+            restartNeeded = Cpp.InstallCpp() || restartNeeded;
             Log.TraceMessage(Log.Nav.NavIn, "Checking for and installing if need be Python...", Log.LogType.Info);
-            restartNeeded=Python.InstallPython() || restartNeeded;
+            restartNeeded = Python.InstallPython() || restartNeeded;
             Log.TraceMessage(Log.Nav.NavIn, "Checking for and installing if need be Java...", Log.LogType.Info);
-            restartNeeded=Java.InstallJava() || restartNeeded;
+            restartNeeded = Java.InstallJava() || restartNeeded;
             Log.TraceMessage(Log.Nav.NavIn, "Checking for and installing if need be Javascript...", Log.LogType.Info);
-            restartNeeded=Javascript.InstallJavascript() || restartNeeded;
+            restartNeeded = Javascript.InstallJavascript() || restartNeeded;
             Log.TraceMessage(Log.Nav.NavIn, "Checking for and installing if need be Lua...", Log.LogType.Info);
-            restartNeeded=Lua.InstallLua() || restartNeeded;
+            restartNeeded = Lua.InstallLua() || restartNeeded;
             Log.TraceMessage(Log.Nav.NavIn, "Checking for and installing if need be C#...", Log.LogType.Info);
-            restartNeeded=CSharp.InstallCSharp() || restartNeeded;
-            if(restartNeeded)
+            restartNeeded = CSharp.InstallCSharp() || restartNeeded;
+            /*if (restartNeeded)
             {
                 Log.TraceMessage(Log.Nav.NavIn, "An install was done and we must restart Visual Studio to use it...", Log.LogType.Info);
                 Log.TraceMessage(Log.Nav.NavIn, "Waiting 1 minute for all installs to finish...", Log.LogType.Info);
-                Thread.Sleep(1000*60);
+                Thread.Sleep(1000 * 60);
                 var rootDir = System.Reflection.Assembly.GetExecutingAssembly().CodeBase;
                 rootDir = rootDir.Substring(rootDir.IndexOf("//") + 3);
-                rootDir = rootDir.Substring(0, rootDir.LastIndexOf(@"/TheArena/"))+"/TheArena.sln";
+                rootDir = rootDir.Substring(0, rootDir.LastIndexOf(@"/TheArena/")) + "/TheArena.sln";
                 Process proc = new Process();
                 proc.EnableRaisingEvents = true;
                 proc.StartInfo.UseShellExecute = true;
-                proc.StartInfo.FileName=rootDir;
+                proc.StartInfo.FileName = rootDir;
                 Log.TraceMessage(Log.Nav.NavIn, "Starting new Visual Studio...", Log.LogType.Info);
                 proc.Start();
                 Process[] process = Process.GetProcessesByName("devenv");
@@ -350,7 +389,7 @@ namespace TheArena
             {
                 using (UdpClient ask_for_game = new UdpClient(UDP_ASK_PORT))
                 {
-                    ask_for_game.Client.ReceiveTimeout = 50;
+                    ask_for_game.Client.ReceiveTimeout = 5000;
                     Log.TraceMessage(Log.Nav.NavIn, "Only allow 5 seconds for sending and receiving...", Log.LogType.Info);
                     while (true)
                     {
@@ -377,8 +416,46 @@ namespace TheArena
             }
         }
 
+        public static void RunGame(object fileo)
+        {
+            string file = fileo as string;
+            Log.TraceMessage(Log.Nav.NavIn, "Extracting ", Log.LogType.Info);
+            ZipExtracter.ExtractZip(file, file.Substring(0, file.IndexOf(".")));
+            if (file.ToLower().Contains("js"))
+            {
+                Log.TraceMessage(Log.Nav.NavIn, "Building javascript ", Log.LogType.Info);
+                Javascript.BuildAndRun(file + "/Joueur.js/main.js");
+            }
+            else if (file.ToLower().Contains("cpp"))
+            {
+                Log.TraceMessage(Log.Nav.NavIn, "Building Cpp ", Log.LogType.Info);
+                Cpp.BuildAndRun(file + "/Joueur.cpp/main.cpp");
+            }
+            else if (file.ToLower().Contains("py"))
+            {
+                Log.TraceMessage(Log.Nav.NavIn, "Building Python ", Log.LogType.Info);
+                Python.BuildAndRun(file + "/Joueur.py/main.py");
+            }
+            else if (file.ToLower().Contains("lua"))
+            {
+                Log.TraceMessage(Log.Nav.NavIn, "Building Lua ", Log.LogType.Info);
+                Lua.BuildAndRun(file + "/Joueur.lua/main.lua");
+            }
+            else if (file.ToLower().Contains("java"))
+            {
+                Log.TraceMessage(Log.Nav.NavIn, "Building Java ", Log.LogType.Info);
+                Java.BuildAndRun(file + "/Joueur.java/main.java");
+            }
+            else if (file.ToLower().Contains("csharp"))
+            {
+                Log.TraceMessage(Log.Nav.NavIn, "Building Csharp ", Log.LogType.Info);
+                CSharp.BuildAndRun(file + "/Joueur.cs/main.cs");
+            }
+        }
+
         static void BuildAndRunGame()
         {
+            Log.TraceMessage(Log.Nav.NavIn, "Building and Running Game ", Log.LogType.Info);
             if (!Directory.Exists(ARENA_FILES_PATH))
             {
                 Directory.CreateDirectory(ARENA_FILES_PATH);
@@ -386,31 +463,8 @@ namespace TheArena
             var files = Directory.GetFiles(ARENA_FILES_PATH);
             foreach (var file in files)
             {
-                ZipExtracter.ExtractZip(file, file.Substring(0, file.IndexOf(".")));
-                if (file.ToLower().Contains("javascript"))
-                {
-                    Javascript.BuildAndRun(file + "/Joueur.js/main.js");
-                }
-                else if (file.ToLower().Contains("cpp"))
-                {
-                    Cpp.BuildAndRun(file + "/Joueur.cpp/main.cpp");
-                }
-                else if (file.ToLower().Contains("python"))
-                {
-                    Python.BuildAndRun(file + "/Joueur.py/main.py");
-                }
-                else if (file.ToLower().Contains("lua"))
-                {
-                    Lua.BuildAndRun(file + "/Joueur.lua/main.lua");
-                }
-                else if (file.ToLower().Contains("java"))
-                {
-                    Java.BuildAndRun(file + "/Joueur.java/main.java");
-                }
-                else if (file.ToLower().Contains("csharp"))
-                {
-                    CSharp.BuildAndRun(file + "/Joueur.cs/main.cs");
-                }
+                Thread t = new Thread(new ParameterizedThreadStart(RunGame));
+                t.Start(file);
             }
         }
 
@@ -419,21 +473,29 @@ namespace TheArena
             try
             {
                 Log.TraceMessage(Log.Nav.NavIn, "START", Log.LogType.Info);
+                Log.TraceMessage(Log.Nav.NavIn, "HOST ADDRESS is " + HOST_ADDR, Log.LogType.Info);
+                Log.TraceMessage(Log.Nav.NavIn, "Arena File Directory is " + ARENA_FILES_PATH, Log.LogType.Info);
+                Log.TraceMessage(Log.Nav.NavIn, "HOST PORT " + HOST_PORT, Log.LogType.Info);
+                Log.TraceMessage(Log.Nav.NavIn, "ASK PORT " + UDP_ASK_PORT, Log.LogType.Info);
+                Log.TraceMessage(Log.Nav.NavIn, "CONFIRM PORT " + UDP_CONFIRM_PORT, Log.LogType.Info);
                 string hostName = Dns.GetHostName(); // Retrive the Name of HOST  
+                Log.TraceMessage(Log.Nav.NavIn, "HOST NAME: " + hostName, Log.LogType.Info);
                 var myIP = Dns.GetHostEntry(hostName).AddressList;
                 IPAddress arena_host_address = IPAddress.Parse(HOST_ADDR);
-                /*if (myIP.ToList().Contains(arena_host_address))
-                {*/
-                    RunHost();
-                /*}
-                else
-                {
+                //if (myIP.ToList().Contains(arena_host_address))
+                //{
+                //    Log.TraceMessage(Log.Nav.NavIn, "My IP matches Host IP", Log.LogType.Info);
+                //   RunHost();
+                //}
+                //else
+                //{
+                //    Log.TraceMessage(Log.Nav.NavIn, "My IP does NOT match Host IP", Log.LogType.Info);
                     RunClient();
-                }*/
+                //}
             }
             catch (Exception ex)
             {
-                Log.TraceMessage(Log.Nav.NavIn, "Exception in Main Thread: " + ex.Message, Log.LogType.Info);
+                Log.TraceMessage(Log.Nav.NavIn, "Exception in Main Thread: " + ex.Message, Log.LogType.Error);
             }
         }
     }
