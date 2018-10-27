@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Logger;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
@@ -33,10 +34,13 @@ namespace TheArena
         static List<Game> games=new List<Game>();
         int competitor_slots_in_bracket = 0;
         static int Rounds;
+        Player champion;
         public bool IsDone { get; set; }
 
         public void GetNextNonRunningGame(out Game toReturn)
         {
+            Log.TraceMessage(Log.Nav.NavIn, "Getting Next NonRunning Game ", Log.LogType.Info);
+            champion.Traverse(PrettyPrint);
             bool allGamesComplete = true;
             for(int i=0; i<games.Count; i++)
             {
@@ -74,7 +78,7 @@ namespace TheArena
             blank.lang = Languages.None;
             blank.Submission = "0";
             blank.TeamName = "";
-            Player champion = new Player(blank);
+            champion = new Player(blank);
             champion.ParentNode = null;
             Rounds = number_of_rounds;
             unfilledCompetitors = competitors;

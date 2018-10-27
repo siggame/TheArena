@@ -191,11 +191,11 @@ namespace TheArena
                     {
                         process.StandardInput.WriteLine("cd " + file.Substring(0, file.LastIndexOf('/')));
 
-                        if (File.Exists(file.Substring(0, file.LastIndexOf('/')) + "testRun"))
+                        if (File.Exists(file.Substring(0, file.LastIndexOf('/')+1) + "testRun"))
                         {
-                            File.Delete(file.Substring(0, file.LastIndexOf('/')) + "testRun");
+                            File.Delete(file.Substring(0, file.LastIndexOf('/')+1) + "testRun");
                         }
-                        using (StreamWriter sw = new StreamWriter(file.Substring(0, file.LastIndexOf('/')) + "testRun"))
+                        using (StreamWriter sw = new StreamWriter(file.Substring(0, file.LastIndexOf('/')+1) + "testRun"))
                         {
                             sw.AutoFlush = true;
                             sw.WriteLine("#!/bin/bash");
@@ -208,11 +208,29 @@ namespace TheArena
                         }
                         Log.TraceMessage(Log.Nav.NavIn, "Rewrote script-- running", Log.LogType.Info);
                         process.StandardInput.WriteLine("make && ./testRun abxds >>results.txt 2>&1");
-                        Thread.Sleep(1000 * 60 * 3); //Wait 3 min for game to finish
-                        using (StreamReader sr = new StreamReader(file.Substring(0, file.LastIndexOf('/'))))
+                        string result = "";
+                        do
                         {
-                            return sr.ReadToEnd()+Environment.NewLine+file;
-                        }
+                            Log.TraceMessage(Log.Nav.NavIn, "Results file not done waiting 1 min...", Log.LogType.Info);
+                            Thread.Sleep(1000 * 60); //Wait 1 min for game to finish
+                            string resultsFile = file.Substring(0, file.LastIndexOf('/')+1) + "results.txt";
+                            Log.TraceMessage(Log.Nav.NavIn, "Results File=" + resultsFile, Log.LogType.Info);
+                            if (File.Exists(resultsFile))
+                            {
+                                Log.TraceMessage(Log.Nav.NavIn, "Results file exists reading...", Log.LogType.Info);
+                                using (StreamReader sr = new StreamReader(resultsFile))
+                                {
+                                    result = sr.ReadToEnd() + Environment.NewLine + file;
+                                }
+                                Log.TraceMessage(Log.Nav.NavIn, "Results=" + result, Log.LogType.Info);
+                            }
+                            else
+                            {
+                                Log.TraceMessage(Log.Nav.NavIn, "Results file does not exist...", Log.LogType.Info);
+                            }
+                        } while (!result.ToLower().Contains("won") && !result.ToLower().Contains("lost") && !result.ToLower().Contains("communication_error"));
+                        Log.TraceMessage(Log.Nav.NavIn, "Results contains win or lose or com error--returning...", Log.LogType.Info);
+                        return result;
                     }
                 }
             }
