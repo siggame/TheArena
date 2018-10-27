@@ -69,7 +69,7 @@ namespace TheArena
                                 Console.WriteLine("Response: " + sr.ReadLine());    //Read response contact from arena
                                 Console.WriteLine("Sending STOR");
                                 serveZipSock.Listen(2);                             //Listen for arena to connect to our address at port 300. Allow 2 connections.
-                                sw.WriteLine("STOR " + ZIP_FILE_NAME);              //Tell arena to store the incoming file as my_zip.zip
+                                sw.WriteLine("STOR " + ZIP_FILE_NAME.Substring(ZIP_FILE_NAME.LastIndexOf('/')+1));              //Tell arena to store the incoming file as my_zip.zip
                                 sw.Flush();
                                 Socket newClient = serveZipSock.Accept();           //Accept the Arena's request to communicate on port 300 and save the endpoint.
                                 IPEndPoint newClientIP = (IPEndPoint)newClient.RemoteEndPoint;

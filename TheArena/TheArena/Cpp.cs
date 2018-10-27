@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 
 namespace TheArena
 {
@@ -142,52 +143,24 @@ namespace TheArena
                 using (Process process = new Process())
                 {
                     process.StartInfo.CreateNoWindow = true;
-                    process.StartInfo.RedirectStandardError = true;
+                    process.StartInfo.RedirectStandardError = false;
                     process.StartInfo.RedirectStandardInput = true;
-                    process.StartInfo.RedirectStandardOutput = true;
+                    process.StartInfo.RedirectStandardOutput = false;
                     process.StartInfo.UseShellExecute = false;
                     process.StartInfo.FileName = Environment.GetEnvironmentVariable("SHELL");
                     Log.TraceMessage(Log.Nav.NavIn, "Grabbing Shell Process...", Log.LogType.Info);
                     if (process.Start())
                     {
-                         Log.TraceMessage(Log.Nav.NavIn, "Testing G++ linux...", Log.LogType.Info);
-                        process.StandardInput.WriteLine("cmake");
-                        //Shows command in use
-                        string err = "";
-                        /*while(!process.StandardError.EndOfStream)
-                        {
-                            Log.TraceMessage(Log.Nav.NavIn, "One Error Line...", Log.LogType.Info);
-                            err += process.StandardError.ReadLine();
-                        }
-                        while (!process.StandardOutput.EndOfStream)
-                        {
-                            Log.TraceMessage(Log.Nav.NavIn, "One Output Line...", Log.LogType.Info);
-                            err += process.StandardOutput.ReadLine();
-                        }
-                        err += process.StandardError.ReadLine();*/
-                        err += process.StandardOutput.ReadLine();
-                        Console.WriteLine(err);
-                        if(err.ToLower().Contains("usage"))
-                        {
-                            //Installed
-                            Log.TraceMessage(Log.Nav.NavOut, "C++ Installed.", Log.LogType.Info);
-                            IsCommandLineCpp = true;
-                        }
-                        else
-                        {
-                            //Need to install
-                            Log.TraceMessage(Log.Nav.NavIn, "Installing...", Log.LogType.Info);
-                            process.StandardInput.WriteLine("apt-get install g++");
-                            process.StandardInput.WriteLine("apt-get install cmake");
-                            return true;
-                        }
+                        Log.TraceMessage(Log.Nav.NavIn, "Installing...", Log.LogType.Info);
+                        process.StandardInput.WriteLine("apt-get install g++");
+                        process.StandardInput.WriteLine("apt-get install cmake");
                     }
                 }
             }
             return false;
         }
 
-        public static bool BuildAndRun(string file)
+        public static string BuildAndRun(string file)
         {
             bool isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
             bool isLinux = RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
@@ -228,7 +201,7 @@ namespace TheArena
                     }
                     if (result.ToUpper().Contains("I WON"))
                     {
-                        return true;
+                        return "won";
                     }
                     string err = cmdProcess.StandardError.ReadLine();
                     err += cmdProcess.StandardError.ReadLine();
@@ -241,23 +214,21 @@ namespace TheArena
                 using (Process process = new Process())
                 {
                     process.StartInfo.CreateNoWindow = true;
-                    process.StartInfo.RedirectStandardError = true;
+                    process.StartInfo.RedirectStandardError = false;
                     process.StartInfo.RedirectStandardInput = true;
-                    process.StartInfo.RedirectStandardOutput = true;
+                    process.StartInfo.RedirectStandardOutput = false;
                     process.StartInfo.UseShellExecute = false;
                     process.StartInfo.FileName = Environment.GetEnvironmentVariable("SHELL");
                     Log.TraceMessage(Log.Nav.NavIn, "Grabbing Shell Process...", Log.LogType.Info);
                     if (process.Start())
                     {
                         process.StandardInput.WriteLine("cd " + file.Substring(0, file.LastIndexOf('/')));
-                        Log.TraceMessage(Log.Nav.NavIn, "Building...", Log.LogType.Info);
-                        process.StandardInput.WriteLine("make");
-                        Log.TraceMessage(Log.Nav.NavIn, "Built", Log.LogType.Info);
-                        if (File.Exists("testRun"))
+                            
+                        if (File.Exists(file.Substring(0, file.LastIndexOf('/'))+"testRun"))
                         {
-                            File.Delete("testRun");
+                            File.Delete(file.Substring(0, file.LastIndexOf('/'))+"testRun");
                         }
-                        using (StreamWriter sw = new StreamWriter("testRun"))
+                        using (StreamWriter sw = new StreamWriter(file.Substring(0, file.LastIndexOf('/'))+"testRun"))
                         {
                             sw.AutoFlush = true;
                             sw.WriteLine("#!/bin/bash");
@@ -269,19 +240,16 @@ namespace TheArena
                             sw.WriteLine("fi");
                         }
                         Log.TraceMessage(Log.Nav.NavIn, "Rewrote script-- running", Log.LogType.Info);
-                        process.StandardInput.WriteLine("./testRun abxds");
-                        var result = process.StandardOutput.ReadToEnd();
-                        var result2 = process.StandardError.ReadToEnd();
-                        Console.WriteLine(result);
-                        Console.WriteLine(result2);
-                        if (result.ToUpper().Contains("I WON"))
+                        process.StandardInput.WriteLine("make && ./testRun abxds >>results.txt 2>&1");
+                        Thread.Sleep(1000 * 60 * 15); //Wait 15 min for game to finish
+                        using (StreamReader sr = new StreamReader(file.Substring(0, file.LastIndexOf('/'))))
                         {
-                            return true;
+                            return sr.ReadToEnd() + Environment.NewLine + file;
                         }
                     }
                 }
             }
-            return false;
+            return "";
         }
     }
 }

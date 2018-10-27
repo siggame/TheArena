@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 
 namespace TheArena
 {
@@ -37,7 +38,7 @@ namespace TheArena
 
                     Log.TraceMessage(Log.Nav.NavIn, "Checking if Lua installed...", Log.LogType.Info);
                     cmdProcess.StandardInput.AutoFlush = true;
-                    cmdProcess.StandardInput.WriteLine(LUA_PATH+"luac");
+                    cmdProcess.StandardInput.WriteLine(LUA_PATH + "luac");
 
                     //Shows command in use
                     Console.WriteLine(cmdProcess.StandardOutput.ReadLine());
@@ -108,46 +109,25 @@ namespace TheArena
                 using (Process process = new Process())
                 {
                     process.StartInfo.CreateNoWindow = true;
-                    process.StartInfo.RedirectStandardError = true;
+                    process.StartInfo.RedirectStandardError = false;
                     process.StartInfo.RedirectStandardInput = true;
-                    process.StartInfo.RedirectStandardOutput = true;
+                    process.StartInfo.RedirectStandardOutput = false;
                     process.StartInfo.UseShellExecute = false;
                     process.StartInfo.FileName = Environment.GetEnvironmentVariable("SHELL");
                     Log.TraceMessage(Log.Nav.NavIn, "Grabbing Shell Process...", Log.LogType.Info);
                     if (process.Start())
                     {
-                        process.StandardInput.WriteLine("luac");
-
-                        Log.TraceMessage(Log.Nav.NavIn, "Checking if Lua is Installed...", Log.LogType.Info);
-                        // Reads the Lua version if installed
-                        string result = process.StandardError.ReadLine();
-
-                        if (result.Length > 0)
-                            Console.WriteLine(result);
-
-                        if (result.ToLower().StartsWith("luac: no"))
-                        {
-                            // Lua has been installed
-                            Log.TraceMessage(Log.Nav.NavOut, "Lua Installed.", Log.LogType.Info);
-                            return false;
-                        }
-                        else
-                        {
-
-                            //Need to install
-                            Log.TraceMessage(Log.Nav.NavIn, "Installing Lua...", Log.LogType.Info);
-                            process.StandardInput.WriteLine("sudo apt-get install luajit");
-                            process.StandardInput.WriteLine("sudo apt-get install luarocks");
-                            process.StandardInput.WriteLine("sudo luarocks install luasocket");
-                            return true;
-                        }
+                        Log.TraceMessage(Log.Nav.NavIn, "Installing Lua...", Log.LogType.Info);
+                        process.StandardInput.WriteLine("sudo apt-get install luajit");
+                        process.StandardInput.WriteLine("sudo apt-get install luarocks");
+                        process.StandardInput.WriteLine("sudo luarocks install luasocket");
                     }
                 }
             }
             return false;
         }
 
-        public static bool BuildAndRun(string file)
+        public static string BuildAndRun(string file)
         {
             bool isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
             bool isLinux = RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
@@ -174,7 +154,7 @@ namespace TheArena
 
                     Log.TraceMessage(Log.Nav.NavIn, "Building file...", Log.LogType.Info);
                     cmdProcess.StandardInput.AutoFlush = true;
-                    cmdProcess.StandardInput.WriteLine(LUA_PATH+"luac " + file);
+                    cmdProcess.StandardInput.WriteLine(LUA_PATH + "luac " + file);
 
 
                     //Shows command in use
@@ -189,7 +169,7 @@ namespace TheArena
                     }
                     if (result.ToUpper().Contains("WIN"))
                     {
-                        return true;
+                        return "win";
                     }
                     string err = cmdProcess.StandardError.ReadLine();
                     err += cmdProcess.StandardError.ReadLine();
@@ -202,22 +182,21 @@ namespace TheArena
                 using (Process process = new Process())
                 {
                     process.StartInfo.CreateNoWindow = true;
-                    process.StartInfo.RedirectStandardError = true;
+                    process.StartInfo.RedirectStandardError = false;
                     process.StartInfo.RedirectStandardInput = true;
-                    process.StartInfo.RedirectStandardOutput = true;
+                    process.StartInfo.RedirectStandardOutput = false;
                     process.StartInfo.UseShellExecute = false;
                     process.StartInfo.FileName = Environment.GetEnvironmentVariable("SHELL");
                     Log.TraceMessage(Log.Nav.NavIn, "Grabbing Shell Process...", Log.LogType.Info);
                     if (process.Start())
                     {
                         process.StandardInput.WriteLine("cd " + file.Substring(0, file.LastIndexOf('/')));
-                        Log.TraceMessage(Log.Nav.NavIn, "Building...", Log.LogType.Info);
-                        string result = process.StandardOutput.ReadLine();
-                        if (File.Exists("testRun"))
+
+                        if (File.Exists(file.Substring(0, file.LastIndexOf('/')) + "testRun"))
                         {
-                            File.Delete("testRun");
+                            File.Delete(file.Substring(0, file.LastIndexOf('/')) + "testRun");
                         }
-                        using (StreamWriter sw = new StreamWriter("testRun"))
+                        using (StreamWriter sw = new StreamWriter(file.Substring(0, file.LastIndexOf('/')) + "testRun"))
                         {
                             sw.AutoFlush = true;
                             sw.WriteLine("#!/bin/bash");
@@ -228,21 +207,17 @@ namespace TheArena
                             sw.WriteLine("    ./run ANARCHY -s dev.siggame.tk -r \"$@\"");
                             sw.WriteLine("fi");
                         }
-                        process.StandardInput.WriteLine("./testRun abxds");
-
-                        while (result.Length > 0 && !result.ToUpper().Contains("I WON") && !result.ToUpper().Contains("I LOST"))
+                        Log.TraceMessage(Log.Nav.NavIn, "Rewrote script-- running", Log.LogType.Info);
+                        process.StandardInput.WriteLine("make && ./testRun abxds >>results.txt 2>&1");
+                        Thread.Sleep(1000 * 60 * 3); //Wait 3 min for game to finish
+                        using (StreamReader sr = new StreamReader(file.Substring(0, file.LastIndexOf('/'))))
                         {
-                            Console.WriteLine(result);
-                            result = process.StandardOutput.ReadLine();
-                        }
-                        if (result.ToUpper().Contains("I WON"))
-                        {
-                            return true;
+                            return sr.ReadToEnd() + Environment.NewLine + file;
                         }
                     }
                 }
             }
-            return false;
+            return "";
         }
     }
 }

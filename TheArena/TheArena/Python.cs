@@ -3,6 +3,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Threading;
 
 namespace TheArena
 {
@@ -115,48 +116,17 @@ namespace TheArena
                     Log.TraceMessage(Log.Nav.NavIn, "Grabbing Shell Process...", Log.LogType.Info);
                     if (process.Start())
                     {
-                        process.StandardInput.WriteLine("python3 -V");
-
-                        Log.TraceMessage(Log.Nav.NavIn, "Checking if Python is Installed.", Log.LogType.Info);
-
-                        // Reads the python version if installed
-                        string result = process.StandardOutput.ReadLine();
-
-                        if (result.Length > 0)
-                            Console.WriteLine(result);
-
-                        if (result.ToLower().StartsWith("python"))
-                        {
-                            // Python has been installed
-                            Log.TraceMessage(Log.Nav.NavOut, "Python Installed.", Log.LogType.Info);
-                            return false;
-                        }
-                        else
-                        {
-                            //Shows command in use
-                            string err = "";
-                            for (int i = 0; i < 9; i++)
-                            {
-                                err += process.StandardError.ReadLine();
-                            }
-
-                            Console.WriteLine(err);
-
-                            Log.TraceMessage(Log.Nav.NavIn, "Installing Python...", Log.LogType.Info);
-
-                            //Need to install
-                            process.StandardInput.WriteLine("sudo add-apt-repository ppa:deadsnakes/ppa");
-                            process.StandardInput.WriteLine("sudo apt-get update");
-                            process.StandardInput.WriteLine("sudo apt-get install python3.7");
-                            return true;
-                        }
+                        Log.TraceMessage(Log.Nav.NavIn, "Installing Python...", Log.LogType.Info);
+                        process.StandardInput.WriteLine("sudo add-apt-repository ppa:deadsnakes/ppa");
+                        process.StandardInput.WriteLine("sudo apt-get update");
+                        process.StandardInput.WriteLine("sudo apt-get install python3.7");
                     }
                 }
             }
             return false;
         }
 
-        public static bool BuildAndRun(string file)
+        public static string BuildAndRun(string file)
         {
             bool isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
             bool isLinux = RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
@@ -198,7 +168,7 @@ namespace TheArena
                     }
                     if (result.ToUpper().Contains("WIN"))
                     {
-                        return true;
+                        return "win";
                     }
                     string err = cmdProcess.StandardError.ReadLine();
                     err += cmdProcess.StandardError.ReadLine();
@@ -211,22 +181,21 @@ namespace TheArena
                 using (Process process = new Process())
                 {
                     process.StartInfo.CreateNoWindow = true;
-                    process.StartInfo.RedirectStandardError = true;
+                    process.StartInfo.RedirectStandardError = false;
                     process.StartInfo.RedirectStandardInput = true;
-                    process.StartInfo.RedirectStandardOutput = true;
+                    process.StartInfo.RedirectStandardOutput = false;
                     process.StartInfo.UseShellExecute = false;
                     process.StartInfo.FileName = Environment.GetEnvironmentVariable("SHELL");
                     Log.TraceMessage(Log.Nav.NavIn, "Grabbing Shell Process...", Log.LogType.Info);
                     if (process.Start())
                     {
                         process.StandardInput.WriteLine("cd " + file.Substring(0, file.LastIndexOf('/')));
-                        Log.TraceMessage(Log.Nav.NavIn, "Building...", Log.LogType.Info);
-                        string result = process.StandardOutput.ReadLine();
-                        if (File.Exists("testRun"))
+
+                        if (File.Exists(file.Substring(0, file.LastIndexOf('/')) + "testRun"))
                         {
-                            File.Delete("testRun");
+                            File.Delete(file.Substring(0, file.LastIndexOf('/')) + "testRun");
                         }
-                        using (StreamWriter sw = new StreamWriter("testRun"))
+                        using (StreamWriter sw = new StreamWriter(file.Substring(0, file.LastIndexOf('/')) + "testRun"))
                         {
                             sw.AutoFlush = true;
                             sw.WriteLine("#!/bin/bash");
@@ -237,21 +206,17 @@ namespace TheArena
                             sw.WriteLine("    ./run ANARCHY -s dev.siggame.tk -r \"$@\"");
                             sw.WriteLine("fi");
                         }
-                        process.StandardInput.WriteLine("./testRun abxds");
-
-                        while (result.Length > 0 && !result.ToUpper().Contains("I WON") && !result.ToUpper().Contains("I LOST"))
+                        Log.TraceMessage(Log.Nav.NavIn, "Rewrote script-- running", Log.LogType.Info);
+                        process.StandardInput.WriteLine("make && ./testRun abxds >>results.txt 2>&1");
+                        Thread.Sleep(1000 * 60 * 3); //Wait 3 min for game to finish
+                        using (StreamReader sr = new StreamReader(file.Substring(0, file.LastIndexOf('/'))))
                         {
-                            Console.WriteLine(result);
-                            result = process.StandardOutput.ReadLine();
-                        }
-                        if (result.ToUpper().Contains("I WON"))
-                        {
-                            return true;
+                            return sr.ReadToEnd()+Environment.NewLine+file;
                         }
                     }
                 }
             }
-            return false;
+            return "";
         }
     }
 }

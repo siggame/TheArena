@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 
 namespace TheArena
 {
@@ -63,7 +64,7 @@ namespace TheArena
                             Log.TraceMessage(Log.Nav.NavIn, "Not Recognized.", Log.LogType.Info);
                             //see if we already installed -
 
-    
+
                             cmdProcess.StandardInput.AutoFlush = true;
 
                             //No we didn't install yet.
@@ -99,45 +100,26 @@ namespace TheArena
                 using (Process process = new Process())
                 {
                     process.StartInfo.CreateNoWindow = true;
-                    process.StartInfo.RedirectStandardError = true;
+                    process.StartInfo.RedirectStandardError = false;
                     process.StartInfo.RedirectStandardInput = true;
-                    process.StartInfo.RedirectStandardOutput = true;
+                    process.StartInfo.RedirectStandardOutput = false;
                     process.StartInfo.UseShellExecute = false;
                     process.StartInfo.FileName = Environment.GetEnvironmentVariable("SHELL");
                     Log.TraceMessage(Log.Nav.NavIn, "Grabbing Shell Process...", Log.LogType.Info);
                     if (process.Start())
                     {
-                        Log.TraceMessage(Log.Nav.NavIn, "Checking for csharp compiler dotnet...", Log.LogType.Info);
-                        process.StandardInput.WriteLine("dotnet");
-
-                        string result = process.StandardOutput.ReadLine();
-
-                        if (result.Length > 0)
-                            Console.WriteLine(result);
-
-                        if (result.ToLower().StartsWith("usage"))
-                        {
-                            Log.TraceMessage(Log.Nav.NavOut, "CSharp Installed.", Log.LogType.Info);
-                            return false;
-                        }
-                        else
-                        {
-
-                            //Need to install
-                            Log.TraceMessage(Log.Nav.NavIn, "Installing Dotnet...", Log.LogType.Info);
-                            process.StandardInput.WriteLine("wget -q https://packages.microsoft.com/config/ubuntu/18.04/packages-microsoft-prod.deb");
-                            process.StandardInput.WriteLine("sudo dpkg -i packages-microsoft-prod.deb");
-                            process.StandardInput.WriteLine("sudo apt-get update");
-                            process.StandardInput.WriteLine("sudo apt-get install dotnet-sdk-2.1");
-                            return true;
-                        }
+                        Log.TraceMessage(Log.Nav.NavIn, "Installing Dotnet...", Log.LogType.Info);
+                        process.StandardInput.WriteLine("wget -q https://packages.microsoft.com/config/ubuntu/18.04/packages-microsoft-prod.deb");
+                        process.StandardInput.WriteLine("sudo dpkg -i packages-microsoft-prod.deb");
+                        process.StandardInput.WriteLine("sudo apt-get update");
+                        process.StandardInput.WriteLine("sudo apt-get install dotnet-sdk-2.1");
                     }
                 }
             }
             return false;
         }
 
-        public static bool BuildAndRun(string file)
+        public static string BuildAndRun(string file)
         {
             bool isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
             bool isLinux = RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
@@ -179,7 +161,7 @@ namespace TheArena
                     }
                     if (result.ToUpper().Contains("WIN"))
                     {
-                        return true;
+                        return "win";
                     }
                     string err = cmdProcess.StandardError.ReadLine();
                     err += cmdProcess.StandardError.ReadLine();
@@ -191,39 +173,43 @@ namespace TheArena
                 Log.TraceMessage(Log.Nav.NavIn, "Is Linux.", Log.LogType.Info);
                 using (Process process = new Process())
                 {
-                    process.StandardInput.WriteLine("cd " + file.Substring(0, file.LastIndexOf('/')));
-                    Log.TraceMessage(Log.Nav.NavIn, "Building...", Log.LogType.Info);
-                    process.StandardInput.WriteLine("make");
-                    string result = process.StandardOutput.ReadLine();
-                    if (File.Exists("testRun"))
+                    process.StartInfo.CreateNoWindow = true;
+                    process.StartInfo.RedirectStandardError = false;
+                    process.StartInfo.RedirectStandardInput = true;
+                    process.StartInfo.RedirectStandardOutput = false;
+                    process.StartInfo.UseShellExecute = false;
+                    process.StartInfo.FileName = Environment.GetEnvironmentVariable("SHELL");
+                    Log.TraceMessage(Log.Nav.NavIn, "Grabbing Shell Process...", Log.LogType.Info);
+                    if (process.Start())
                     {
-                        File.Delete("testRun");
-                    }
-                    using (StreamWriter sw = new StreamWriter("testRun"))
-                    {
-                        sw.AutoFlush = true;
-                        sw.WriteLine("#!/bin/bash");
-                        sw.WriteLine("if [ -z \"$1\" ]");
-                        sw.WriteLine("  then");
-                        sw.WriteLine("    echo \"No argument(s) supplied. Please specify game session you want to join or make.\"");
-                        sw.WriteLine("  else");
-                        sw.WriteLine("    ./run ANARCHY -s dev.siggame.tk -r \"$@\"");
-                        sw.WriteLine("fi");
-                    }
-                    process.StandardInput.WriteLine("./testRun abxds");
+                        process.StandardInput.WriteLine("cd " + file.Substring(0, file.LastIndexOf('/')));
 
-                    while (result.Length > 0 && !result.ToUpper().Contains("I WON") && !result.ToUpper().Contains("I LOST"))
-                    {
-                        Console.WriteLine(result);
-                        result = process.StandardOutput.ReadLine();
-                    }
-                    if (result.ToUpper().Contains("I WON"))
-                    {
-                        return true;
+                        if (File.Exists(file.Substring(0, file.LastIndexOf('/')) + "testRun"))
+                        {
+                            File.Delete(file.Substring(0, file.LastIndexOf('/')) + "testRun");
+                        }
+                        using (StreamWriter sw = new StreamWriter(file.Substring(0, file.LastIndexOf('/')) + "testRun"))
+                        {
+                            sw.AutoFlush = true;
+                            sw.WriteLine("#!/bin/bash");
+                            sw.WriteLine("if [ -z \"$1\" ]");
+                            sw.WriteLine("  then");
+                            sw.WriteLine("    echo \"No argument(s) supplied. Please specify game session you want to join or make.\"");
+                            sw.WriteLine("  else");
+                            sw.WriteLine("    ./run ANARCHY -s dev.siggame.tk -r \"$@\"");
+                            sw.WriteLine("fi");
+                        }
+                        Log.TraceMessage(Log.Nav.NavIn, "Rewrote script-- running", Log.LogType.Info);
+                        process.StandardInput.WriteLine("make && ./testRun abxds >>results.txt 2>&1");
+                        Thread.Sleep(1000 * 60 * 3); //Wait 3 min for game to finish
+                        using (StreamReader sr = new StreamReader(file.Substring(0, file.LastIndexOf('/'))))
+                        {
+                            return sr.ReadToEnd() + Environment.NewLine + file;
+                        }
                     }
                 }
             }
-            return false;
+            return "";
         }
     }
 }
