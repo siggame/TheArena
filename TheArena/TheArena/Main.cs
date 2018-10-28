@@ -36,12 +36,12 @@ namespace TheArena
     {
         public IPAddress clientRunningGame { get; set; }
         public Game GameRan { get; set; }
-        public int startTimeTicks { get; set; }
+        public long startTimeTicks { get; set; }
     }
 
     class Runner
     {
-        const string HOST_ADDR = "35.239.194.206";
+        const string HOST_ADDR = "10.128.0.2";
         const string ARENA_FILES_PATH = @"/ArenaFiles/";
         const int HOST_PORT = 21;
         const int UDP_ASK_PORT = 234;
@@ -304,6 +304,11 @@ namespace TheArena
                         Log.TraceMessage(Log.Nav.NavIn, "Sending run game", Log.LogType.Info);
                         SendRunGame(clientToRun);
                         toAssign.IsRunning = true;
+                        RunGameInfo rgi = new RunGameInfo();
+                        rgi.clientRunningGame = clientToRun;
+                        rgi.GameRan = toAssign;
+                        rgi.startTimeTicks = DateTime.Now.Ticks;
+                        currentlyRunningGames.Add(rgi);
                     }
                 }
                 else
@@ -586,16 +591,16 @@ namespace TheArena
                 Log.TraceMessage(Log.Nav.NavIn, "HOST NAME: " + hostName, Log.LogType.Info);
                 var myIP = Dns.GetHostEntry(hostName).AddressList;
                 IPAddress arena_host_address = IPAddress.Parse(HOST_ADDR);
-                //if (myIP.ToList().Contains(arena_host_address))
-                //{
-                //    Log.TraceMessage(Log.Nav.NavIn, "My IP matches Host IP", Log.LogType.Info);
-                   RunHost();
-                //}
-                //else
-                //{
-                //    Log.TraceMessage(Log.Nav.NavIn, "My IP does NOT match Host IP", Log.LogType.Info);
-                //RunClient();
-                //}
+                if (myIP.ToList().Contains(arena_host_address))
+                {
+                    Log.TraceMessage(Log.Nav.NavIn, "My IP matches Host IP", Log.LogType.Info);
+                    RunHost();
+                }
+                else
+                {
+                    Log.TraceMessage(Log.Nav.NavIn, "My IP does NOT match Host IP", Log.LogType.Info);
+                    RunClient();
+                }
             }
             catch (Exception ex)
             {

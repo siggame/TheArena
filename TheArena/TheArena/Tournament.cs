@@ -52,6 +52,12 @@ namespace TheArena
                         toReturn= games[i];
                         return;
                     }
+                    else if(games[i].Competitors.Count==1 && games[i].Competitors[0].Info.TeamName!="")
+                    {
+                        Console.WriteLine("Winner: " + games[i].Competitors[0].Info.TeamName);
+                        Log.TraceMessage(Log.Nav.NavIn, "Winner decided: "+games[i].Competitors[0].Info.TeamName, Log.LogType.Info);
+                        allGamesComplete = true;
+                    }
                 }
             }
             if(allGamesComplete)
