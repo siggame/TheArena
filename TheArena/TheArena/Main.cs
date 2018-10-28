@@ -41,8 +41,8 @@ namespace TheArena
 
     class Runner
     {
-        const string HOST_ADDR = "10.128.0.2";
-        const string ARENA_FILES_PATH = @"/ArenaFiles/";
+        const string HOST_ADDR = "127.0.0.1";
+        const string ARENA_FILES_PATH = @"/mnt/d/ArenaFiles2/";
         const int HOST_PORT = 21;
         const int UDP_ASK_PORT = 234;
         const int UDP_CONFIRM_PORT = 1100;
@@ -582,6 +582,7 @@ namespace TheArena
         {
             try
             {
+                HTTP.HTTPPost("finished", "winReason", "loseReason", "https://www.google.com", "CoolTeam", "1", "First_Team", "1");
                 Log.TraceMessage(Log.Nav.NavIn, "START", Log.LogType.Info);
                 Log.TraceMessage(Log.Nav.NavIn, "HOST ADDRESS is " + HOST_ADDR, Log.LogType.Info);
                 Log.TraceMessage(Log.Nav.NavIn, "Arena File Directory is " + ARENA_FILES_PATH, Log.LogType.Info);
@@ -592,16 +593,16 @@ namespace TheArena
                 Log.TraceMessage(Log.Nav.NavIn, "HOST NAME: " + hostName, Log.LogType.Info);
                 var myIP = Dns.GetHostEntry(hostName).AddressList;
                 IPAddress arena_host_address = IPAddress.Parse(HOST_ADDR);
-                if (myIP.ToList().Contains(arena_host_address))
+                /*if (myIP.ToList().Contains(arena_host_address))
                 {
-                    Log.TraceMessage(Log.Nav.NavIn, "My IP matches Host IP", Log.LogType.Info);
-                    RunHost();
-                }
+                    Log.TraceMessage(Log.Nav.NavIn, "My IP matches Host IP", Log.LogType.Info);*/
+                //    RunHost();
+                /*}
                 else
                 {
-                    Log.TraceMessage(Log.Nav.NavIn, "My IP does NOT match Host IP", Log.LogType.Info);
+                    Log.TraceMessage(Log.Nav.NavIn, "My IP does NOT match Host IP", Log.LogType.Info);*/
                     RunClient();
-                }
+                //}
             }
             catch (Exception ex)
             {
