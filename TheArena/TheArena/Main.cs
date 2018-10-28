@@ -41,8 +41,8 @@ namespace TheArena
 
     class Runner
     {
-        const string HOST_ADDR = "10.106.68.209";
-        const string ARENA_FILES_PATH = @"/mnt/d/git/second/TheArena/TheArena/TheArena/bin/Release/netcoreapp2.0/ArenaFiles/";
+        const string HOST_ADDR = "35.239.194.206";
+        const string ARENA_FILES_PATH = @"/ArenaFiles/";
         const int HOST_PORT = 21;
         const int UDP_ASK_PORT = 234;
         const int UDP_CONFIRM_PORT = 1100;
@@ -125,9 +125,9 @@ namespace TheArena
                 {
                     try
                     {
-                        //Log.TraceMessage(Log.Nav.NavIn, "Trying to receive...", Log.LogType.Info);
                         byte[] bytes = listener.Receive(ref anyIP);
-                        if (bytes.Length == 1 && bytes[0] == 1) //Ping
+                        Log.TraceMessage(Log.Nav.NavIn, "Received "+ (bytes!=null ? bytes.Length:0) +" bytes.", Log.LogType.Info);
+                        if (bytes!=null && bytes.Length == 1 && bytes[0] == 1) //Ping
                         {
                             Log.TraceMessage(Log.Nav.NavIn, "Hey someone pinged us! " + anyIP.Address, Log.LogType.Info);
                             IPAddress newClient = anyIP.Address;
@@ -140,9 +140,10 @@ namespace TheArena
                         else //Game Finished
                         {
                             Log.TraceMessage(Log.Nav.NavIn, "Hey a client is saying they finished their assigned game...", Log.LogType.Info);
+                            Log.TraceMessage(Log.Nav.NavIn, "CurrentlyRunningGames count="+currentlyRunningGames.Count, Log.LogType.Info);
                             for (int i = 0; i < currentlyRunningGames.Count; i++)
                             {
-                                if (currentlyRunningGames[i].clientRunningGame == anyIP.Address)
+                                if (currentlyRunningGames[i].clientRunningGame.Equals(anyIP.Address))
                                 {
                                     Log.TraceMessage(Log.Nav.NavIn, "Found a currently running game they should have been running...", Log.LogType.Info);
                                     Log.TraceMessage(Log.Nav.NavIn, "They sent us " + Encoding.ASCII.GetString(bytes), Log.LogType.Info);
@@ -404,7 +405,7 @@ namespace TheArena
                             try
                             {
                                 IPEndPoint remoteEP;
-                                if (resultStr != "")
+                                if (resultStr == "")
                                 {
                                     Log.TraceMessage(Log.Nav.NavIn, "Sending Ping...", Log.LogType.Info);
                                     remoteEP = new IPEndPoint(IPAddress.Parse(HOST_ADDR), UDP_CONFIRM_PORT);
@@ -421,9 +422,13 @@ namespace TheArena
                                 Log.TraceMessage(Log.Nav.NavIn, "Waiting for game...", Log.LogType.Info);
                                 byte[] data = ask_for_game.Receive(ref remoteEP);
                                 string str_data = System.Text.Encoding.Default.GetString(data);
-                                if (str_data != null)
+                                if(data !=null && data.Length==1 && data[0]==1)
                                 {
+                                    Log.TraceMessage(Log.Nav.NavIn, "Host received results-clearing results.", Log.LogType.Info);
                                     resultStr = "";
+                                }
+                                if (data !=null && data.Length==1 && data[0]==0)
+                                {
                                     Log.TraceMessage(Log.Nav.NavIn, "We have been told to run game--LET'S GO!", Log.LogType.Info);
                                     List<string> results = BuildAndRunGame();
                                     Log.TraceMessage(Log.Nav.NavIn, "Results returned with size" + results.Count(), Log.LogType.Info);
@@ -584,12 +589,12 @@ namespace TheArena
                 //if (myIP.ToList().Contains(arena_host_address))
                 //{
                 //    Log.TraceMessage(Log.Nav.NavIn, "My IP matches Host IP", Log.LogType.Info);
-                //   RunHost();
+                   RunHost();
                 //}
                 //else
                 //{
                 //    Log.TraceMessage(Log.Nav.NavIn, "My IP does NOT match Host IP", Log.LogType.Info);
-                RunClient();
+                //RunClient();
                 //}
             }
             catch (Exception ex)
