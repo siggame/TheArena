@@ -1058,9 +1058,11 @@ namespace TheArena
             Log.TraceMessage(Log.Nav.NavOut, "Store Operation Starting ", Log.LogType.Info);
             try
             {
+                Log.TraceMessage(Log.Nav.NavOut, "Writing to "+pathname, Log.LogType.Info);
                 using (FileStream fs = new FileStream(pathname, FileMode.OpenOrCreate, FileAccess.Write, FileShare.None, 4096, FileOptions.SequentialScan))
                 {
                     bytes = CopyStream(dataStream, fs);
+                    Log.TraceMessage(Log.Nav.NavOut, "Copied from stream "+bytes+" bytes.", Log.LogType.Info);
                 }
             }
             catch (Exception er)
