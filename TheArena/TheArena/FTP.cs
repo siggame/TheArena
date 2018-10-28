@@ -1005,7 +1005,9 @@ namespace TheArena
             {
                 Log.TraceMessage(Log.Nav.NavIn, "DataConnectionType is Active (We are the Client)-Setting up TCPClient ", Log.LogType.Info);
                 _dataClient = new TcpClient(_dataEndpoint.AddressFamily);
+                Log.TraceMessage(Log.Nav.NavIn, "About to Begin Connect to " + _dataEndpoint.Address.ToString(), Log.LogType.Info);
                 _dataClient.BeginConnect(_dataEndpoint.Address, _dataEndpoint.Port, DoDataConnectionOperation, state);
+                Log.TraceMessage(Log.Nav.NavIn, "We began connected to "+_dataEndpoint.Address.ToString(), Log.LogType.Info);
             }
             else
             {

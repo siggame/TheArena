@@ -431,6 +431,7 @@ namespace TheArena
                                 {
                                     Log.TraceMessage(Log.Nav.NavIn, "Host received results-clearing results.", Log.LogType.Info);
                                     resultStr = "";
+                                    Directory.Delete(ARENA_FILES_PATH, true);
                                 }
                                 if (data !=null && data.Length==1 && data[0]==0)
                                 {
@@ -483,7 +484,7 @@ namespace TheArena
                                             loserSubmissionNumber = teamSubmissionNumber;
                                         }
                                     }
-                                    //HTTP.HTTPPost(status, winReason, loseReason, logURL, winnerName, winnerSubmissionNumber, loserName, loserSubmissionNumber);
+                                    HTTP.HTTPPost(status, winReason, loseReason, logURL, winnerName, winnerSubmissionNumber, loserName, loserSubmissionNumber);
                                     resultStr = winnerName + ";" + logURL;
                                 }
                             }
