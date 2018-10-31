@@ -582,7 +582,7 @@ namespace TheArena
         {
             try
             {
-                HTTP.HTTPPost("finished", "winReason", "loseReason", "https://www.google.com", "CoolTeam", "1", "First_Team", "1");
+                HTTP.HTTPPost("finished", "winReason", "loseReason", "https://www.google.com", "First_Team_1", "1", "First_Team", "1");
                 Log.TraceMessage(Log.Nav.NavIn, "START", Log.LogType.Info);
                 Log.TraceMessage(Log.Nav.NavIn, "HOST ADDRESS is " + HOST_ADDR, Log.LogType.Info);
                 Log.TraceMessage(Log.Nav.NavIn, "Arena File Directory is " + ARENA_FILES_PATH, Log.LogType.Info);
