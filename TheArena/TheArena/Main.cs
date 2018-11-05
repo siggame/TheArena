@@ -94,7 +94,7 @@ namespace TheArena
             }
         }
 
-        private static void SetUpWatcher()
+       /* private static void SetUpWatcher()
         {
             Log.TraceMessage(Log.Nav.NavIn, "Setting up file system watcher...", Log.LogType.Info);
             FileSystemWatcher watcher = new FileSystemWatcher();
@@ -103,7 +103,7 @@ namespace TheArena
             watcher.Filter = "*.*";
             watcher.Changed += new FileSystemEventHandler(ConvertNewFileToPlayerInfo);
             watcher.EnableRaisingEvents = true;
-        }
+        }*/
 
         private static void SetUpClientListener()
         {
@@ -133,6 +133,7 @@ namespace TheArena
                             IPAddress newClient = anyIP.Address;
                             if (!clients.Contains(newClient))
                             {
+                                Console.WriteLine("Adding " + anyIP.Address);
                                 Log.TraceMessage(Log.Nav.NavIn, "They were new adding them to the client queue.", Log.LogType.Info);
                                 clients.Enqueue(newClient);
                             }
@@ -255,6 +256,8 @@ namespace TheArena
         static void StartTourney(int people_per_game)
         {
             Log.TraceMessage(Log.Nav.NavOut, "Starting Tourney with " + people_per_game + " per game.", Log.LogType.Info);
+            eligible_players = new List<PlayerInfo>();
+            FillEligiblePlayers();
             Tournament t = new Tournament(eligible_players, people_per_game);
             currentlyRunningTourney = t;
             while (!t.IsDone)
@@ -333,13 +336,20 @@ namespace TheArena
                 Log.TraceMessage(Log.Nav.NavOut, files.Length + " Files existed in Arena Files Directory.", Log.LogType.Info);
                 foreach (string f in files)
                 {
-                    var fs = f.Substring(f.LastIndexOf('\\') + 1);
-                    string[] split = fs.Split('_');
-                    if (split.Length == 3)
+                    var fs = f.Substring(f.LastIndexOf('\\') + 1); // From C:\Users\Me\Documents\team1_1_csharp.zip to team_one_1_cs.zip
+                    var withoutZip = fs.Substring(0, fs.LastIndexOf(".zip")); //To team_one_1_cs
+                    string[] split = fs.Split('_'); // ["team","one","1","cs"]
+                    var reversed = split.Reverse().ToArray(); // ["cs","1","one","team"]
+                    string lang = reversed[0]; //"cs"
+                    string submission = reversed[1]; //"1"
+                    string teamName = ""; 
+                    for(int i=reversed.Length-1; i>1; i--)
                     {
-                        Log.TraceMessage(Log.Nav.NavIn, "Adding team: " + split[0], Log.LogType.Info);
-                        AddPlayerToArena(split[0], split[1], split[2]);
+                        teamName += reversed[i] + "_"; // "team_one_"
                     }
+                    teamName = teamName.Substring(0, teamName.Length - 1); //"team_one"
+                    Log.TraceMessage(Log.Nav.NavIn, "Adding team: " + teamName+" with lang"+lang+" and submissionNum="+submission, Log.LogType.Info);
+                    AddPlayerToArena(teamName, submission, lang);
                 }
             }
         }
@@ -349,8 +359,8 @@ namespace TheArena
             Log.TraceMessage(Log.Nav.NavIn, "This Arena is Host.", Log.LogType.Info);
             Log.TraceMessage(Log.Nav.NavOut, "Filling Eligible Players.", Log.LogType.Info);
             FillEligiblePlayers();
-            Log.TraceMessage(Log.Nav.NavOut, "Setting Up Directory Watcher.", Log.LogType.Info);
-            SetUpWatcher();
+            /*Log.TraceMessage(Log.Nav.NavOut, "Setting Up Directory Watcher.", Log.LogType.Info);
+            SetUpWatcher();*/
             Log.TraceMessage(Log.Nav.NavOut, "Setting Up Client Listener.", Log.LogType.Info);
             SetUpClientListener();
             Log.TraceMessage(Log.Nav.NavOut, "Setting Up FTP Server.", Log.LogType.Info);
@@ -484,7 +494,7 @@ namespace TheArena
                                             loserSubmissionNumber = teamSubmissionNumber;
                                         }
                                     }
-                                    HTTP.HTTPPost(status, winReason, loseReason, logURL, winnerName, winnerSubmissionNumber, loserName, loserSubmissionNumber);
+                                    //HTTP.HTTPPost(status, winReason, loseReason, logURL, winnerName, winnerSubmissionNumber, loserName, loserSubmissionNumber);
                                     resultStr = winnerName + ";" + logURL;
                                 }
                             }
@@ -582,7 +592,7 @@ namespace TheArena
         {
             try
             {
-                HTTP.HTTPPost("finished", "winReason", "loseReason", "https://www.google.com", "First_Team_1", "1", "First_Team", "1");
+                //HTTP.HTTPPost("finished", "winReason", "loseReason", "https://www.google.com", "First_Team_1", "1", "First_Team", "1");
                 Log.TraceMessage(Log.Nav.NavIn, "START", Log.LogType.Info);
                 Log.TraceMessage(Log.Nav.NavIn, "HOST ADDRESS is " + HOST_ADDR, Log.LogType.Info);
                 Log.TraceMessage(Log.Nav.NavIn, "Arena File Directory is " + ARENA_FILES_PATH, Log.LogType.Info);
@@ -591,17 +601,22 @@ namespace TheArena
                 Log.TraceMessage(Log.Nav.NavIn, "CONFIRM PORT " + UDP_CONFIRM_PORT, Log.LogType.Info);
                 string hostName = Dns.GetHostName(); // Retrive the Name of HOST  
                 Log.TraceMessage(Log.Nav.NavIn, "HOST NAME: " + hostName, Log.LogType.Info);
+                Log.TraceMessage(Log.Nav.NavIn, "Deleting all files in arena file directory", Log.LogType.Info);
+                if(Directory.Exists(ARENA_FILES_PATH))
+                {
+                    Directory.Delete(ARENA_FILES_PATH, true);
+                }
                 var myIP = Dns.GetHostEntry(hostName).AddressList;
                 IPAddress arena_host_address = IPAddress.Parse(HOST_ADDR);
                 if (myIP.ToList().Contains(arena_host_address))
                 {
-                    Log.TraceMessage(Log.Nav.NavIn, "My IP matches Host IP", Log.LogType.Info);
+                    Log.TraceMessage(Log.Nav.NavIn, "My IP matches Host IP", Log.LogType.Info);*/
                     RunHost();
                 }
                 else
                 {
-                    Log.TraceMessage(Log.Nav.NavIn, "My IP does NOT match Host IP", Log.LogType.Info);
-                    RunClient();
+                   Log.TraceMessage(Log.Nav.NavIn, "My IP does NOT match Host IP", Log.LogType.Info);*/
+                   RunClient();
                 }
             }
             catch (Exception ex)
