@@ -42,7 +42,7 @@ namespace TheArena
     class Runner
     {
         const string HOST_ADDR = "10.128.0.2";
-        const string ARENA_FILES_PATH = @"/ArenaFiles/";
+        const string ARENA_FILES_PATH = @"/home/sjkyv5/ArenaFiles/";
         const int HOST_PORT = 21;
         const int UDP_ASK_PORT = 234;
         const int UDP_CONFIRM_PORT = 1100;
@@ -90,7 +90,7 @@ namespace TheArena
             }
             catch (Exception er)
             {
-                Log.TraceMessage(Log.Nav.NavOut, er);
+                Log.TraceMessage(Log.Nav.NavOut, er.StackTrace+"",Log.LogType.Error);
             }
         }
 
@@ -338,7 +338,7 @@ namespace TheArena
                 {
                     var fs = f.Substring(f.LastIndexOf('\\') + 1); // From C:\Users\Me\Documents\team1_1_csharp.zip to team_one_1_cs.zip
                     var withoutZip = fs.Substring(0, fs.LastIndexOf(".zip")); //To team_one_1_cs
-                    string[] split = fs.Split('_'); // ["team","one","1","cs"]
+                    string[] split = withoutZip.Split('_'); // ["team","one","1","cs"]
                     var reversed = split.Reverse().ToArray(); // ["cs","1","one","team"]
                     string lang = reversed[0]; //"cs"
                     string submission = reversed[1]; //"1"
@@ -358,7 +358,7 @@ namespace TheArena
         {
             Log.TraceMessage(Log.Nav.NavIn, "This Arena is Host.", Log.LogType.Info);
             Log.TraceMessage(Log.Nav.NavOut, "Filling Eligible Players.", Log.LogType.Info);
-            FillEligiblePlayers();
+            //FillEligiblePlayers();
             /*Log.TraceMessage(Log.Nav.NavOut, "Setting Up Directory Watcher.", Log.LogType.Info);
             SetUpWatcher();*/
             Log.TraceMessage(Log.Nav.NavOut, "Setting Up Client Listener.", Log.LogType.Info);
@@ -601,11 +601,11 @@ namespace TheArena
                 Log.TraceMessage(Log.Nav.NavIn, "CONFIRM PORT " + UDP_CONFIRM_PORT, Log.LogType.Info);
                 string hostName = Dns.GetHostName(); // Retrive the Name of HOST  
                 Log.TraceMessage(Log.Nav.NavIn, "HOST NAME: " + hostName, Log.LogType.Info);
-                Log.TraceMessage(Log.Nav.NavIn, "Deleting all files in arena file directory", Log.LogType.Info);
+                /*Log.TraceMessage(Log.Nav.NavIn, "Deleting all files in arena file directory", Log.LogType.Info);
                 if(Directory.Exists(ARENA_FILES_PATH))
                 {
                     Directory.Delete(ARENA_FILES_PATH, true);
-                }
+                }*/
                 var myIP = Dns.GetHostEntry(hostName).AddressList;
                 IPAddress arena_host_address = IPAddress.Parse(HOST_ADDR);
                 if (myIP.ToList().Contains(arena_host_address))
