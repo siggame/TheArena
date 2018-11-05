@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace TheArena
 {
@@ -41,14 +43,19 @@ namespace TheArena
         {
             Log.TraceMessage(Log.Nav.NavIn, "Getting Next NonRunning Game ", Log.LogType.Info);
             champion.Traverse(PrettyPrint);
+	    Thread.Sleep(1000);
             bool allGamesComplete = true;
             for(int i=0; i<games.Count; i++)
             {
+		Log.TraceMessage(Log.Nav.NavIn, "There are "+games.Count+" games.", Log.LogType.Info);
                 if(!games[i].IsComplete)
                 {
+		    Log.TraceMessage(Log.Nav.NavIn, "Game "+i+" is not done.", Log.LogType.Info);
                     allGamesComplete = false;
-                    if (!games[i].IsRunning && games[i].Competitors.Count > 1)
+                    if (!games[i].IsRunning && games[i].Competitors[0].Info.TeamName != "" && games[i].Competitors[1].Info.TeamName != "")
                     {
+			Log.TraceMessage(Log.Nav.NavIn, "Game "+i+" is being returned. The first teamname is "+games[i].Competitors[0].Info.TeamName, Log.LogType.Info);
+			Log.TraceMessage(Log.Nav.NavIn, "Game "+i+" is being returned. The second teamname is "+games[i].Competitors[1].Info.TeamName, Log.LogType.Info);
                         toReturn= games[i];
                         return;
                     }
