@@ -291,11 +291,11 @@ namespace TheArena
                             string maxSubmission = "";
                             for (int j = 0; j < files.Length; j++)
                             {
-                                if (files[j].Split('_')[0].Contains(toAssign.Competitors[i].Info.TeamName))
+                                if (files[j].Contains(toAssign.Competitors[i].Info.TeamName))
                                 {
-                                    if (int.Parse(files[j].Split('_')[1]) > maxSubmissionNumber)
+                                    if (int.Parse(files[j].Reverse().ToString().Split('_')[1]) > maxSubmissionNumber)
                                     {
-                                        maxSubmissionNumber = int.Parse(files[j].Split('_')[1]);
+                                        maxSubmissionNumber = int.Parse(files[j].Reverse().ToString().Split('_')[1]);
                                         maxSubmission = files[j];
                                         Log.TraceMessage(Log.Nav.NavIn, "Max submission number is now " + maxSubmissionNumber + " and " + maxSubmission, Log.LogType.Info);
                                     }
@@ -601,11 +601,11 @@ namespace TheArena
                 Log.TraceMessage(Log.Nav.NavIn, "CONFIRM PORT " + UDP_CONFIRM_PORT, Log.LogType.Info);
                 string hostName = Dns.GetHostName(); // Retrive the Name of HOST  
                 Log.TraceMessage(Log.Nav.NavIn, "HOST NAME: " + hostName, Log.LogType.Info);
-                /*Log.TraceMessage(Log.Nav.NavIn, "Deleting all files in arena file directory", Log.LogType.Info);
+                Log.TraceMessage(Log.Nav.NavIn, "Deleting all files in arena file directory", Log.LogType.Info);
                 if(Directory.Exists(ARENA_FILES_PATH))
                 {
                     Directory.Delete(ARENA_FILES_PATH, true);
-                }*/
+                }
                 var myIP = Dns.GetHostEntry(hostName).AddressList;
                 IPAddress arena_host_address = IPAddress.Parse(HOST_ADDR);
                 if (myIP.ToList().Contains(arena_host_address))
