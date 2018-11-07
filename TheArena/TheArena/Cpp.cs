@@ -194,15 +194,12 @@ namespace TheArena
 
                     string result = cmdProcess.StandardOutput.ReadLine();
 
-                    while (result.Length > 0 && !result.ToUpper().Contains("I WON") && !result.ToUpper().Contains("I LOST"))
+                    while (result.Length > 0 && !result.ToUpper().Contains("I WON") && !result.ToUpper().Contains("I LOST") && !result.ToUpper().Contains("ERROR"))
                     {
                         Console.WriteLine(result);
                         result = cmdProcess.StandardOutput.ReadLine();
                     }
-                    if (result.ToUpper().Contains("I WON"))
-                    {
-                        return "won";
-                    }
+                    return result;
                     string err = cmdProcess.StandardError.ReadLine();
                     err += cmdProcess.StandardError.ReadLine();
                     Console.WriteLine(err);
@@ -236,11 +233,11 @@ namespace TheArena
                             sw.WriteLine("  then");
                             sw.WriteLine("    echo \"No argument(s) supplied. Please specify game session you want to join or make.\"");
                             sw.WriteLine("  else");
-                            sw.WriteLine("    ./run ANARCHY -s dev.siggame.tk -r \"$@\"");
+                            sw.WriteLine("    ./run SALOON -s dev.siggame.tk -r \"$@\"");
                             sw.WriteLine("fi");
                         }
                         Log.TraceMessage(Log.Nav.NavIn, "Rewrote script-- running", Log.LogType.Info);
-                        process.StandardInput.WriteLine("sudo make && ./testRun abxds >>results.txt 2>&1");
+                        process.StandardInput.WriteLine("sudo chmod 777 testRun && sudo chmod 777 run && sudo make && ./testRun seth >>results.txt 2>&1");
                         string result = "";
                         do
                         {
@@ -261,7 +258,7 @@ namespace TheArena
                             {
                                 Log.TraceMessage(Log.Nav.NavIn, "Results file does not exist...", Log.LogType.Info);
                             }
-                        } while (!result.ToLower().Contains("won") && !result.ToLower().Contains("lost") && !result.ToLower().Contains("communication_error"));
+                        } while (!result.ToLower().Contains("won") && !result.ToLower().Contains("lost") && !result.ToLower().Contains("error"));
                         Log.TraceMessage(Log.Nav.NavIn, "Results contains win or lose or com error--returning...", Log.LogType.Info);
                         return result;
                     }
