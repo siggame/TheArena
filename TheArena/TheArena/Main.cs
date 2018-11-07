@@ -265,13 +265,23 @@ namespace TheArena
                 Log.TraceMessage(Log.Nav.NavIn, "Tourney not done yet ", Log.LogType.Info);
                 for (int i = 0; i < currentlyRunningGames.Count; i++)
                 {
-                    if ((new TimeSpan(DateTime.Now.Ticks - currentlyRunningGames[i].startTimeTicks)).TotalMinutes > 20)
-                    {
-                        Log.TraceMessage(Log.Nav.NavIn, "It's been 5 minutes and game as not returned -- giving it to another client ", Log.LogType.Info);
-                        currentlyRunningGames[i].GameRan.IsRunning = false;
-                        currentlyRunningGames[i].GameRan.IsComplete = false;
-                        currentlyRunningGames.RemoveAt(i);
-                        i--;
+		    if(currentlyRunningGames[i].GameRan.IsComplete)
+		    {
+			currentlyRunningGames.RemoveAt(i);
+			i--;
+		    }
+		    else
+		    {
+		        Log.TraceMessage(Log.Nav.NavIn, "Game "+i+" has been running for "+(new TimeSpan(DateTime.Now.Ticks - currentlyRunningGames[i].startTimeTicks)).TotalMinutes+" minutes.", Log.LogType.Info);
+                        Console.WriteLine("Game "+i+" has been running for "+(new TimeSpan(DateTime.Now.Ticks - currentlyRunningGames[i].startTimeTicks)).TotalMinutes+" minutes.");
+		        if ((new TimeSpan(DateTime.Now.Ticks - currentlyRunningGames[i].startTimeTicks)).TotalMinutes > 20)
+                        {
+                            Log.TraceMessage(Log.Nav.NavIn, "It's been 20 minutes and game as not returned -- giving it to another client ", Log.LogType.Info);
+                            currentlyRunningGames[i].GameRan.IsRunning = false;
+                            currentlyRunningGames[i].GameRan.IsComplete = false;
+                            currentlyRunningGames.RemoveAt(i);
+                            i--;
+                        }
                     }
                 }
                 Game toAssign;

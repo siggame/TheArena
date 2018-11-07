@@ -41,38 +41,61 @@ namespace TheArena
 
         public void GetNextNonRunningGame(out Game toReturn)
         {
-            Log.TraceMessage(Log.Nav.NavIn, "Getting Next NonRunning Game ", Log.LogType.Info);
-            champion.Traverse(PrettyPrint);
-	    Thread.Sleep(1000);
-            bool allGamesComplete = true;
-            for(int i=0; i<games.Count; i++)
-            {
-		Log.TraceMessage(Log.Nav.NavIn, "There are "+games.Count+" games.", Log.LogType.Info);
-                if(!games[i].IsComplete)
+	    try
+	    {
+                Log.TraceMessage(Log.Nav.NavIn, "Getting Next NonRunning Game ", Log.LogType.Info);
+                champion.Traverse(PrettyPrint);
+	        Thread.Sleep(1000);
+                bool allGamesComplete = true;
+                for(int i=0; i<games.Count; i++)
                 {
-		    Log.TraceMessage(Log.Nav.NavIn, "Game "+i+" is not done.", Log.LogType.Info);
-                    allGamesComplete = false;
-                    if (!games[i].IsRunning && games[i].Competitors[0].Info.TeamName != "" && games[i].Competitors[1].Info.TeamName != "")
+		    Log.TraceMessage(Log.Nav.NavIn, "There are "+games.Count+" games.", Log.LogType.Info);
+                    if(!games[i].IsComplete)
                     {
-			Log.TraceMessage(Log.Nav.NavIn, "Game "+i+" is being returned. The first teamname is "+games[i].Competitors[0].Info.TeamName, Log.LogType.Info);
-			Log.TraceMessage(Log.Nav.NavIn, "Game "+i+" is being returned. The second teamname is "+games[i].Competitors[1].Info.TeamName, Log.LogType.Info);
-                        toReturn= games[i];
-                        return;
-                    }
-                    else if(games[i].Competitors.Count==1 && games[i].Competitors[0].Info.TeamName!="")
-                    {
-                        Console.WriteLine("Winner: " + games[i].Competitors[0].Info.TeamName);
-                        Log.TraceMessage(Log.Nav.NavIn, "Winner decided: "+games[i].Competitors[0].Info.TeamName, Log.LogType.Info);
-                        allGamesComplete = true;
-                    }
+		        Log.TraceMessage(Log.Nav.NavIn, "Game "+i+" is not done.", Log.LogType.Info);
+                        allGamesComplete = false;
+			if(!games[i].IsRunning && games[i].Competitors.Count()==1)
+			{
+			   games[i].SetWinner(games[i].Competitors[0], this, games[i].Competitors[0].Info.TeamName, "");
+			}
+			else if(!games[i].IsRunning && games[i].Competitors.Count()==2 && games[i].Competitors[0].Info.TeamName.ToUpper()=="BYE")
+			{
+			   games[i].SetWinner(games[i].Competitors[1], this, games[i].Competitors[1].Info.TeamName, "");
+			}
+			else if(!games[i].IsRunning && games[i].Competitors.Count()==2 && games[i].Competitors[1].Info.TeamName.ToUpper()=="BYE")
+			{
+			   games[i].SetWinner(games[i].Competitors[1], this, games[i].Competitors[1].Info.TeamName, "");	
+			}
+			else
+			{
+                            if (!games[i].IsRunning && games[i].Competitors[0].Info.TeamName != "" && games[i].Competitors[1].Info.TeamName != "")
+                            {
+			        Log.TraceMessage(Log.Nav.NavIn, "Game "+i+" is being returned. The first teamname is "+games[i].Competitors[0].Info.TeamName, Log.LogType.Info);
+			        Log.TraceMessage(Log.Nav.NavIn, "Game "+i+" is being returned. The second teamname is "+games[i].Competitors[1].Info.TeamName, Log.LogType.Info);
+                                toReturn= games[i];
+                                return;
+                            }
+                            else if(games[i].Competitors.Count==1 && games[i].Competitors[0].Info.TeamName!="")
+                            {
+                                Console.WriteLine("Winner: " + games[i].Competitors[0].Info.TeamName);
+                                Log.TraceMessage(Log.Nav.NavIn, "Winner decided: "+games[i].Competitors[0].Info.TeamName, Log.LogType.Info);
+                                allGamesComplete = true;
+                            }
+                        }
+		    }
                 }
-            }
-            if(allGamesComplete)
-            {
-                IsDone = true;
-            }
+                if(allGamesComplete)
+                {
+                    IsDone = true;
+                }
+	    }
+	    catch(Exception ex)
+	    {
+		Log.TraceMessage(Log.Nav.NavOut, ex);
+		Console.WriteLine(ex);
+	    }
             toReturn=null;
-        }
+	}
 
         public Tournament(List<PlayerInfo> competitors, int players_per_game)
         {
