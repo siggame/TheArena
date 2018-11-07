@@ -41,7 +41,7 @@ namespace TheArena
 
     class Runner
     {
-        const string HOST_ADDR = "10.128.0.2";
+        const string HOST_ADDR = "35.239.194.206";
         const string ARENA_FILES_PATH = @"/home/sjkyv5/ArenaFiles/";
         const int HOST_PORT = 21;
         const int UDP_ASK_PORT = 234;
@@ -90,20 +90,20 @@ namespace TheArena
             }
             catch (Exception er)
             {
-                Log.TraceMessage(Log.Nav.NavOut, er.StackTrace+"",Log.LogType.Error);
+                Log.TraceMessage(Log.Nav.NavOut, er.StackTrace + "", Log.LogType.Error);
             }
         }
 
-       /* private static void SetUpWatcher()
-        {
-            Log.TraceMessage(Log.Nav.NavIn, "Setting up file system watcher...", Log.LogType.Info);
-            FileSystemWatcher watcher = new FileSystemWatcher();
-            watcher.Path = ARENA_FILES_PATH;
-            watcher.NotifyFilter = NotifyFilters.LastWrite;
-            watcher.Filter = "*.*";
-            watcher.Changed += new FileSystemEventHandler(ConvertNewFileToPlayerInfo);
-            watcher.EnableRaisingEvents = true;
-        }*/
+        /* private static void SetUpWatcher()
+         {
+             Log.TraceMessage(Log.Nav.NavIn, "Setting up file system watcher...", Log.LogType.Info);
+             FileSystemWatcher watcher = new FileSystemWatcher();
+             watcher.Path = ARENA_FILES_PATH;
+             watcher.NotifyFilter = NotifyFilters.LastWrite;
+             watcher.Filter = "*.*";
+             watcher.Changed += new FileSystemEventHandler(ConvertNewFileToPlayerInfo);
+             watcher.EnableRaisingEvents = true;
+         }*/
 
         private static void SetUpClientListener()
         {
@@ -126,8 +126,8 @@ namespace TheArena
                     try
                     {
                         byte[] bytes = listener.Receive(ref anyIP);
-                        Log.TraceMessage(Log.Nav.NavIn, "Received "+ (bytes!=null ? bytes.Length:0) +" bytes.", Log.LogType.Info);
-                        if (bytes!=null && bytes.Length == 1 && bytes[0] == 1) //Ping
+                        Log.TraceMessage(Log.Nav.NavIn, "Received " + (bytes != null ? bytes.Length : 0) + " bytes.", Log.LogType.Info);
+                        if (bytes != null && bytes.Length == 1 && bytes[0] == 1) //Ping
                         {
                             Log.TraceMessage(Log.Nav.NavIn, "Hey someone pinged us! " + anyIP.Address, Log.LogType.Info);
                             IPAddress newClient = anyIP.Address;
@@ -141,7 +141,7 @@ namespace TheArena
                         else //Game Finished
                         {
                             Log.TraceMessage(Log.Nav.NavIn, "Hey a client is saying they finished their assigned game...", Log.LogType.Info);
-                            Log.TraceMessage(Log.Nav.NavIn, "CurrentlyRunningGames count="+currentlyRunningGames.Count, Log.LogType.Info);
+                            Log.TraceMessage(Log.Nav.NavIn, "CurrentlyRunningGames count=" + currentlyRunningGames.Count, Log.LogType.Info);
                             for (int i = 0; i < currentlyRunningGames.Count; i++)
                             {
                                 if (currentlyRunningGames[i].clientRunningGame.Equals(anyIP.Address))
@@ -304,10 +304,10 @@ namespace TheArena
 				Log.TraceMessage(Log.Nav.NavIn, "Currently looking at "+ files[j], Log.LogType.Info);
                                 if (files[j].Contains(toAssign.Competitors[i].Info.TeamName))
                                 {
-				    Log.TraceMessage(Log.Nav.NavIn, "It contained "+toAssign.Competitors[i].Info.TeamName, Log.LogType.Info);
-				    var split=files[j].Split('_');
-				    var reversed=split.Reverse().ToArray();
-				    Log.TraceMessage(Log.Nav.NavIn,"The submission number checked is "+ reversed[1], Log.LogType.Info);
+                                    Log.TraceMessage(Log.Nav.NavIn, "It contained "+toAssign.Competitors[i].Info.TeamName, Log.LogType.Info);
+                                    var split=files[j].Split('_');
+                                    var reversed=split.Reverse().ToArray();
+                                    Log.TraceMessage(Log.Nav.NavIn,"The submission number checked is "+ reversed[1], Log.LogType.Info);
                                     if (int.Parse(reversed[1]) > maxSubmissionNumber)
                                     {
                                         maxSubmissionNumber = int.Parse(reversed[1]);
@@ -357,13 +357,13 @@ namespace TheArena
                     var reversed = split.Reverse().ToArray(); // ["cs","1","one","team"]
                     string lang = reversed[0]; //"cs"
                     string submission = reversed[1]; //"1"
-                    string teamName = ""; 
-                    for(int i=reversed.Length-1; i>1; i--)
+                    string teamName = "";
+                    for (int i = reversed.Length - 1; i > 1; i--)
                     {
                         teamName += reversed[i] + "_"; // "team_one_"
                     }
                     teamName = teamName.Substring(0, teamName.Length - 1); //"team_one"
-                    Log.TraceMessage(Log.Nav.NavIn, "Adding team: " + teamName+" with lang"+lang+" and submissionNum="+submission, Log.LogType.Info);
+                    Log.TraceMessage(Log.Nav.NavIn, "Adding team: " + teamName + " with lang" + lang + " and submissionNum=" + submission, Log.LogType.Info);
                     AddPlayerToArena(teamName, submission, lang);
                 }
             }
@@ -387,7 +387,7 @@ namespace TheArena
 
             bool restartNeeded = false;
             Log.TraceMessage(Log.Nav.NavIn, "This Arena is Client.", Log.LogType.Info);
-            Log.TraceMessage(Log.Nav.NavIn, "Checking for and installing if need be C++...", Log.LogType.Info);
+            /*Log.TraceMessage(Log.Nav.NavIn, "Checking for and installing if need be C++...", Log.LogType.Info);
             restartNeeded = Cpp.InstallCpp() || restartNeeded;
             Log.TraceMessage(Log.Nav.NavIn, "Checking for and installing if need be Python...", Log.LogType.Info);
             restartNeeded = Python.InstallPython() || restartNeeded;
@@ -398,7 +398,7 @@ namespace TheArena
             Log.TraceMessage(Log.Nav.NavIn, "Checking for and installing if need be Lua...", Log.LogType.Info);
             restartNeeded = Lua.InstallLua() || restartNeeded;
             Log.TraceMessage(Log.Nav.NavIn, "Checking for and installing if need be C#...", Log.LogType.Info);
-            restartNeeded = CSharp.InstallCSharp() || restartNeeded;
+            restartNeeded = CSharp.InstallCSharp() || restartNeeded;*/
             if (restartNeeded)
             {
                 Log.TraceMessage(Log.Nav.NavIn, "An install was done and we must restart Visual Studio to use it...", Log.LogType.Info);
@@ -452,14 +452,14 @@ namespace TheArena
                                 Log.TraceMessage(Log.Nav.NavIn, "Waiting for game...", Log.LogType.Info);
                                 byte[] data = ask_for_game.Receive(ref remoteEP);
                                 string str_data = System.Text.Encoding.Default.GetString(data);
-                                if(data !=null && data.Length==1 && data[0]==1)
+                                if (data != null && data.Length == 1 && data[0] == 1)
                                 {
                                     Log.TraceMessage(Log.Nav.NavIn, "Host received results-clearing results.", Log.LogType.Info);
                                     resultStr = "";
                                     Directory.Delete(ARENA_FILES_PATH, true);
+				    Directory.CreateDirectory(ARENA_FILES_PATH);
                                 }
-                                if (data !=null && data.Length==1 && data[0]==0)
-                                {
+                                if (data != null && data.Length == 1 && data[0] == 0)                                {
                                     Log.TraceMessage(Log.Nav.NavIn, "We have been told to run game--LET'S GO!", Log.LogType.Info);
                                     List<string> results = BuildAndRunGame();
                                     Log.TraceMessage(Log.Nav.NavIn, "Results returned with size" + results.Count(), Log.LogType.Info);
@@ -474,9 +474,17 @@ namespace TheArena
                                     foreach (string s in results)
                                     {
                                         string[] split = s.Split(Environment.NewLine);
-                                        string teamName = split[split.Length - 1].Split('_')[0];
+                                        string[] splitLine = split[split.Length - 1].Split('_');
+					splitLine[0]=splitLine[0].Substring(splitLine[0].LastIndexOf('/')+1);
+					string[] reversedSplitLine=splitLine.Reverse().ToArray();
+					string teamName="";
+					for(int i=reversedSplitLine.Length-1; i>1; i--)
+					{
+					    teamName+=reversedSplitLine[i]+"_";
+					}
+					teamName=teamName.Substring(0,teamName.Length-1);
                                         Log.TraceMessage(Log.Nav.NavIn, "team name" + teamName, Log.LogType.Info);
-                                        string teamSubmissionNumber = split[split.Length - 1].Split('_')[1];
+                                        string teamSubmissionNumber = reversedSplitLine[1];
                                         Log.TraceMessage(Log.Nav.NavIn, "sub num" + teamSubmissionNumber, Log.LogType.Info);
                                         bool won = false;
                                         foreach (string i in split)
@@ -485,20 +493,25 @@ namespace TheArena
                                             {
                                                 Log.TraceMessage(Log.Nav.NavIn, teamName + "won", Log.LogType.Info);
                                                 won = true;
+						winReason=i;
                                             }
                                             else if (i.ToUpper().Contains("ERROR"))
                                             {
                                                 Log.TraceMessage(Log.Nav.NavIn, teamName + "error", Log.LogType.Info);
-                                                winReason = "error";
                                                 loseReason = "error";
                                             }
+					    else if (i.ToUpper().Contains("LOST"))
+					    {
+						Log.TraceMessage(Log.Nav.NavIn, teamName + "lost", Log.LogType.Info);
+						loseReason=i;
+					    }
                                             else if (i.ToUpper().Contains("HTTP"))
                                             {
                                                 logURL = i;
                                                 Log.TraceMessage(Log.Nav.NavIn, teamName + "logurl" + logURL, Log.LogType.Info);
                                             }
                                         }
-                                        if (won)
+					if (won)
                                         {
                                             winnerName = teamName;
                                             winnerSubmissionNumber = teamSubmissionNumber;
@@ -509,7 +522,8 @@ namespace TheArena
                                             loserSubmissionNumber = teamSubmissionNumber;
                                         }
                                     }
-                                    //HTTP.HTTPPost(status, winReason, loseReason, logURL, winnerName, winnerSubmissionNumber, loserName, loserSubmissionNumber);
+				    Log.TraceMessage(Log.Nav.NavOut, status+" "+winReason+" "+loseReason+" "+logURL+" "+winnerName+" "+winnerSubmissionNumber+" "+loserName+" "+loserSubmissionNumber, Log.LogType.Info);
+                                    HTTP.HTTPPost(status, winReason, loseReason, logURL, winnerName, winnerSubmissionNumber, loserName, loserSubmissionNumber);
                                     resultStr = winnerName + ";" + logURL;
                                 }
                             }
@@ -616,11 +630,11 @@ namespace TheArena
                 Log.TraceMessage(Log.Nav.NavIn, "CONFIRM PORT " + UDP_CONFIRM_PORT, Log.LogType.Info);
                 string hostName = Dns.GetHostName(); // Retrive the Name of HOST  
                 Log.TraceMessage(Log.Nav.NavIn, "HOST NAME: " + hostName, Log.LogType.Info);
-                /*Log.TraceMessage(Log.Nav.NavIn, "Deleting all files in arena file directory", Log.LogType.Info);
+                Log.TraceMessage(Log.Nav.NavIn, "Deleting all files in arena file directory", Log.LogType.Info);
                 if(Directory.Exists(ARENA_FILES_PATH))
                 {
                     Directory.Delete(ARENA_FILES_PATH, true);
-                }*/
+                }
                 var myIP = Dns.GetHostEntry(hostName).AddressList;
                 IPAddress arena_host_address = IPAddress.Parse(HOST_ADDR);
                 if (myIP.ToList().Contains(arena_host_address))
@@ -630,8 +644,8 @@ namespace TheArena
                 }
                 else
                 {
-                   Log.TraceMessage(Log.Nav.NavIn, "My IP does NOT match Host IP", Log.LogType.Info);
-                   RunClient();
+                    Log.TraceMessage(Log.Nav.NavIn, "My IP does NOT match Host IP", Log.LogType.Info);
+                    RunClient();
                 }
             }
             catch (Exception ex)
