@@ -445,9 +445,9 @@ namespace TheArena
                                     Log.TraceMessage(Log.Nav.NavIn, "Host received results-clearing results.", Log.LogType.Info);
                                     resultStr = "";
                                     Directory.Delete(ARENA_FILES_PATH, true);
+				    Directory.CreateDirectory(ARENA_FILES_PATH);
                                 }
-                                if (data != null && data.Length == 1 && data[0] == 0)
-                                {
+                                if (data != null && data.Length == 1 && data[0] == 0)                                {
                                     Log.TraceMessage(Log.Nav.NavIn, "We have been told to run game--LET'S GO!", Log.LogType.Info);
                                     List<string> results = BuildAndRunGame();
                                     Log.TraceMessage(Log.Nav.NavIn, "Results returned with size" + results.Count(), Log.LogType.Info);
@@ -462,9 +462,17 @@ namespace TheArena
                                     foreach (string s in results)
                                     {
                                         string[] split = s.Split(Environment.NewLine);
-                                        string teamName = split[split.Length - 1].Split('_')[0];
+                                        string[] splitLine = split[split.Length - 1].Split('_');
+					splitLine[0]=splitLine[0].Substring(splitLine[0].LastIndexOf('/')+1);
+					string[] reversedSplitLine=splitLine.Reverse().ToArray();
+					string teamName="";
+					for(int i=reversedSplitLine.Length-1; i>1; i--)
+					{
+					    teamName+=reversedSplitLine[i]+"_";
+					}
+					teamName=teamName.Substring(0,teamName.Length-1);
                                         Log.TraceMessage(Log.Nav.NavIn, "team name" + teamName, Log.LogType.Info);
-                                        string teamSubmissionNumber = split[split.Length - 1].Split('_')[1];
+                                        string teamSubmissionNumber = reversedSplitLine[1];
                                         Log.TraceMessage(Log.Nav.NavIn, "sub num" + teamSubmissionNumber, Log.LogType.Info);
                                         bool won = false;
                                         foreach (string i in split)
@@ -473,20 +481,25 @@ namespace TheArena
                                             {
                                                 Log.TraceMessage(Log.Nav.NavIn, teamName + "won", Log.LogType.Info);
                                                 won = true;
+						winReason=i;
                                             }
                                             else if (i.ToUpper().Contains("ERROR"))
                                             {
                                                 Log.TraceMessage(Log.Nav.NavIn, teamName + "error", Log.LogType.Info);
-                                                winReason = "error";
                                                 loseReason = "error";
                                             }
+					    else if (i.ToUpper().Contains("LOST"))
+					    {
+						Log.TraceMessage(Log.Nav.NavIn, teamName + "lost", Log.LogType.Info);
+						loseReason=i;
+					    }
                                             else if (i.ToUpper().Contains("HTTP"))
                                             {
                                                 logURL = i;
                                                 Log.TraceMessage(Log.Nav.NavIn, teamName + "logurl" + logURL, Log.LogType.Info);
                                             }
                                         }
-                                        if (won)
+					if (won)
                                         {
                                             winnerName = teamName;
                                             winnerSubmissionNumber = teamSubmissionNumber;
@@ -497,7 +510,8 @@ namespace TheArena
                                             loserSubmissionNumber = teamSubmissionNumber;
                                         }
                                     }
-                                    //HTTP.HTTPPost(status, winReason, loseReason, logURL, winnerName, winnerSubmissionNumber, loserName, loserSubmissionNumber);
+				    Log.TraceMessage(Log.Nav.NavOut, status+" "+winReason+" "+loseReason+" "+logURL+" "+winnerName+" "+winnerSubmissionNumber+" "+loserName+" "+loserSubmissionNumber, Log.LogType.Info);
+                                    HTTP.HTTPPost(status, winReason, loseReason, logURL, winnerName, winnerSubmissionNumber, loserName, loserSubmissionNumber);
                                     resultStr = winnerName + ";" + logURL;
                                 }
                             }
@@ -604,11 +618,11 @@ namespace TheArena
                 Log.TraceMessage(Log.Nav.NavIn, "CONFIRM PORT " + UDP_CONFIRM_PORT, Log.LogType.Info);
                 string hostName = Dns.GetHostName(); // Retrive the Name of HOST  
                 Log.TraceMessage(Log.Nav.NavIn, "HOST NAME: " + hostName, Log.LogType.Info);
-                /*Log.TraceMessage(Log.Nav.NavIn, "Deleting all files in arena file directory", Log.LogType.Info);
+                Log.TraceMessage(Log.Nav.NavIn, "Deleting all files in arena file directory", Log.LogType.Info);
                 if(Directory.Exists(ARENA_FILES_PATH))
                 {
                     Directory.Delete(ARENA_FILES_PATH, true);
-                }*/
+                }
                 var myIP = Dns.GetHostEntry(hostName).AddressList;
                 IPAddress arena_host_address = IPAddress.Parse(HOST_ADDR);
                 if (myIP.ToList().Contains(arena_host_address))
