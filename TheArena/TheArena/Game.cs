@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Logger;
 
 namespace TheArena
 {
@@ -33,6 +34,8 @@ namespace TheArena
             IsComplete = true;
             IsRunning = false;
             Game_URL = url;
+	    Console.WriteLine(Game_URL);
+	    Log.TraceMessage(Log.Nav.NavIn, name+" won url="+Game_URL, Log.LogType.Info);
             if (Competitors.Count > 0)
             {
                 Competitors[0].ParentNode.Info.TeamName=name;

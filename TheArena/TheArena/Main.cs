@@ -265,13 +265,23 @@ namespace TheArena
                 Log.TraceMessage(Log.Nav.NavIn, "Tourney not done yet ", Log.LogType.Info);
                 for (int i = 0; i < currentlyRunningGames.Count; i++)
                 {
-                    if ((new TimeSpan(DateTime.Now.Ticks - currentlyRunningGames[i].startTimeTicks)).TotalMinutes > 20)
-                    {
-                        Log.TraceMessage(Log.Nav.NavIn, "It's been 5 minutes and game as not returned -- giving it to another client ", Log.LogType.Info);
-                        currentlyRunningGames[i].GameRan.IsRunning = false;
-                        currentlyRunningGames[i].GameRan.IsComplete = false;
-                        currentlyRunningGames.RemoveAt(i);
-                        i--;
+		    if(currentlyRunningGames[i].GameRan.IsComplete)
+		    {
+			currentlyRunningGames.RemoveAt(i);
+			i--;
+		    }
+		    else
+		    {
+		        Log.TraceMessage(Log.Nav.NavIn, "Game "+i+" has been running for "+(new TimeSpan(DateTime.Now.Ticks - currentlyRunningGames[i].startTimeTicks)).TotalMinutes+" minutes.", Log.LogType.Info);
+                        Console.WriteLine("Game "+i+" has been running for "+(new TimeSpan(DateTime.Now.Ticks - currentlyRunningGames[i].startTimeTicks)).TotalMinutes+" minutes.");
+		        if ((new TimeSpan(DateTime.Now.Ticks - currentlyRunningGames[i].startTimeTicks)).TotalMinutes > 20)
+                        {
+                            Log.TraceMessage(Log.Nav.NavIn, "It's been 20 minutes and game as not returned -- giving it to another client ", Log.LogType.Info);
+                            currentlyRunningGames[i].GameRan.IsRunning = false;
+                            currentlyRunningGames[i].GameRan.IsComplete = false;
+                            currentlyRunningGames.RemoveAt(i);
+                            i--;
+                        }
                     }
                 }
                 Game toAssign;
@@ -291,11 +301,13 @@ namespace TheArena
                             string maxSubmission = "";
                             for (int j = 0; j < files.Length; j++)
                             {
+				Log.TraceMessage(Log.Nav.NavIn, "Currently looking at "+ files[j], Log.LogType.Info);
                                 if (files[j].Contains(toAssign.Competitors[i].Info.TeamName))
                                 {
-                                    var split = files[j].Split('_');
-                                    var reversed = split.Reverse().ToArray();
-                                    Log.TraceMessage(Log.Nav.NavIn, reversed[1], Log.LogType.Info);
+                                    Log.TraceMessage(Log.Nav.NavIn, "It contained "+toAssign.Competitors[i].Info.TeamName, Log.LogType.Info);
+                                    var split=files[j].Split('_');
+                                    var reversed=split.Reverse().ToArray();
+                                    Log.TraceMessage(Log.Nav.NavIn,"The submission number checked is "+ reversed[1], Log.LogType.Info);
                                     if (int.Parse(reversed[1]) > maxSubmissionNumber)
                                     {
                                         maxSubmissionNumber = int.Parse(reversed[1]);
@@ -339,7 +351,7 @@ namespace TheArena
                 Log.TraceMessage(Log.Nav.NavOut, files.Length + " Files existed in Arena Files Directory.", Log.LogType.Info);
                 foreach (string f in files)
                 {
-                    var fs = f.Substring(f.LastIndexOf('\\') + 1); // From C:\Users\Me\Documents\team1_1_csharp.zip to team_one_1_cs.zip
+                    var fs = f.Substring(f.LastIndexOf('/') + 1); // From C:\Users\Me\Documents\team1_1_csharp.zip to team_one_1_cs.zip
                     var withoutZip = fs.Substring(0, fs.LastIndexOf(".zip")); //To team_one_1_cs
                     string[] split = withoutZip.Split('_'); // ["team","one","1","cs"]
                     var reversed = split.Reverse().ToArray(); // ["cs","1","one","team"]
