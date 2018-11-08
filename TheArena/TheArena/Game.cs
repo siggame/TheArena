@@ -1,10 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Text;
-using Logger;
 
 namespace TheArena
 {
+
+    public class RunGameInfo
+    {
+        public IPAddress ClientRunningGame { get; set; }
+        public Game GameRan { get; set; }
+        public long StartTimeTicks { get; set; }
+    }
+
     public class Game
     {
         public List<Player> Competitors;
@@ -12,7 +20,7 @@ namespace TheArena
         public bool IsComplete { get; set; }
         public int RoundNumber;
         public string Game_URL;
-        
+
         public Game()
         {
             Competitors = new List<Player>();
@@ -34,11 +42,9 @@ namespace TheArena
             IsComplete = true;
             IsRunning = false;
             Game_URL = url;
-	    Console.WriteLine(Game_URL);
-	    Log.TraceMessage(Log.Nav.NavIn, name+" won url="+Game_URL, Log.LogType.Info);
             if (Competitors.Count > 0)
             {
-                Competitors[0].ParentNode.Info.TeamName=name;
+                Competitors[0].ParentNode.Info.TeamName = name;
             }
             champion.Traverse(t.GetGames);
         }
