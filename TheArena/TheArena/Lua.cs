@@ -54,7 +54,7 @@ namespace TheArena
         /// </summary>
         /// <param name="file"></param>
         /// <returns></returns>
-        public static string BuildAndRun(string file)
+        public static string BuildAndRun(string file, string DA_GAME)
         {
             bool isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
             bool isLinux = RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
@@ -92,7 +92,7 @@ namespace TheArena
                             sw.WriteLine("  then");
                             sw.WriteLine("    echo \"No argument(s) supplied. Please specify game session you want to join or make.\"");
                             sw.WriteLine("  else");
-                            sw.WriteLine("    ./run SALOON -s dev.siggame.tk -r \"$@\"");
+                            sw.WriteLine("    ./run "+DA_GAME+" -s dev.siggame.tk -r \"$@\"");
                             sw.WriteLine("fi");
                         }
                         Log.TraceMessage(Log.Nav.NavIn, "Rewrote script-- running", Log.LogType.Info);

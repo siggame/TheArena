@@ -153,32 +153,32 @@ namespace TheArena
                 if (file.ToLower().Contains("js"))
                 {
                     Log.TraceMessage(Log.Nav.NavIn, "Building javascript ", Log.LogType.Info);
-                    toReturn.Add(Javascript.BuildAndRun(file.Substring(0, file.LastIndexOf(".")) + "/Joueur.js/main.js"));
+                    toReturn.Add(Javascript.BuildAndRun(file.Substring(0, file.LastIndexOf(".")) + "/Joueur.js/main.js",DA_GAME));
                 }
                 else if (file.ToLower().Contains("cpp"))
                 {
                     Log.TraceMessage(Log.Nav.NavIn, "Building Cpp ", Log.LogType.Info);
-                    toReturn.Add(Cpp.BuildAndRun(file.Substring(0, file.LastIndexOf(".")) + "/Joueur.cpp/main.cpp"));
+                    toReturn.Add(Cpp.BuildAndRun(file.Substring(0, file.LastIndexOf(".")) + "/Joueur.cpp/main.cpp", DA_GAME));
                 }
                 else if (file.ToLower().Contains("py"))
                 {
                     Log.TraceMessage(Log.Nav.NavIn, "Building Python ", Log.LogType.Info);
-                    toReturn.Add(Python.BuildAndRun(file.Substring(0, file.LastIndexOf(".")) + "/Joueur.py/main.py"));
+                    toReturn.Add(Python.BuildAndRun(file.Substring(0, file.LastIndexOf(".")) + "/Joueur.py/main.py", DA_GAME));
                 }
                 else if (file.ToLower().Contains("lua"))
                 {
                     Log.TraceMessage(Log.Nav.NavIn, "Building Lua ", Log.LogType.Info);
-                    toReturn.Add(Lua.BuildAndRun(file.Substring(0, file.LastIndexOf(".")) + "/Joueur.lua/main.lua"));
+                    toReturn.Add(Lua.BuildAndRun(file.Substring(0, file.LastIndexOf(".")) + "/Joueur.lua/main.lua",DA_GAME));
                 }
                 else if (file.ToLower().Contains("java"))
                 {
                     Log.TraceMessage(Log.Nav.NavIn, "Building Java ", Log.LogType.Info);
-                    toReturn.Add(Java.BuildAndRun(file.Substring(0, file.LastIndexOf(".")) + "/Joueur.java/main.java"));
+                    toReturn.Add(Java.BuildAndRun(file.Substring(0, file.LastIndexOf(".")) + "/Joueur.java/main.java",DA_GAME));
                 }
                 else if (file.ToLower().Contains("cs"))
                 {
                     Log.TraceMessage(Log.Nav.NavIn, "Building Csharp ", Log.LogType.Info);
-                    toReturn.Add(CSharp.BuildAndRun(file.Substring(0, file.LastIndexOf(".")) + "/Joueur.cs/main.cs"));
+                    toReturn.Add(CSharp.BuildAndRun(file.Substring(0, file.LastIndexOf(".")) + "/Joueur.cs/main.cs",DA_GAME));
                 }
             }
             catch (Exception ex)

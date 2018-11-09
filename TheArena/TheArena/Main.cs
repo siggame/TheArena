@@ -29,9 +29,11 @@ namespace TheArena
     {
         const string HOST_ADDR = "10.128.0.2";
         const string ARENA_FILES_PATH = @"/home/sjkyv5/ArenaFiles/";
+        const string DA_GAME = "newtonian";
         const int HOST_PORT = 21;
         const int UDP_ASK_PORT = 234;
         const int UDP_CONFIRM_PORT = 1100;
+        
         static FtpServer server;
         static List<PlayerInfo> eligible_players = new List<PlayerInfo>();
         static ConcurrentQueue<IPAddress> clients = new ConcurrentQueue<IPAddress>();
