@@ -216,6 +216,10 @@ namespace TheArena
                             filesWithSubmission[teamName] = new Tuple<string,int>(lang,int.Parse(submission));
                         }
                     }
+                    else
+                    {
+                        filesWithSubmission[teamName]= new Tuple<string, int>(lang, int.Parse(submission));
+                    }
                 }
                 foreach (var x in filesWithSubmission)
                 {
