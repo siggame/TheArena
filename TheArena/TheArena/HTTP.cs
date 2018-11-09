@@ -14,6 +14,10 @@ namespace TheArena
     {
         public static void HTTPPost(string status, string winReason, string loseReason, string logURL, string winnerTeamName, string winnerVersion, string loserTeamName, string loserVersion)
         {
+            winReason=winReason.Replace("\"", "").Replace("\"", "").Replace("\"", "").Replace("\"", "").Replace("\"", "").Replace("\"", "").Replace("\"", "").Replace("\"", "");
+            loseReason=loseReason.Replace("\"", "").Replace("\"", "").Replace("\"", "").Replace("\"", "").Replace("\"", "").Replace("\"", "").Replace("\"", "").Replace("\"", "");
+            status=status.Replace("\"", "").Replace("\"", "").Replace("\"", "").Replace("\"", "").Replace("\"", "").Replace("\"", "").Replace("\"", "").Replace("\"", "");
+            logURL=logURL.Replace("\"", "").Replace("\"", "").Replace("\"", "").Replace("\"", "").Replace("\"", "").Replace("\"", "").Replace("\"", "").Replace("\"", "");
             string myJson =
                 "{" +
                 "\"status\": \"" + status + "\"," +
@@ -29,6 +33,7 @@ namespace TheArena
                     "\"version\":\"" + loserVersion + "\"" +
                 "}" +
                 "}";
+            Console.WriteLine(myJson);
             using (var client = new HttpClient())
             {
                 try
