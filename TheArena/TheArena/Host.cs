@@ -194,6 +194,7 @@ namespace TheArena
             if (files != null && files.Length > 0)
             {
                 Log.TraceMessage(Log.Nav.NavOut, files.Length + " Files existed in Arena Files Directory.", Log.LogType.Info);
+                Dictionary<string, Tuple<string, int>> filesWithSubmission = new Dictionary<string, Tuple<string, int>>();
                 foreach (string f in files)
                 {
                     var fs = f.Substring(f.LastIndexOf('/') + 1); // From C:\Users\Me\Documents\team1_1_csharp.zip to team_one_1_cs.zip
@@ -208,8 +209,19 @@ namespace TheArena
                         teamName += reversed[i] + "_"; // "team_one_"
                     }
                     teamName = teamName.Substring(0, teamName.Length - 1); //"team_one"
-                    Log.TraceMessage(Log.Nav.NavIn, "Adding team: " + teamName + " with lang" + lang + " and submissionNum=" + submission, Log.LogType.Info);
-                    AddPlayerToArena(teamName, submission, lang);
+                    if(filesWithSubmission.TryGetValue(teamName, out Tuple<string,int> subNum))
+                    {
+                        if(int.Parse(submission)>subNum.Item2)
+                        {
+                            filesWithSubmission[teamName] = new Tuple<string,int>(lang,int.Parse(submission));
+                        }
+                    }
+                }
+                foreach (var x in filesWithSubmission)
+                {
+                    Log.TraceMessage(Log.Nav.NavIn, "Adding team: " + x.Key + " with lang " + x.Value.Item1 + " and submissionNum=" + x.Value.Item2, Log.LogType.Info);
+
+                    AddPlayerToArena(x.Key, x.Value.Item2+"", x.Value.Item1);
                 }
             }
         }
