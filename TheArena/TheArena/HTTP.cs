@@ -17,15 +17,17 @@ namespace TheArena
         public string winReason;
         public string loseReason;
         public string logUrl;
+        public Winner winner;
+        public Loser loser;
     }
 
-    public class winner
+    public class Winner
     {
         public string teamName;
         public string version;
     }
 
-    public class loser
+    public class Loser
     {
         public string teamName;
         public string version;
@@ -62,7 +64,7 @@ namespace TheArena
                     "\"version\":\"" + loserVersion + "\"" +
                 "}" +
                 "}";*/
-            MyPacket p = new MyPacket() { status = status, loseReason = loseReason, winReason = winReason, logUrl = logURL };
+            MyPacket p = new MyPacket() { status = status, loseReason = loseReason, winReason = winReason, logUrl = logURL, winner=new Winner() { teamName = winnerTeamName, version = winnerVersion },loser=new Loser() { teamName = loserTeamName, version = loserVersion } };
             string serialized = JsonConvert.SerializeObject(p);
             Console.WriteLine(serialized);
             using (var client = new HttpClient())
