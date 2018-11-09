@@ -56,3 +56,10 @@ to update the bracket.
 Sudo access must be given to do networking otherwise errors will occur. In the event of ANY error, check the Log file
 
     nano Log.txt
+    
+    
+ To keep persistant do:
+ 
+     screen -S arena
+ 
+ then run the game in the screen and when it's running do CTRL+A+D and it will return to the original linux and you can close the application.
