@@ -63,3 +63,8 @@ Sudo access must be given to do networking otherwise errors will occur. In the e
      screen -S arena
  
  then run the game in the screen and when it's running do CTRL+A+D and it will return to the original linux and you can close the application.
+ 
+ When you come back and want to view again do:
+ 
+     screen -r arena
+    
