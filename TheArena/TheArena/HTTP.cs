@@ -34,9 +34,9 @@ namespace TheArena
                 try
                 {
                     List<Task> allGames = new List<Task>();
-                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InRlc3QiLCJpZCI6MTAsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNTQwOTI4NTc1LCJleHAiOjE1NDEwMTQ5NzV9.-SgFrNAqsth46Rz0XgBSrC5FwFB56eYwP1SzOZj8oOk");
+                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IklMaWtlU29ja3NPblN1bmRheXMiLCJpZCI6Miwicm9sZSI6InVzZXIiLCJpYXQiOjE1NDE3MjU4MzQsImV4cCI6MTU0MjE1NzgzNH0.apOpoXOMT5zIQ2HosDmJG0T-NJ0yDScv8_e5Wnf5ZbI");
                     allGames.Add(Task.Run(() => client.PostAsync(
-                        "https://mmai-server.dillonhess.me/games/",
+                        "https://mmai-server.siggame.io/games/",
                          new StringContent(myJson, Encoding.UTF8, "application/json"))));
                     Task.WaitAll(allGames.ToArray());
                 }
