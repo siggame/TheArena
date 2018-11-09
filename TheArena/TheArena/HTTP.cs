@@ -15,9 +15,17 @@ namespace TheArena
         public static void HTTPPost(string status, string winReason, string loseReason, string logURL, string winnerTeamName, string winnerVersion, string loserTeamName, string loserVersion)
         {
             winReason=winReason.Replace("\"", "").Replace("\"", "").Replace("\"", "").Replace("\"", "").Replace("\"", "").Replace("\"", "").Replace("\"", "").Replace("\"", "");
-            loseReason=loseReason.Replace("\"", "").Replace("\"", "").Replace("\"", "").Replace("\"", "").Replace("\"", "").Replace("\"", "").Replace("\"", "").Replace("\"", "");
-            status=status.Replace("\"", "").Replace("\"", "").Replace("\"", "").Replace("\"", "").Replace("\"", "").Replace("\"", "").Replace("\"", "").Replace("\"", "");
-            logURL=logURL.Replace("\"", "").Replace("\"", "").Replace("\"", "").Replace("\"", "").Replace("\"", "").Replace("\"", "").Replace("\"", "").Replace("\"", "");
+            winReason = winReason.Replace("\n", "").Replace("\n", "").Replace("\n", "").Replace("\n", "").Replace("\n", "").Replace("\n", "").Replace("\n", "").Replace("\n", "").Replace("\n", "");
+            winReason = winReason.Replace("\r", "").Replace("\r", "").Replace("\r", "").Replace("\r", "").Replace("\r", "").Replace("\r", "").Replace("\r", "").Replace("\r", "").Replace("\r", "");
+            loseReason =loseReason.Replace("\"", "").Replace("\"", "").Replace("\"", "").Replace("\"", "").Replace("\"", "").Replace("\"", "").Replace("\"", "").Replace("\"", "");
+            loseReason = loseReason.Replace("\n", "").Replace("\n", "").Replace("\n", "").Replace("\n", "").Replace("\n", "").Replace("\n", "").Replace("\n", "").Replace("\n", "").Replace("\n", "");
+            loseReason = loseReason.Replace("\r", "").Replace("\r", "").Replace("\r", "").Replace("\r", "").Replace("\r", "").Replace("\r", "").Replace("\r", "").Replace("\r", "").Replace("\r", "");
+            status =status.Replace("\"", "").Replace("\"", "").Replace("\"", "").Replace("\"", "").Replace("\"", "").Replace("\"", "").Replace("\"", "").Replace("\"", "");
+            status = status.Replace("\n", "").Replace("\n", "").Replace("\n", "").Replace("\n", "").Replace("\n", "").Replace("\n", "").Replace("\n", "").Replace("\n", "").Replace("\n", "");
+            status = status.Replace("\r", "").Replace("\r", "").Replace("\r", "").Replace("\r", "").Replace("\r", "").Replace("\r", "").Replace("\r", "").Replace("\r", "").Replace("\r", "").Replace("\r", "");
+            logURL =logURL.Replace("\"", "").Replace("\"", "").Replace("\"", "").Replace("\"", "").Replace("\"", "").Replace("\"", "").Replace("\"", "").Replace("\"", "");
+            logURL = logURL.Replace("\n", "").Replace("\n", "").Replace("\n", "").Replace("\n", "").Replace("\n", "").Replace("\n", "").Replace("\n", "").Replace("\n", "").Replace("\n", "");
+            logURL = logURL.Replace("\r", "").Replace("\r", "").Replace("\r", "").Replace("\r", "").Replace("\r", "").Replace("\r", "").Replace("\r", "").Replace("\r", "").Replace("\r", "").Replace("\r", "");
             string myJson =
                 "{" +
                 "\"status\": \"" + status + "\"," +
