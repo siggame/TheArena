@@ -125,6 +125,9 @@ namespace TheArena
                                     Log.TraceMessage(Log.Nav.NavOut, status + " " + winReason + " " + loseReason + " " + logURL + " " + winnerName + " " + winnerSubmissionNumber + " " + loserName + " " + loserSubmissionNumber, Log.LogType.Info);
                                     HTTP.HTTPPost(status, winReason, loseReason, logURL, winnerName, winnerSubmissionNumber, loserName, loserSubmissionNumber);
                                     resultStr = winnerName + ";" + logURL;
+				    Thread.Sleep(8000);
+				    Directory.Delete(ARENA_FILES_PATH, true);
+                                    Directory.CreateDirectory(ARENA_FILES_PATH);
                                 }
                             }
                             catch
