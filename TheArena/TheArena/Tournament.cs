@@ -65,7 +65,7 @@ namespace TheArena
                         }
                         else if (!games[i].IsRunning && games[i].Competitors.Count() == 2 && games[i].Competitors[1].Info.TeamName.ToUpper() == "BYE")
                         {
-                            games[i].SetWinner(games[i].Competitors[1], this, games[i].Competitors[1].Info.TeamName, "");
+                            games[i].SetWinner(games[i].Competitors[1], this, games[i].Competitors[0].Info.TeamName, "");
                         }
                         else
                         {

@@ -92,7 +92,7 @@ namespace TheArena
                             sw.WriteLine("  then");
                             sw.WriteLine("    echo \"No argument(s) supplied. Please specify game session you want to join or make.\"");
                             sw.WriteLine("  else");
-                            sw.WriteLine("    ./run "+DA_GAME+" -s dev.siggame.tk -r \"$@\"");
+                            sw.WriteLine("    ./run "+DA_GAME+" -s 127.0.0.1 -r \"$@\"");
                             sw.WriteLine("fi");
                         }
                         Log.TraceMessage(Log.Nav.NavIn, "Rewrote script-- running", Log.LogType.Info);

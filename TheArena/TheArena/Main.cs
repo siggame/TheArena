@@ -27,7 +27,7 @@ namespace TheArena
 
     public partial class Runner
     {
-        const string HOST_ADDR = "10.128.0.2";
+        const string HOST_ADDR = "35.239.194.206";
         const string ARENA_FILES_PATH = @"/home/sjkyv5/ArenaFiles/";
         const string DA_GAME = "newtonian";
         const int HOST_PORT = 21;
