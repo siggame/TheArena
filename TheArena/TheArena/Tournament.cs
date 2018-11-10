@@ -52,10 +52,11 @@ namespace TheArena
                     Log.TraceMessage(Log.Nav.NavIn, "There are " + games.Count + " games.", Log.LogType.Info);
                     if (!games[i].IsComplete)
                     {
-                        Log.TraceMessage(Log.Nav.NavIn, "Game " + i + " is not done.", Log.LogType.Info);
+                        Log.TraceMessage(Log.Nav.NavIn, "Game " + i + " is not done and has "+games[i].Competitors.Count()+" players.", Log.LogType.Info);
                         allGamesComplete = false;
-                        if (!games[i].IsRunning && games[i].Competitors.Count() == 1)
+                        if (games[i].Competitors.Count() == 1 && games[i].Competitors[0].Info.TeamName!="")
                         {
+                            Log.TraceMessage(Log.Nav.NavIn, "Setting winner for single player match->"+games[i].Competitors[0].Info.TeamName, Log.LogType.Info);
                             games[i].SetWinner(games[i].Competitors[0], this, games[i].Competitors[0].Info.TeamName, "");
                         }
                         else if (!games[i].IsRunning && games[i].Competitors.Count() == 2 && games[i].Competitors[0].Info.TeamName.ToUpper() == "BYE")
