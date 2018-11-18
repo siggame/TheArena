@@ -96,7 +96,7 @@ namespace TheArena
                             sw.WriteLine("fi");
                         }
                         Log.TraceMessage(Log.Nav.NavIn, "Rewrote script-- running", Log.LogType.Info);
-                        process.StandardInput.WriteLine("sudo chmod 777 testRun && sudo chmod 777 run && sudo make && ./testRun seth >>results.txt 2>&1");
+                        process.StandardInput.WriteLine("sudo chmod 777 testRun && sudo chmod 777 run && sudo make clean && sudo make && ./testRun seth >>results.txt 2>&1");
                         string result = "";
                         do
                         {

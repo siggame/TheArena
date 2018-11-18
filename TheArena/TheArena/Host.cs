@@ -125,7 +125,7 @@ namespace TheArena
                     {
                         Log.TraceMessage(Log.Nav.NavIn, "Game " + i + " has been running for " + (new TimeSpan(DateTime.Now.Ticks - currentlyRunningGames[i].StartTimeTicks)).TotalMinutes + " minutes.", Log.LogType.Info);
                         Console.WriteLine("Game " + i + " has been running for " + (new TimeSpan(DateTime.Now.Ticks - currentlyRunningGames[i].StartTimeTicks)).TotalMinutes + " minutes.");
-                        if ((new TimeSpan(DateTime.Now.Ticks - currentlyRunningGames[i].StartTimeTicks)).TotalMinutes > 20)
+                        if ((new TimeSpan(DateTime.Now.Ticks - currentlyRunningGames[i].StartTimeTicks)).TotalMinutes > 8)
                         {
                             Log.TraceMessage(Log.Nav.NavIn, "It's been 20 minutes and game as not returned -- giving it to another client ", Log.LogType.Info);
                             currentlyRunningGames[i].GameRan.IsRunning = false;
