@@ -74,7 +74,7 @@ namespace TheArena
                                     string loserSubmissionNumber = results[5];
                                     string logURL = results[6];
                                     Log.TraceMessage(Log.Nav.NavOut, status + " " + winReason + " " + loseReason + " " + logURL + " " + winnerName + " " + winnerSubmissionNumber + " " + loserName + " " + loserSubmissionNumber, Log.LogType.Info);
-                                    HTTP.HTTPPost(status, winReason, loseReason, logURL, winnerName, winnerSubmissionNumber, loserName, loserSubmissionNumber); //Send Info To Webserver
+                                    HTTP.HTTPPostSendToWeb(status, winReason, loseReason, logURL, winnerName, winnerSubmissionNumber, loserName, loserSubmissionNumber); //Send Info To Webserver
                                     resultStr = winnerName + ";" + logURL; //This will be sent to Host on next while(true) loop iteration
 				                    Thread.Sleep(3000); //Wait 3 seconds for post to go through
 				                    Directory.Delete(ARENA_FILES_PATH, true);
@@ -198,7 +198,15 @@ namespace TheArena
                         do
                         {
                             //Call Status GameServer API until status == "over"
+                            var x = HTTP.HTTPPostGetStatus(DA_GAME, gameSession);
+
+                            if(x.status == "over")
+                                done = true;
+                            else
+                                done = false;
+
                             Thread.Sleep(1000 * 60); //Wait 1 min for game to finish
+
                             if (done)
                             {
                                 return true;
@@ -245,7 +253,7 @@ namespace TheArena
                 Log.TraceMessage(Log.Nav.NavIn, "ARENA FILES Directory Contains " + files.Count() + " files.", Log.LogType.Info);
                 List<Tuple<Task<bool>, string>> allGames = new List<Tuple<Task<bool>, string>>(); //First parameter is the thread, second parameter is the file being run (which has the player name)
 
-
+                List<string> playerNames = new List<string>();
                 //Call SETUP GameServer API and create random game session
                 foreach (var f in files)
                 {
@@ -261,9 +269,21 @@ namespace TheArena
                         teamName += reversed[j] + "_"; // "team_one_"
                     }
                     teamName = teamName.Substring(0, teamName.Length - 1); //"team_one"
+                    playerNames.Append(teamName);
                 }
-                string gameSession = "seth";
+                string gameSession = "seth" + DateTime.Now.Ticks;
+                gameSettings gSettings = new gameSettings() {playerNames = playerNames.ToArray()};
 
+                while(true)
+                {
+                    if (HTTP.HTTPPostStartGame(DA_GAME, gameSession, gSettings, playerNames.ToArray()))
+                    {
+                        Log.TraceMessage(Log.Nav.NavIn, "Posted.", Log.LogType.Info);
+                        break;
+                    }
+                    Thread.Sleep(100);
+                    Log.TraceMessage(Log.Nav.NavIn, "Connecting...", Log.LogType.Info);
+                }
 
                 foreach (var file in files)
                 {
@@ -339,12 +359,14 @@ namespace TheArena
                 Log.TraceMessage(Log.Nav.NavIn, "All threads successfully compiled.", Log.LogType.Info);
 
                 //Get Final Status from GameServer API
-                string winReason = "if status.clients[0].won{ status.clients[0].reason} else { status.clients[1].reason}";
+                Result status = HTTP.HTTPPostGetStatus(DA_GAME, gameSession);
+
+                string winReason = status.clients[0].won ? status.clients[0].reason : status.clients[1].reason;
                 answers.Add(winReason);
-                string loseReason = "if status.clients[0].lost{ status.clients[0].reason} else { status.clients[1].reason}";
+                string loseReason = status.clients[0].lost ? status.clients[0].reason : status.clients[1].reason;
                 answers.Add(loseReason);
-                string winnerName = "if status.clients[0].won{ status.clients[0].name} else { status.clients[1].name}";
-                string loserName = "if status.clients[0].lost{ status.clients[0].name} else { status.clients[1].name}";
+                string winnerName = status.clients[0].won ? status.clients[0].name : status.clients[1].name;
+                string loserName = status.clients[0].lost ? status.clients[0].name : status.clients[1].name;
                 answers.Add(winnerName);
                 string winnerSubmissionNumber = "";
                 string loserSubmissionNumber = "";
@@ -363,7 +385,7 @@ namespace TheArena
                 answers.Add(winnerSubmissionNumber);
                 answers.Add(loserName);
                 answers.Add(loserSubmissionNumber);
-                string logURL = "status.gamelogFilename";
+                string logURL = status.gamelogFilename;
                 answers.Add(logURL);
                 return answers;
             }
