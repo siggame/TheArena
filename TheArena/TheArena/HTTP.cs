@@ -56,10 +56,11 @@ namespace TheArena
                 try
                 {
                     List<Task> allGames = new List<Task>();
+                    Console.WriteLine("Wat");
                     //client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IklMaWtlU29ja3NPblN1bmRheXMiLCJpZCI6Mywicm9sZSI6InVzZXIiLCJpYXQiOjE1NDE4NjY1NTcsImV4cCI6MTU0MjI5ODU1N30.XWaWB_cWhUFEC1m0GxFJ4ln8uq5h086gXGxRmOLVXA0");
                     allGames.Add(Task.Run(async () => {var x = await client.PostAsync(
-                        "https://mmai-server.siggame.io/",
-                         new StringContent(serialized, Encoding.UTF8, "application/json"));
+                        "http://35.190.137.139:3080/setup", new StringContent(serialized, Encoding.UTF8, "application/json"));
+                         
                          Console.WriteLine(await x.Content.ReadAsStringAsync());
                          Log.TraceMessage(Log.Nav.NavIn, "Server Response Content: " + await x.Content.ReadAsStringAsync(), Log.LogType.Info);
                          Log.TraceMessage(Log.Nav.NavIn, "Server Response: " + x, Log.LogType.Info);
@@ -76,7 +77,7 @@ namespace TheArena
 
         public static void HTTPPostSendToWeb(string status, string winReason, string loseReason, string logURL, string winnerTeamName, string winnerVersion, string loserTeamName, string loserVersion)
         {
-            MyPacket p = new MyPacket() { status = status, loseReason = loseReason, winReason = winReason, logUrl = logURL, winner=new Winner() { teamName = winnerTeamName, version = winnerVersion },loser=new Loser() { teamName = loserTeamName, version = loserVersion } };
+            /*MyPacket p = new MyPacket() { status = status, loseReason = loseReason, winReason = winReason, logUrl = logURL, winner=new Winner() { teamName = winnerTeamName, version = winnerVersion },loser=new Loser() { teamName = loserTeamName, version = loserVersion } };
             string serialized = JsonConvert.SerializeObject(p);
             Console.WriteLine(serialized);
             using (var client = new HttpClient())
@@ -94,7 +95,7 @@ namespace TheArena
                 {
                     string idk = ex.Message;
                 }
-            }
+            }*/
         }
 
     }
