@@ -6,7 +6,7 @@
        ╚═╝   ╚═╝  ╚═╝╚══════╝    ╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═══╝╚═╝  ╚═╝
                                                                        
                  Run Sig-Game AI Battles for Multiple Languages.
-                 Developed by Seth Kitchen August-November 2018
+                 Developed by Seth Kitchen and Tanner May August-November 2018 and January-April 2019
                                    @Missouri S&T
                  
 Currently builds and runs on Windows and Linux, but Windows functionality is only 25-40% done. Could be updated in future semesters.
@@ -22,12 +22,14 @@ The client starts and continously waits for the host to send it files. When the 
 and the client will run all the AIs sent to it. After it compiles the results, it sends it to the web team for record keeping and to the host
 to update the bracket.
 
+NEW CALLS THE GAMESERVER API WOW
+
 # Linux
 
 1) First install git and Clone the repo
 
     sudo apt-get install git
-    git clone https://github.com/scoobyDooIT/TheArena.git
+    git clone https://github.com/siggame/TheArena.git
 
 2) Open Main.cs and Change the IPAddresses to match the host and the your own computer. If you are the host, the HOST_ADDR should be an
    internal IP (ie my internal IP listed on Google Cloud - 10 dot 128 dot 0 dot 2). If you are a client the HOST_ADDR should be the external IP address
