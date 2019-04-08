@@ -6,8 +6,9 @@
        ╚═╝   ╚═╝  ╚═╝╚══════╝    ╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═══╝╚═╝  ╚═╝
                                                                        
                  Run Sig-Game AI Battles for Multiple Languages.
-                 Developed by Seth Kitchen and Tanner May August-November 2018 and January-April 2019
-                                   @Missouri S&T
+                 Developed by Seth Kitchen and Tanner May
+                 August-November 2018 and January-April 2019
+                            @Missouri S&T
                  
 Currently builds and runs on Windows and Linux, but Windows functionality is only 25-40% done. Could be updated in future semesters.
 Instructions for Linux on Google Cloud are below!!!!
