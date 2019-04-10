@@ -29,7 +29,7 @@ namespace TheArena
     {
         const string HOST_ADDR = "35.239.194.206";
         const string ARENA_FILES_PATH = @"/home/sjkyv5/ArenaFiles/";
-        const string DA_GAME = "newtonian";
+        const string DA_GAME = "Spiders";
         const int HOST_PORT = 21;
         const int UDP_ASK_PORT = 234;
         const int UDP_CONFIRM_PORT = 1100;
