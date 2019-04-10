@@ -27,8 +27,8 @@ namespace TheArena
 
     public partial class Runner
     {
-        const string HOST_ADDR = "35.239.194.206";
-        const string ARENA_FILES_PATH = @"/home/sjkyv5/ArenaFiles/";
+        const string HOST_ADDR = "34.66.64.193";
+        const string ARENA_FILES_PATH = @"/home/siggame/ArenaFiles/";
         const string DA_GAME = "Spiders";
         const int HOST_PORT = 21;
         const int UDP_ASK_PORT = 234;
