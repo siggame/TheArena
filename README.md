@@ -29,9 +29,10 @@ CALLS THE GAMESERVER API WOW
 
 # Linux
 
-1) First install git and Clone the repo
+1) First install git and Clone the repo:
 
     sudo apt-get install git
+      
     git clone https://github.com/siggame/TheArena.git
 
 2) Open Main.cs and Change the IPAddresses to match the host and the your own computer. If you are the host, the HOST_ADDR should be an
@@ -50,7 +51,7 @@ CALLS THE GAMESERVER API WOW
                       commands in Cpp.cs, Java.cs, Lua.cs, etc where originally we installed automatically, but the Ubuntu commands were not the same
                       as the Debian commands and we deprecated automatic install.
 
-recently worked install commands:
+recently worked install commands (use pip3.7 install ....):
 
     sudo bash
     apt-get install luajit
