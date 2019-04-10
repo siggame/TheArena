@@ -23,7 +23,9 @@ The client starts and continously waits for the host to send it files. When the 
 and the client will run all the AIs sent to it. After it compiles the results, it sends it to the web team for record keeping and to the host
 to update the bracket.
 
-NEW CALLS THE GAMESERVER API WOW
+**NEW**
+
+CALLS THE GAMESERVER API WOW
 
 # Linux
 
@@ -47,6 +49,20 @@ NEW CALLS THE GAMESERVER API WOW
 6 -- only for client) Install Compilers - LuaJit, LuaRocks, LuaSocket, Node, NodeGyp, Python3, g++, cmake, and java8 -- You can check out the
                       commands in Cpp.cs, Java.cs, Lua.cs, etc where originally we installed automatically, but the Ubuntu commands were not the same
                       as the Debian commands and we deprecated automatic install.
+
+recently worked install commands:
+
+    sudo bash
+    apt-get install luajit
+    apt-get install luarocks
+    luarocks install luasocket
+    curl -sL https://deb.nodesource.com/setup_11.x | bash -
+    apt-get install -y nodejs
+    npm install -g node-gyp
+    apt-get install g++
+    apt-get install cmake
+    apt-get install default-jre
+    apt-get install default-jdk
                       
 7) cd to the root directory (ie /home/sjkyv5/TheArena/TheArena/TheArena) and run command
 
