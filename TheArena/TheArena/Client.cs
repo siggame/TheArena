@@ -160,6 +160,8 @@ namespace TheArena
             else if (isLinux)
             {
                 Log.TraceMessage(Log.Nav.NavIn, "Is Linux.", Log.LogType.Info);
+		Stopwatch stopWatch = new Stopwatch();
+        	stopWatch.Start();
                 using (Process process = new Process())
                 {
                     process.StartInfo.CreateNoWindow = true;
@@ -193,7 +195,12 @@ namespace TheArena
 			Log.TraceMessage(Log.Nav.NavIn, "Wrote Commands to process...", Log.LogType.Info);
 
                         //If compile fails, return false;
-
+			if(stopWatch.Elapsed.Minutes>15)
+			{
+			    process.Kill();
+    			    return false;
+			}
+			    
                         bool done = true;
                         string results = "";
                         do
