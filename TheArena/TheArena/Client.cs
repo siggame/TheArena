@@ -235,7 +235,7 @@ namespace TheArena
                                     results = sr.ReadToEnd() + Environment.NewLine + file;
                                 }
                                 Log.TraceMessage(Log.Nav.NavIn, "Results=" + results, Log.LogType.Info);
-                                if (results.ToUpper().Contains("ERROR") && !results.ToUpper().Contains("0 ERROR")) //C# says build succeeded 0 Errors
+                                if (results.ToUpper().Contains(" ERROR ") && !results.ToUpper().Contains("0 ERROR")) //C# says build succeeded 0 Errors
                                 {
                                     return false;
                                 }
