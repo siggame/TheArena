@@ -298,9 +298,9 @@ namespace TheArena
                     var withoutZip = fs.Substring(0, fs.LastIndexOf(".zip")); //To team_one_1_cs
                     allGames.Add(new Tuple<Task<bool>, string>(t,withoutZip));
                 }
-                Log.TraceMessage(Log.Nav.NavIn, "Starting WaitAll ", Log.LogType.Info);
-                Task.WaitAll(allGames.Select(_ => _.Item1).ToArray()); //Wait for all the threads to finish
-                Log.TraceMessage(Log.Nav.NavIn, "Finished WaitAll", Log.LogType.Info);
+                Log.TraceMessage(Log.Nav.NavIn, "Starting WaitAny ", Log.LogType.Info);
+                Task.WaitAny(allGames.Select(_ => _.Item1).ToArray()); //Wait for all the threads to finish
+                Log.TraceMessage(Log.Nav.NavIn, "Finished WaitAny", Log.LogType.Info);
 
                 for(int i=0;i<allGames.Count; i++)
                 {
