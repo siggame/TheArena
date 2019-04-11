@@ -304,7 +304,7 @@ namespace TheArena
 
                 for(int i=0;i<allGames.Count; i++)
                 {
-                    if(allGames[i].Item1.Result==false) //Error on compilation
+                    if(allGames[i].IsCompleted && allGames[i].Item1.Result==false) //Error on compilation
                     {
                         Log.TraceMessage(Log.Nav.NavIn, "At least one client failed to compile.", Log.LogType.Info);
                         answers.Add("Other player did not compile"); //winReason
