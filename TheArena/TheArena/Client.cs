@@ -306,6 +306,17 @@ namespace TheArena
                 {
                     if(allGames[i].Item1.IsCompleted && allGames[i].Item1.Result==false) //Error on compilation
                     {
+			for(int j=0; j<allGames.Count; j++)
+			{
+			   try
+		 	   {
+			      allGames[j].Item1.Abort();
+			   }
+			   catch(Exception exA)
+			   {
+				Log.TraceMessage(Log.Nav.NavOut, "Failed to abort thread..."+exA.Message, Log.LogType.Error);   
+			   }
+			}
                         Log.TraceMessage(Log.Nav.NavIn, "At least one client failed to compile.", Log.LogType.Info);
                         answers.Add("Other player did not compile"); //winReason
                         answers.Add("You did not compile"); // loseReason
