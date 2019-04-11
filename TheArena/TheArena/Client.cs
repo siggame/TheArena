@@ -310,7 +310,7 @@ namespace TheArena
 			{
 			   try
 		 	   {
-			      allGames[j].Item1.Abort();
+			      allGames[j].Item1.Dispose();
 			   }
 			   catch(Exception exA)
 			   {
