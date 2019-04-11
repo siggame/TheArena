@@ -69,7 +69,7 @@ namespace TheArena
 
     public class HTTP
     {
-        public static bool HTTPPostStartGame(string gameName, string session, gameSettings gameSettings, string[] playerNames)
+        public static bool HTTPPostStartGame(string gameName, string session, gameSettings gameSettings)
         {
             MyPacket p = new MyPacket() { gameName = gameName, session = session, gameSettings = gameSettings};
             string serialized = JsonConvert.SerializeObject(p);
@@ -81,7 +81,7 @@ namespace TheArena
                     List<Task> allGames = new List<Task>();
                     //client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IklMaWtlU29ja3NPblN1bmRheXMiLCJpZCI6Mywicm9sZSI6InVzZXIiLCJpYXQiOjE1NDE4NjY1NTcsImV4cCI6MTU0MjI5ODU1N30.XWaWB_cWhUFEC1m0GxFJ4ln8uq5h086gXGxRmOLVXA0");
                     allGames.Add(Task.Run(async () => {var x = await client.PostAsync(
-                        "http://35.190.137.139:3080/setup",
+                        "http://127.0.0.1:3080/setup",
                          new StringContent(serialized, Encoding.UTF8, "application/json"));
                          Console.WriteLine(await x.Content.ReadAsStringAsync());
                          Log.TraceMessage(Log.Nav.NavIn, "Server Response Content: " + await x.Content.ReadAsStringAsync(), Log.LogType.Info);
@@ -108,7 +108,7 @@ namespace TheArena
                     List<Task> allGames = new List<Task>();
                     //client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IklMaWtlU29ja3NPblN1bmRheXMiLCJpZCI6Mywicm9sZSI6InVzZXIiLCJpYXQiOjE1NDE4NjY1NTcsImV4cCI6MTU0MjI5ODU1N30.XWaWB_cWhUFEC1m0GxFJ4ln8uq5h086gXGxRmOLVXA0");
                     //build url
-                    string url = "http://35.190.137.139:3080/status/" + gameName + "/" + gameSession;
+                    string url = "http://127.0.0.1:3080/status/" + gameName + "/" + gameSession;
                     allGames.Add(Task.Run(async () => {var x = await client.GetAsync(url);
                          string response = await x.Content.ReadAsStringAsync();
                          Console.WriteLine(response);

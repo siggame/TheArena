@@ -189,7 +189,8 @@ namespace TheArena
                             sw.WriteLine("fi");
                         }
                         Log.TraceMessage(Log.Nav.NavIn, "Rewrote script-- running", Log.LogType.Info);
-                        process.StandardInput.WriteLine("sudo chmod 777 testRun && sudo chmod 777 run && sudo make clean && sudo make && ./testRun "+gameSession+">>results.txt 2>&1"); //Make the testRun file executable, clean compilation, compile, then run outputting all messages to a results text file.
+                        process.StandardInput.WriteLine("sudo chmod 777 testRun && sudo chmod 777 run && sudo make clean && sudo make >> results.txt 2>&1 && ./testRun "+gameSession); //Make the testRun file executable, clean compilation, compile, and output any bad compilation to text file.
+			Log.TraceMessage(Log.Nav.NavIn, "Wrote Commands to process...", Log.LogType.Info);
 
                         //If compile fails, return false;
 
@@ -197,10 +198,11 @@ namespace TheArena
                         string results = "";
                         do
                         {
+			    Log.TraceMessage(Log.Nav.NavIn, "Calling HTTPPostGetStatus with "+DA_GAME+" and "+gameSession, Log.LogType.Info);
                             //Call Status GameServer API until status == "over"
                             var x = HTTP.HTTPPostGetStatus(DA_GAME, gameSession);
-
-                            if(x.status == "over")
+			    Log.TraceMessage(Log.Nav.NavIn, "x returned as "+x,Log.LogType.Info);
+                            if(x!=null && x.status == "over")
                                 done = true;
                             else
                                 done = false;
@@ -213,7 +215,10 @@ namespace TheArena
                             }
 
                             //Check for compile errors
-                            string resultsFile = file.Substring(0, file.LastIndexOf('/') + 1) + "results.txt";
+		            Log.TraceMessage(Log.Nav.NavIn, "Checking for compile errors...", Log.LogType.Info);
+			    int index=file.LastIndexOf('/') + 1;
+			    Log.TraceMessage(Log.Nav.NavIn, "Last index of slash is "+index, Log.LogType.Info);
+                            string resultsFile = file.Substring(0, index) + "results.txt";
                             Log.TraceMessage(Log.Nav.NavIn, "Results File=" + resultsFile, Log.LogType.Info);
                             if (File.Exists(resultsFile))
                             {
@@ -269,14 +274,14 @@ namespace TheArena
                         teamName += reversed[j] + "_"; // "team_one_"
                     }
                     teamName = teamName.Substring(0, teamName.Length - 1); //"team_one"
-                    playerNames.Append(teamName);
+                    playerNames.Add(teamName);
                 }
                 string gameSession = "seth" + DateTime.Now.Ticks;
                 gameSettings gSettings = new gameSettings() {playerNames = playerNames.ToArray()};
 
                 while(true)
                 {
-                    if (HTTP.HTTPPostStartGame(DA_GAME, gameSession, gSettings, playerNames.ToArray()))
+                    if (HTTP.HTTPPostStartGame(DA_GAME, gameSession, gSettings))
                     {
                         Log.TraceMessage(Log.Nav.NavIn, "Posted.", Log.LogType.Info);
                         break;
