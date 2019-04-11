@@ -29,6 +29,8 @@ CALLS THE GAMESERVER API WOW
 
 # Linux
 
+Make sure if you are running on Google Cloud that you enable IP Forwarding, and enable all UDP/TCP connections inbound and outbound in firewall rules.
+
 1) First install git and Clone the repo:
 
     sudo apt-get install git
@@ -67,7 +69,7 @@ recently worked install commands (use pip3.7 install ....):
     make -j8
     make altinstall
     update-alternatives --install /usr/bin/python python /usr/local/bin/python3.7 50
-    
+    alias pip=pip3.7    
                       
 7) cd to the root directory (ie /home/sjkyv5/TheArena/TheArena/TheArena) and run command
 
