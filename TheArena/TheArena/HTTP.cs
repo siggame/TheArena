@@ -106,7 +106,7 @@ namespace TheArena
                 try
                 {
                     List<Task> allGames = new List<Task>();
-                    //client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IklMaWtlU29ja3NPblN1bmRheXMiLCJpZCI6Mywicm9sZSI6InVzZXIiLCJpYXQiOjE1NDE4NjY1NTcsImV4cCI6MTU0MjI5ODU1N30.XWaWB_cWhUFEC1m0GxFJ4ln8uq5h086gXGxRmOLVXA0");
+                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IlNldGhBZG1pbiIsImlkIjo0LCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE1NTUwMjU0NDQsImV4cCI6MTU1NTQ1NzQ0NH0.m4bOU5k5hH2YTnDT0094oDA1XDHxsQqMxNkSQQFCaHE");
                     //build url
                     string url = "http://127.0.0.1:3080/status/" + gameName + "/" + gameSession;
                     allGames.Add(Task.Run(async () => {var x = await client.GetAsync(url);
