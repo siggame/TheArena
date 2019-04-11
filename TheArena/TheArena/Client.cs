@@ -207,7 +207,7 @@ namespace TheArena
                             else
                                 done = false;
 
-                            Thread.Sleep(1000 * 60); //Wait 1 min for game to finish
+                            Thread.Sleep(1000 * 10); //Wait 10 seconds for game to finish
 
                             if (done)
                             {
