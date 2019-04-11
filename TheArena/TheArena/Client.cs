@@ -19,6 +19,12 @@ namespace TheArena
         static void RunClient()
         {
             Log.TraceMessage(Log.Nav.NavIn, "This Arena is Client.", Log.LogType.Info);
+	    Log.TraceMessage(Log.Nav.NavIn, "Clearing arena files for start client.", Log.LogType.Info);
+	    if (Directory.Exists(ARENA_FILES_PATH))
+            {
+              Directory.Delete(ARENA_FILES_PATH, true);  //RESET by deleting all files in the arena directories.
+	      Directory.CreateDirectory(ARENA_FILES_PATH);
+	    }
             Log.TraceMessage(Log.Nav.NavIn, "Starting Client FTP Server...", Log.LogType.Info); //FTP server receives files from host to build and run games. If this fails you will not receive files.
             StartFTPServer(false);
             Log.TraceMessage(Log.Nav.NavIn, "Creating the Keep-Alive Ping that let's the host know we are here and ready to run games...", Log.LogType.Info);
