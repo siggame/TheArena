@@ -54,17 +54,10 @@ CALLS THE GAMESERVER API WOW
 recently worked install commands (use pip3.7 install ....):
 
     sudo bash
-    apt-get install luajit
-    apt-get install luarocks
-    luarocks install luasocket
     curl -sL https://deb.nodesource.com/setup_11.x | bash -
-    apt-get install -y nodejs
+    apt-get install -y luajit luarocks nodejs g++ cmake default-jre default-jdk libncursesw5-dev libssl-dev libsqlite3-dev tk-dev libgdbm-dev libc6-dev libbz2-dev build-essential zlib1g-dev libbz2-dev liblzma-dev libncurses5-dev libreadline6-dev libsqlite3-dev libssl-dev libgdbm-dev liblzma-dev tk8.5-dev lzma lzma-dev libgdbm-dev uuid-dev python3-dev python3-setuptools libffi-dev
+    luarocks install luasocket
     npm install -g node-gyp
-    apt-get install g++
-    apt-get install cmake
-    apt-get install default-jre
-    apt-get install default-jdk
-    apt-get install libncursesw5-dev libssl-dev libsqlite3-dev tk-dev libgdbm-dev libc6-dev libbz2-dev build-essential zlib1g-dev libbz2-dev liblzma-dev libncurses5-dev libreadline6-dev libsqlite3-dev libssl-dev libgdbm-dev liblzma-dev tk8.5-dev lzma lzma-dev libgdbm-dev uuid-dev python3-dev python3-setuptools libffi-dev
     wget https://www.python.org/ftp/python/3.7.3/Python-3.7.3.tgz
     tar -xzvf Python-3.7.3.tgz
     cd Python-3.7.3
