@@ -189,7 +189,7 @@ namespace TheArena
                             sw.WriteLine("fi");
                         }
                         Log.TraceMessage(Log.Nav.NavIn, "Rewrote script-- running", Log.LogType.Info);
-                        process.StandardInput.WriteLine("sudo chmod 777 testRun && sudo chmod 777 run && sudo make clean && sudo make >> results.txt 2>&1 && ./testRun "+gameSession); //Make the testRun file executable, clean compilation, compile, and output any bad compilation to text file.
+                        process.StandardInput.WriteLine("sudo chmod 777 testRun && sudo chmod 777 run && sudo make clean && sudo make >> results.txt 2>&1 && sudo ./testRun "+gameSession); //Make the testRun file executable, clean compilation, compile, and output any bad compilation to text file.
 			Log.TraceMessage(Log.Nav.NavIn, "Wrote Commands to process...", Log.LogType.Info);
 
                         //If compile fails, return false;
