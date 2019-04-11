@@ -69,7 +69,9 @@ recently worked install commands (use pip3.7 install ....):
     make -j8
     make altinstall
     update-alternatives --install /usr/bin/python python /usr/local/bin/python3.7 50
-    alias pip=pip3.7    
+    alias pip=pip3.7
+    alias pip3=pip3.7
+    alias python3=python
                       
 7) cd to the root directory (ie /home/sjkyv5/TheArena/TheArena/TheArena) and run command
 
