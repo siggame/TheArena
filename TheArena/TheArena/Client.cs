@@ -215,6 +215,12 @@ namespace TheArena
                             //Call Status GameServer API until status == "over"
                             var x = HTTP.HTTPPostGetStatus(DA_GAME, gameSession);
 			    Log.TraceMessage(Log.Nav.NavIn, "x returned as "+x,Log.LogType.Info);
+                            if(x!=null)
+                            {
+                                Log.TraceMessage(Log.Nav.NavIn, "x.clients.count is " + x.clients.Count, Log.LogType.Info);
+                                Log.TraceMessage(Log.Nav.NavIn, "x.status is " + x.status, Log.LogType.Info);
+
+                            }
                             if(x!=null && x.status == "over")
                                 done = true;
                             else
