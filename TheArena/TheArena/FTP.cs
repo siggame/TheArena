@@ -41,11 +41,18 @@ namespace TheArena
                     Log.TraceMessage(Log.Nav.NavIn, "Started -- now waiting for commands forever on this thread", Log.LogType.Info);
                     while (true)
                     {
-                        Console.WriteLine("Type T2 to start a tourney with 2 people per game. T3 to start a tourney with 3 people per game etc.");
+                        Console.WriteLine("Type T2 to start a tourney with 2 people per game. T3 to start a tourney with 3 people per game etc. Type X to run Tournies foreverrrrr");
                         string command = Console.ReadLine();
                         if (command == "T2")
                         {
                             StartTourney(2);
+                        }
+                        else if(command == "X")
+                        {
+                            while (true)
+                            {
+                                StartTourney(2);
+                            }
                         }
                     }
                 }
