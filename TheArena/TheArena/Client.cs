@@ -207,7 +207,6 @@ namespace TheArena
     			    return false;
 			}
 			    
-                        bool done = true;
                         string results = "";
                         do
                         {
@@ -226,6 +225,9 @@ namespace TheArena
                                 Log.TraceMessage(Log.Nav.NavIn, "Returning true ", Log.LogType.Info);
                                 return true;
                             }
+
+                            //Wait 10 seconds for game to finish
+                            Thread.Sleep(10 * 1000);
 
                             //Check for compile errors
 		            Log.TraceMessage(Log.Nav.NavIn, "Checking for compile errors...", Log.LogType.Info);
