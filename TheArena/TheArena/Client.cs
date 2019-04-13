@@ -221,15 +221,9 @@ namespace TheArena
                                 Log.TraceMessage(Log.Nav.NavIn, "x.status is " + x.status, Log.LogType.Info);
 
                             }
-                            if(x!=null && x.status == "over")
-                                done = true;
-                            else
-                                done = false;
-
-                            Thread.Sleep(1000 * 10); //Wait 10 seconds for game to finish
-
-                            if (done)
+                            if (x != null && x.status.Contains("over"))
                             {
+                                Log.TraceMessage(Log.Nav.NavIn, "Returning true ", Log.LogType.Info);
                                 return true;
                             }
 
