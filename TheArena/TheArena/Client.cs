@@ -78,7 +78,7 @@ namespace TheArena
                                     string winnerSubmissionNumber = results[3];
                                     string loserName = results[4];
                                     string loserSubmissionNumber = results[5];
-                                    string logURL = results[6];
+                                    string logURL = "http://35.222.122.90:3080/gamelog/"+results[6];
                                     Log.TraceMessage(Log.Nav.NavOut, status + " " + winReason + " " + loseReason + " " + logURL + " " + winnerName + " " + winnerSubmissionNumber + " " + loserName + " " + loserSubmissionNumber, Log.LogType.Info);
                                     HTTP.HTTPPostSendToWeb(status, winReason, loseReason, logURL, winnerName, winnerSubmissionNumber, loserName, loserSubmissionNumber); //Send Info To Webserver
                                     resultStr = winnerName + ";" + logURL; //This will be sent to Host on next while(true) loop iteration
