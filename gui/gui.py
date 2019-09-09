@@ -59,7 +59,8 @@ class Cloud:
     def __init__(self):
         self.compute = googleapiclient.discovery.build('compute', 'v1')
         self.operation = None
-        self.machines = []
+        self.machines = [] #change this to use a dictionary to keep track if host is started/created!!!!
+                            #Possibly populate with machine objects to keep track of IPs, names, and other stuff
 
     #host is boolean, true means launch host server, false: launch client server
     def create(self, project, zone, region, host):
@@ -116,7 +117,7 @@ class Cloud:
                     raise Exception(result['error'])
                 return result
 
-            print('...')  # print to console so that user knows it hasn't frozen. will NOT update GUI
+            print('...')  # print to console so that user knows it hasn't frozen. This will NOT update GUI
             time.sleep(1)
 
     # don't mess with this function unless you know exactly what you're doing
@@ -130,6 +131,7 @@ class Cloud:
         source_disk_image = image_response['selfLink']"""
 
         # Configure the machine
+        # "custom-1-6656" -> 1CPU, 6.5 GB of memory
         machine_type = "projects/%s/zones/%s/machineTypes/custom-1-6656" % (project, zone)
 
         config = {
