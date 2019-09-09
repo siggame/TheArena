@@ -47,7 +47,7 @@ want to use when inputting values into the gui.
 
 IMAGE_NAME = "host-client-starter"
 GAMES_FILE = "games.txt"
-USERNAME = "tamfrb" # the username that the google cloud servers will make in your /home file
+USERNAME = "temp" # the username that the google cloud servers will make in your /home file
 
 #read games into list, allows permanently adding games
 GAMES = [line.rstrip('\n') for line in open(GAMES_FILE, 'r')] # fancy one line file read into a list
