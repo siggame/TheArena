@@ -69,8 +69,10 @@ class Cloud:
 
         return self.wait_for_operation(project, zone, self.operation['name'])
 
+    #delete a specified server
     #serverName will almost always come from self.machines
     def delete(self, project, zone, serverName):
+        # DELETE https://www.googleapis.com/compute/v1/projects/<project>/zones/<zone>/instances/<serverName>
         self.operation = self.compute.instances().delete(
             project=project,
             zone=zone,
@@ -78,7 +80,9 @@ class Cloud:
 
         return self.wait_for_operation(project, zone, self.operation['name'])
 
+    # stop a specified server
     def stop(self, project, zone, serverName):
+        # POST https://www.googleapis.com/compute/v1/projects/<project>/zones/<zone>/instances/<serverName>/stop
         self.operation = self.compute.instances().stop(
             project=project,
             zone=zone,
@@ -86,13 +90,34 @@ class Cloud:
 
         return self.wait_for_operation(project, zone, self.operation['name'])
 
+    # start a specified server
     def start(self, project, zone, serverName):
+        # POST https://www.googleapis.com/compute/v1/projects/<project>/zones/<zone>/instances/<serverName>/start
         self.operation = self.compute.instances().start(
             project=project,
             zone=zone,
             instance=serverName).execute()
 
         return self.wait_for_operation(project, zone, self.operation['name'])
+
+    # Taken from google's api guides. It checks if the server has completed the operation yet and if there were errors
+    def wait_for_operation(self, project, zone, operation):
+        print('Waiting for operation to finish...')
+
+        while True:
+            result = self.compute.zoneOperations().get(
+                project=project,
+                zone=zone,
+                operation=operation).execute()
+
+            if result['status'] == 'DONE':
+                print("done.")
+                if 'error' in result:
+                    raise Exception(result['error'])
+                return result
+
+            print('...')  # print to console so that user knows it hasn't frozen. will NOT update GUI
+            time.sleep(1)
 
     # don't mess with this function unless you know exactly what you're doing
     # modeled off of the REST generator on the cloud console
@@ -205,30 +230,11 @@ class Cloud:
             zone=zone,
             body=config).execute()
 
-    # Taken from google's api guides. It checks if the server is up yet and if there were errors
-    def wait_for_operation(self, project, zone, operation):
-        print('Waiting for operation to finish...')
-
-        while True:
-            result = self.compute.zoneOperations().get(
-                project=project,
-                zone=zone,
-                operation=operation).execute()
-
-            if result['status'] == 'DONE':
-                print("done.")
-                if 'error' in result:
-                    raise Exception(result['error'])
-                return result
-
-            print('...') #print to console so that user knows it hasn't frozen. will NOT update GUI
-            time.sleep(1)
-
 class GUI:
     def __init__(self):
         self.compute = Cloud()
         self.window = self.make_window() #build tk interface
-        self.configTabs = None #must be here so new tabs can be added in  other funtions
+        self.configTabs = None #must be here so new tabs can be added in  other functions
         self.make_tabs()   #build the tabs
 
         self.project = ""
@@ -360,6 +366,7 @@ class GUI:
         self.configTabs.pack(expand=1, fill='both')
 
     #/ setup tabs in monitor tab//////////////////////////////////////////
+
     def setup_monitor_all_tab(self, parent):
         split = ttk.PanedWindow(parent, orient=VERTICAL)
         split.pack(fill=BOTH, expand=1)
@@ -419,18 +426,21 @@ class GUI:
         # Bottom##############################
         bottom = ttk.LabelFrame(parent, text="Control")
 
+        howSSH = Label(bottom, text="To open ssh connection type in terminal: "
+                                    "'gcloud compute ssh --project <project> --zone <zone> <serverName>'")
+
         # Button Creation ###
         # Start server button
-        start = ttk.Button(bottom, command=lambda: self.compute.start(self.project, self.zone, NAME))
+        start = ttk.Button(bottom, command=lambda: self.action_single(START, NAME, messageBox, top), text="Start server")
 
         # Stop server button
-        stop = ttk.Button(bottom, command=lambda: self.compute.stop(self.project, self.zone, NAME))
+        stop = ttk.Button(bottom, command=lambda: self.action_single(STOP, NAME, messageBox, top), text="Stop server")
 
         # Kill server button
-        kill = ttk.Button(bottom, command=lambda: self.compute.delete(self.project, self.zone, NAME))
+        kill = ttk.Button(bottom, command=lambda: self.action_single(DEL, NAME, messageBox, top), text="Kill server")
 
-        # SSH button
-        ssh = ttk.Button(bottom, command=lambda: self.ssh_connect())
+        # Get server name
+        getName = ttk.Button(bottom, command=lambda: self.text_edit(NAME, messageBox, top), text="Show name")
 
         #####################
 
@@ -438,7 +448,9 @@ class GUI:
         start.grid(row=0, column=0, padx=5,  pady=5)
         stop.grid(row=0, column=1, padx=5, pady=5)
         kill.grid(row=0, column=2, padx=5, pady=5)
-        ssh.grid(row=0, column=3, padx=5, pady=5)
+        getName.grid(row=0, column=3, padx=5, pady=5)
+
+        howSSH.grid(row=1, column=0, padx=5, pady=5, columnspan=8)
         #####################
 
         split.add(bottom)
@@ -519,28 +531,28 @@ class GUI:
             return
 
         #status report to the box
-        self.text_edit(("%s %d servers..." % (('Deleting' if action[-1] == 'e' else action),
-                                              len(self.compute.machines))), box, frame)
+        self.text_edit(("%s %d servers..." % (action, len(self.compute.machines))), box, frame)
+
         # string manipulation is UGLY
         # do action on all servers
         for m in range(len(self.compute.machines)):
             try:
                 if action == START:
-                    self.text_edit("Starting " + ("host" if m == 0 else ("client " + str(m - 1))) + " server",
+                    self.text_edit("Starting " + ("host" if m == 0 else ("client " + str(m - 1))) + " server...",
                                    box, frame)
 
                     self.compute.start(self.project, self.zone, self.compute.machines[m])
 
                     self.text_edit(("Host" if m == 0 else ("Client " + str(m - 1))) + " started.", box, frame)
                 elif action == STOP:
-                    self.text_edit("Stopping " + ("host" if m == 0 else ("client " + str(m - 1))) + " server",
+                    self.text_edit("Stopping " + ("host" if m == 0 else ("client " + str(m - 1))) + " server...",
                                    box, frame)
 
                     self.compute.stop(self.project, self.zone, self.compute.machines[m])
 
                     self.text_edit(("Host" if m == 0 else ("Client " + str(m - 1))) + " stopped.", box, frame)
                 else:
-                    self.text_edit("Deleting " + ("host" if m == 0 else ("client " + str(m - 1))) + " server",
+                    self.text_edit("Deleting " + ("host" if m == 0 else ("client " + str(m - 1))) + " server...",
                                    box, frame)
 
                     self.compute.delete(self.project, self.zone, self.compute.machines[m])
@@ -559,6 +571,45 @@ class GUI:
             self.text_edit("All servers deleted.\n", box, frame)
             self.reconfigure_monitor_tabs(box, frame) #remove tabs of machines that no longer exist
 
+    def action_single(self, action, serverName, box, frame):
+        if action is not START and action is not STOP and action is not DEL:
+            raise ValueError("Incorrect action.")
+
+        #nothing to do
+        if len(self.compute.machines) <= 0:
+            self.text_edit("No servers to %s." % action.lower(), box, frame)
+            return
+
+        # check if serverName is in self.compute.machines
+        if serverName not in self.compute.machines:
+            self.text_edit("%s does not exist." % serverName, box, frame)
+            return
+
+        try:
+            if action == START:
+                self.text_edit("Starting server...", box, frame)
+
+                self.compute.start(self.project, self.zone, serverName)
+
+                self.text_edit("Server started.", box, frame)
+            elif action == STOP:
+                self.text_edit("Stopping server...", box, frame)
+
+                self.compute.stop(self.project, self.zone, serverName)
+
+                self.text_edit("Server stopped.", box, frame)
+            else:
+                self.text_edit("Deleting server...", box, frame)
+
+                self.compute.delete(self.project, self.zone, serverName)
+                self.compute.machines.remove(serverName)
+
+                self.text_edit("Server deleted.", box, frame)
+                self.configTabs.forget(self.configTabs.select())  # remove tabs of machines that no longer exist
+                    # This ^ line only removes tab from window but not memory!!!!!!
+        except Exception as e:
+            self.text_edit("There was an error:\n" + str(e), box, frame)
+
     #creates the servers
     def button_start(self, box, frame):
         #delete existing servers
@@ -568,26 +619,26 @@ class GUI:
         self.text_edit("This window will be unresponsive until task completes.", box, frame)
         self.text_edit("Starting host server...", box, frame)
 
-        #start servers
+        #create servers
         try:
-            #start host
+            #create host
             self.compute.create(self.project, self.zone, self.region, True)
             self.text_edit("Host server started.", box,  frame)
 
-            #start client servers
+            #create client servers
             for i in range(self.numClients):
                 self.text_edit("Starting client server " + str(i) + "...", box, frame)
                 self.compute.create(self.project, self.zone, self.region, False)
                 self.text_edit("Client " + str(i) + " started.", box, frame)
+
+            self.reconfigure_monitor_tabs(box, frame)  # add tabs of new servers
         except Exception as e:
             self.compute.machines = self.compute.machines[:-1] # remove newly created machine name since it didn't pan out
             self.text_edit("There was an error:\n" + str(e), box, frame)
 
-        self.reconfigure_monitor_tabs(box, frame) #add tabs of new servers
-
         self.text_edit("Done.\n", box, frame)
 
-    #starts the arena the host server and the game server on the clients
+    #starts the arena on the host server and the game server on the clients
     def arena_servers(self):
 
         return
