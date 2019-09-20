@@ -62,17 +62,21 @@ class Cloud:
         self.machines = [] #change this to use a dictionary to keep track if host is started/created!!!!
                             #Possibly populate with machine objects to keep track of IPs, names, and other stuff
 
-    #host is boolean, true means launch host server, false: launch client server
     def create(self, project, zone, region, host):
+        """
+        host is boolean, true means launch host server, false: launch client server
+        """
         name = ("host-" if host else "client-") + str(time.time()).replace('.', '')
         self.machines.append(name)
         self.operation = self.gen_config(project, zone, region, name) #use the api to start the server
 
         return self.wait_for_operation(project, zone, self.operation['name'])
 
-    #delete a specified server
-    #serverName will almost always come from self.machines
     def delete(self, project, zone, serverName):
+        """
+        delete a specified server
+        serverName will almost always come from self.machines
+        """
         # DELETE https://www.googleapis.com/compute/v1/projects/<project>/zones/<zone>/instances/<serverName>
         self.operation = self.compute.instances().delete(
             project=project,
@@ -81,8 +85,10 @@ class Cloud:
 
         return self.wait_for_operation(project, zone, self.operation['name'])
 
-    # stop a specified server
     def stop(self, project, zone, serverName):
+        """
+        stop a specified server
+        """
         # POST https://www.googleapis.com/compute/v1/projects/<project>/zones/<zone>/instances/<serverName>/stop
         self.operation = self.compute.instances().stop(
             project=project,
@@ -91,8 +97,10 @@ class Cloud:
 
         return self.wait_for_operation(project, zone, self.operation['name'])
 
-    # start a specified server
     def start(self, project, zone, serverName):
+        """
+        start a specified server
+        """
         # POST https://www.googleapis.com/compute/v1/projects/<project>/zones/<zone>/instances/<serverName>/start
         self.operation = self.compute.instances().start(
             project=project,
@@ -101,8 +109,10 @@ class Cloud:
 
         return self.wait_for_operation(project, zone, self.operation['name'])
 
-    # Taken from google's api guides. It checks if the server has completed the operation yet and if there were errors
     def wait_for_operation(self, project, zone, operation):
+        """ 
+        Taken from google's api guides. It checks if the server has completed the operation yet and if there were errors
+        """
         print('Waiting for operation to finish...')
 
         while True:
@@ -120,10 +130,12 @@ class Cloud:
             print('...')  # print to console so that user knows it hasn't frozen. This will NOT update GUI
             time.sleep(1)
 
-    # don't mess with this function unless you know exactly what you're doing
-    # modeled off of the REST generator on the cloud console
     def gen_config(self, project, zone, region, name):
-        """Not needed if using a custom disk image
+        """
+        don't mess with this function unless you know exactly what you're doing
+        modeled off of the REST generator on the cloud console
+        
+        Not needed if using a custom disk image
 
         # Get the latest Debian Jessie image.
         image_response = self.compute.images().getFromFamily(
@@ -521,9 +533,11 @@ class GUI:
     # server manipulators#################################################
     # These aren't in the cloud class because they require the text edit function and stuff
 
-    # start, stop, or delete all servers.
-    # action can be START, STOP, or DEL
     def action_all(self, action, box, frame):
+        """
+        start, stop, or delete all servers.
+        action can be START, STOP, or DEL
+        """
         if action is not START and action is not STOP and action is not DEL:
             raise ValueError("Incorrect action.")
 
@@ -612,8 +626,10 @@ class GUI:
         except Exception as e:
             self.text_edit("There was an error:\n" + str(e), box, frame)
 
-    #creates the servers
     def button_start(self, box, frame):
+        """
+            creates the servers
+        """
         #delete existing servers
         self.action_all(DEL, box, frame)
 
