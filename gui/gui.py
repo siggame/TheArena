@@ -4,8 +4,7 @@ Tanner May Arena Lead FS2019
 """
 
 import tkinter as tk
-from tkinter import ttk
-from tkinter import *
+from tkinter import ttk, *
 import tkinter.scrolledtext as tkst
 import googleapiclient.discovery
 import time
@@ -665,6 +664,12 @@ class GUI:
 
     def mainloop(self):
         self.window.mainloop()
+
+class Machine:
+    """ Object representation of machines. """
+    def __init__(self, name, ip=None):
+        self.name = name
+        self.ip = ip
 
 ui = GUI()
 
