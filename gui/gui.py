@@ -46,7 +46,7 @@ want to use when inputting values into the gui.
 
 IMAGE_NAME = "host-client-starter"
 GAMES_FILE = "games.txt"
-USERNAME = "temp" # the username that the google cloud servers will make in your /home file
+USERNAME = "Arena" # the username that the google cloud servers will make in your /home file
 
 #read games into list, allows permanently adding games
 GAMES = [line.rstrip('\n') for line in open(GAMES_FILE, 'r')] # fancy one line file read into a list
@@ -59,24 +59,25 @@ class Cloud:
         self.compute = googleapiclient.discovery.build('compute', 'v1')
         self.operation = None
         self.machines = [] #change this to use a dictionary to keep track if host is started/created!!!!
-                            #Possibly populate with machine objects to keep track of IPs, names, and other stuff
+       #Possibly populate with machine objects to keep track of IPs, names, and other stuff
 
     def create(self, project, zone, region, host):
         """
         host is boolean, true means launch host server, false: launch client server
         """
-        name = ("host-" if host else "client-") + str(time.time()).replace('.', '')
+        name = ("host-" if host else "client-") + str(time.time()).replace('.', '') # give server unique name using time
         self.machines.append(name)
-        self.operation = self.gen_config(project, zone, region, name) #use the api to start the server
+        self.operation = self.gen_config(project, zone, region, name) # use the api to start the server
 
         return self.wait_for_operation(project, zone, self.operation['name'])
 
     def delete(self, project, zone, serverName):
         """
+        DELETE https://www.googleapis.com/compute/v1/projects/<project>/zones/<zone>/instances/<serverName>
+
         delete a specified server
         serverName will almost always come from self.machines
         """
-        # DELETE https://www.googleapis.com/compute/v1/projects/<project>/zones/<zone>/instances/<serverName>
         self.operation = self.compute.instances().delete(
             project=project,
             zone=zone,
@@ -86,9 +87,10 @@ class Cloud:
 
     def stop(self, project, zone, serverName):
         """
+        POST https://www.googleapis.com/compute/v1/projects/<project>/zones/<zone>/instances/<serverName>/stop
+
         stop a specified server
         """
-        # POST https://www.googleapis.com/compute/v1/projects/<project>/zones/<zone>/instances/<serverName>/stop
         self.operation = self.compute.instances().stop(
             project=project,
             zone=zone,
@@ -98,9 +100,10 @@ class Cloud:
 
     def start(self, project, zone, serverName):
         """
+        POST https://www.googleapis.com/compute/v1/projects/<project>/zones/<zone>/instances/<serverName>/start
+
         start a specified server
         """
-        # POST https://www.googleapis.com/compute/v1/projects/<project>/zones/<zone>/instances/<serverName>/start
         self.operation = self.compute.instances().start(
             project=project,
             zone=zone,
@@ -142,8 +145,8 @@ class Cloud:
         source_disk_image = image_response['selfLink']"""
 
         # Configure the machine
-        # "custom-1-6656" -> 1CPU, 6.5 GB of memory
-        machine_type = "projects/%s/zones/%s/machineTypes/custom-1-6656" % (project, zone)
+        # "custom-2-6656" -> 2CPU, 6.5 GB of memory
+        machine_type = "projects/%s/zones/%s/machineTypes/custom-2-6656" % (project, zone)
 
         config = {
             'name': name,
@@ -289,52 +292,63 @@ class GUI:
         left = ttk.LabelFrame(split, text="Config: press enter key to input values!")
 
         # Project box
-        # A possible improvement would be to add a counter so that the row and col vals are not hardcoded
-        # and change formatting to create all widgets then place them all in order instead of how it is now
-        ttk.Label(left, text='Project Name').grid(row=0, column=0, sticky=W, pady=5)
         projectBox = ttk.Entry(left)
-        projectBox.grid(row=0, column=1, sticky=E, pady=5)
         projectBox.bind("<Return>", self.entry_project) # triggers function when user press <Return>
         # with the input_vals function these are redundant but handy to have
 
         # Region box
-        ttk.Label(left, text='Region').grid(row=1, column=0, sticky=W, pady=5)
         regionBox = ttk.Entry(left)
-        regionBox.grid(row=1, column=1, sticky=E, pady=5)
         regionBox.bind("<Return>", self.entry_region)
 
         # Zone box
-        ttk.Label(left, text='Zone').grid(row=2, column=0, sticky=W, pady=5)
         zoneBox = ttk.Entry(left)
-        zoneBox.grid(row=2, column=1, sticky=E, pady=5)
         zoneBox.bind("<Return>", self.entry_zone)
 
         # number of clients box
-        ttk.Label(left, text='Number of Clients').grid(row=3, column=0, sticky=W, padx=(0, 20), pady=5)
         numClientsBox = ttk.Entry(left)
-        numClientsBox.grid(row=3, column=1, sticky=E, pady=5)
         numClientsBox.bind('<Return>', self.entry_num_clients)
 
         # game drop down menu
-        ttk.Label(left, text="Game").grid(row=5, column=0, sticky=W, pady=5)
         selection = tk.StringVar(self.window)
         selection.set("Chess")
         popupMenu = ttk.OptionMenu(left, selection, GAMES[0], *GAMES, command=self.entry_game)
-        popupMenu.grid(row=5, column=1, sticky=E, pady=5)
 
         # start servers button
         startWarning = ttk.Label(left, text="Kills all previously created servers.")
-        startWarning.grid(row=6, column=0)
-
         start = ttk.Button(left, command=lambda: self.button_start(statusBox, left), text='Create servers')
-        start.grid(row=6, column=1, sticky=E, pady=50)
 
         # Add game section#####
-        ttk.Label(left, text='Add game').grid(row=7, column=0, sticky=W, padx=(0, 20), pady=5)
         addGameBox = ttk.Entry(left)
-        addGameBox.grid(row=7, column=1, sticky=E, pady=5)
-
         newGame = ttk.Button(left, command=lambda: self.add_game(addGameBox, selection, popupMenu), text='Add game')
+
+        # Placements
+        # Project box
+        ttk.Label(left, text='Project Name').grid(row=0, column=0, sticky=W, pady=5)
+        projectBox.grid(row=0, column=1, sticky=E, pady=5)
+
+        # region box
+        ttk.Label(left, text='Region').grid(row=1, column=0, sticky=W, pady=5)
+        regionBox.grid(row=1, column=1, sticky=E, pady=5)
+
+        # zone box
+        ttk.Label(left, text='Zone').grid(row=2, column=0, sticky=W, pady=5)
+        zoneBox.grid(row=2, column=1, sticky=E, pady=5)
+
+        # numClients box
+        ttk.Label(left, text='Number of Clients').grid(row=3, column=0, sticky=W, padx=(0, 20), pady=5)
+        numClientsBox.grid(row=3, column=1, sticky=E, pady=5)
+
+        # Games menu
+        ttk.Label(left, text="Game").grid(row=5, column=0, sticky=W, pady=5)
+        popupMenu.grid(row=5, column=1, sticky=E, pady=5)
+
+        # Start
+        startWarning.grid(row=6, column=0)
+        start.grid(row=6, column=1, sticky=E, pady=50)
+
+        # Add game
+        ttk.Label(left, text='Add game').grid(row=7, column=0, sticky=W, padx=(0, 20), pady=5)
+        addGameBox.grid(row=7, column=1, sticky=E, pady=5)
         newGame.grid(row=8, column=1, sticky=E, pady=5)
 
         # Always at bottom
@@ -433,6 +447,8 @@ class GUI:
         messageBox.configure(state='disabled')  # make the box uneditable
         messageBox.pack(fill='both', expand=True)
 
+        self.copy_name(NAME, messageBox, top)
+
         split.add(top)
         ######################################
 
@@ -440,9 +456,16 @@ class GUI:
         bottom = ttk.LabelFrame(parent, text="Control")
 
         howSSH = Label(bottom, text="To open ssh connection type in terminal: "
-                                    "'gcloud compute ssh --project <project> --zone <zone> <serverName>'")
+                                    "'gcloud compute ssh <serverName> --zone <zone>'")
+
+        # SSH Terminal
+        sshInputLabel = ttk.Label(bottom, text="SSH Input")
+        sshInput = ttk.Entry(bottom)
+
 
         # Button Creation ###
+        #sshStart = ttk.Button(bottom, command=lambda: self.start_ssh(), text="Open SSH")
+
         # Start server button
         start = ttk.Button(bottom, command=lambda: self.action_single(START, NAME, messageBox, top), text="Start server")
 
@@ -453,11 +476,12 @@ class GUI:
         kill = ttk.Button(bottom, command=lambda: self.action_single(DEL, NAME, messageBox, top), text="Kill server")
 
         # Get server name
-        getName = ttk.Button(bottom, command=lambda: self.text_edit(NAME, messageBox, top), text="Show name")
+        getName = ttk.Button(bottom, command=lambda: self.copy_name(NAME, messageBox, top), text="Copy name")
 
         #####################
 
         # Positioning #######
+
         start.grid(row=0, column=0, padx=5,  pady=5)
         stop.grid(row=0, column=1, padx=5, pady=5)
         kill.grid(row=0, column=2, padx=5, pady=5)
@@ -527,10 +551,20 @@ class GUI:
         box.configure(state='disabled')
         #push new changes
         frame.update()
+
+    def copy_name(self, name, box, frame):
+        #copy NAME to clipboard
+        self.window.clipboard_clear()
+        self.window.clipboard_append(name)
+        self.window.update()
+
+        self.text_edit("%s has been copied." % name, box, frame)
     # end user input utils################################################
 
     # server manipulators#################################################
     # These aren't in the cloud class because they require the text edit function and stuff
+
+    def start_ssh(self, serverName):
 
     def action_all(self, action, box, frame):
         """
