@@ -74,10 +74,11 @@ class Cloud:
 
     def delete(self, project, zone, serverName):
         """
+        DELETE https://www.googleapis.com/compute/v1/projects/<project>/zones/<zone>/instances/<serverName>
+
         delete a specified server
         serverName will almost always come from self.machines
         """
-        # DELETE https://www.googleapis.com/compute/v1/projects/<project>/zones/<zone>/instances/<serverName>
         self.operation = self.compute.instances().delete(
             project=project,
             zone=zone,
@@ -87,9 +88,10 @@ class Cloud:
 
     def stop(self, project, zone, serverName):
         """
+        POST https://www.googleapis.com/compute/v1/projects/<project>/zones/<zone>/instances/<serverName>/stop
+
         stop a specified server
         """
-        # POST https://www.googleapis.com/compute/v1/projects/<project>/zones/<zone>/instances/<serverName>/stop
         self.operation = self.compute.instances().stop(
             project=project,
             zone=zone,
@@ -99,9 +101,10 @@ class Cloud:
 
     def start(self, project, zone, serverName):
         """
+        POST https://www.googleapis.com/compute/v1/projects/<project>/zones/<zone>/instances/<serverName>/start
+
         start a specified server
         """
-        # POST https://www.googleapis.com/compute/v1/projects/<project>/zones/<zone>/instances/<serverName>/start
         self.operation = self.compute.instances().start(
             project=project,
             zone=zone,
@@ -143,7 +146,7 @@ class Cloud:
         source_disk_image = image_response['selfLink']"""
 
         # Configure the machine
-        # "custom-1-6656" -> 1CPU, 6.5 GB of memory
+        # "custom-2-6656" -> 2CPU, 6.5 GB of memory
         machine_type = "projects/%s/zones/%s/machineTypes/custom-2-6656" % (project, zone)
 
         config = {
@@ -561,7 +564,7 @@ class GUI:
 
     # server manipulators#################################################
     # These aren't in the cloud class because they require the text edit function and stuff
-    
+
     def start_ssh(self, serverName):
 
     def action_all(self, action, box, frame):
