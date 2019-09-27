@@ -1,3 +1,4 @@
+
     ████████╗██╗  ██╗███████╗     █████╗ ██████╗ ███████╗███╗   ██╗ █████╗ 
     ╚══██╔══╝██║  ██║██╔════╝    ██╔══██╗██╔══██╗██╔════╝████╗  ██║██╔══██╗
        ██║   ███████║█████╗      ███████║██████╔╝█████╗  ██╔██╗ ██║███████║
@@ -23,11 +24,43 @@ The client starts and continously waits for the host to send it files. When the 
 and the client will run all the AIs sent to it. After it compiles the results, it sends it to the web team for record keeping and to the host
 to update the bracket.
 
-**NEW**
+## Easy (GUI)
+ 1. Install python 2.7 (for gcloud)
+ 2. Install python 3.x (for the gui)
+ 3. Install gcloud command line tool -> https://cloud.google.com/sdk/gcloud/
+ 4. Run `gcloud init`
+ 5. Run `gcloud auth application-default login` -> https://cloud.google.com/compute/docs/tutorials/python-guide
+ 6. Make sure all requirements for tkinter are installed
+ 7. Install pip
+ 8. Run `pip install --user --upgrade google-api-python-client`
+ 9. Run `git clone https://github.com/siggame/TheArena.git`
+ 10. Run `python gui.py`
 
-CALLS THE GAMESERVER API WOW
+To make a new image for the disk:
+1. Create a server with the old image using the "Create similar" option.
+2. 2a: (If you are simply adding to the old image) Do the additions to the server created in step one. Shut off machine.
+2b: (If you are doing something completely different) In the create similar tab scroll to the disk section and change it to the Debian GNU/Linux 9 (stretch). Then do the needed operations. Shut off machine.
+3. Create a new image based off of the newly modified server.
+4. (Not needed but useful in case the image is deleted) Create a similar server to that created in step 2 but select the new image to use.
+5. Change the IMAGE_NAME value in code.
 
-# Linux
+Regarding imports:
+If the googleapiclient is giving an error use `pip3` instead of `pip` in the install command.
+
+Startup script info:
+`nano /var/log/syslog` on cloud server to see if startup script ran.
+
+Google Cloud Service Project Attributes:
+PROJECT: the id (not name) of your project in Google Cloud Console, found in upper left of window, to the right of "Google Cloud Platform"
+ZONE: the zone (not region!) you selected when installing gcloud, if you forget: https://cloud.google.com/compute/docs/gcloud-compute/#set_default_zone_and_region_in_your_local_client
+REGION: same process as ZONE
+
+Note: zone and region can also be changed when creating new servers. If you have done this then that is what you want to use when inputting values into the gui.
+
+
+## Manual
+
+**SOME OF THESE STEPS MAY NOT APPLY WHILE WE ARE UNDERGOING MODIFICATIONS**
 
 Make sure if you are running on Google Cloud that you enable IP Forwarding, and enable all UDP/TCP connections inbound and outbound in firewall rules.
 
@@ -96,3 +129,4 @@ Sudo access must be given to do networking otherwise errors will occur. In the e
  
      screen -r arena
     
+
