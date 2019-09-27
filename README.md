@@ -38,11 +38,13 @@ to update the bracket.
 
 To make a new image for the disk:
 1. Create a server with the old image using the "Create similar" option.
-2. 2a: (If you are simply adding to the old image) Do the additions to the server created in step one. Shut off machine.
-2b: (If you are doing something completely different) In the create similar tab scroll to the disk section and change it to the Debian GNU/Linux 9 (stretch). Then do the needed operations. Shut off machine.
-3. Create a new image based off of the newly modified server.
-4. (Not needed but useful in case the image is deleted) Create a similar server to that created in step 2 but select the new image to use.
-5. Change the IMAGE_NAME value in code.
+2. 
+	2a: (If you are simply adding to the old image) Do the additions to the server created in step one. Shut off machine.
+	
+	2b: (If you are doing something completely different) In the create similar tab scroll to the disk section and change it to the Debian GNU/Linux 9 (stretch). Then do the needed operations. Shut off machine.
+4. Create a new image based off of the newly modified server.
+5. (Not needed but useful in case the image is deleted) Create a similar server to that created in step 2 but select the new image to use.
+6. Change the IMAGE_NAME value in code.
 
 Regarding imports:
 If the googleapiclient is giving an error use `pip3` instead of `pip` in the install command.
