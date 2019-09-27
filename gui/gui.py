@@ -4,7 +4,8 @@ Tanner May Arena Lead FS2019
 """
 
 import tkinter as tk
-from tkinter import ttk, *
+from tkinter import ttk
+from tkinter import *
 import tkinter.scrolledtext as tkst
 import googleapiclient.discovery
 import time
@@ -564,7 +565,7 @@ class GUI:
     # server manipulators#################################################
     # These aren't in the cloud class because they require the text edit function and stuff
 
-    def start_ssh(self, serverName):
+    #def start_ssh(self, serverName):
 
     def action_all(self, action, box, frame):
         """
