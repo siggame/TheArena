@@ -51,8 +51,11 @@ Startup script info:
 `nano /var/log/syslog` on cloud server to see if startup script ran.
 
 Google Cloud Service Project Attributes:
+
 PROJECT: the id (not name) of your project in Google Cloud Console, found in upper left of window, to the right of "Google Cloud Platform"
+
 ZONE: the zone (not region!) you selected when installing gcloud, if you forget: https://cloud.google.com/compute/docs/gcloud-compute/#set_default_zone_and_region_in_your_local_client
+
 REGION: same process as ZONE
 
 Note: zone and region can also be changed when creating new servers. If you have done this then that is what you want to use when inputting values into the gui.
