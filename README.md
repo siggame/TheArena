@@ -1,4 +1,5 @@
 
+
     ████████╗██╗  ██╗███████╗     █████╗ ██████╗ ███████╗███╗   ██╗ █████╗ 
     ╚══██╔══╝██║  ██║██╔════╝    ██╔══██╗██╔══██╗██╔════╝████╗  ██║██╔══██╗
        ██║   ███████║█████╗      ███████║██████╔╝█████╗  ██╔██╗ ██║███████║
@@ -25,16 +26,15 @@ and the client will run all the AIs sent to it. After it compiles the results, i
 to update the bracket.
 
 ## Easy (GUI)
- 1. Install python 2.7 (for gcloud)
- 2. Install python 3.x (for the gui)
- 3. Install gcloud command line tool -> https://cloud.google.com/sdk/gcloud/
- 4. Run `gcloud init`
- 5. Run `gcloud auth application-default login` -> https://cloud.google.com/compute/docs/tutorials/python-guide
- 6. Make sure all requirements for tkinter are installed
- 7. Install pip
- 8. Run `pip install --user --upgrade google-api-python-client`
- 9. Run `git clone https://github.com/siggame/TheArena.git`
- 10. Run `python gui.py`
+ 1. Install python 3.x (for the gui)
+ 2. Install gcloud command line tool -> https://cloud.google.com/sdk/gcloud/
+ 3. Run `gcloud init`
+ 4. Run `gcloud auth application-default login` -> https://cloud.google.com/compute/docs/tutorials/python-guide
+ 5. Make sure all requirements for tkinter are installed
+ 6. Install pip
+ 7. Run `pip install --user --upgrade google-api-python-client`
+ 8. Run `git clone https://github.com/siggame/TheArena.git`
+ 9. Run `python gui.py`
 
 To make a new image for the disk:
 1. Create a server with the old image using the "Create similar" option.
