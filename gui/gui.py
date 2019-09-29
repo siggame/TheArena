@@ -1,6 +1,6 @@
 """
 A gui for creating and monitoring Arena servers
-Tanner May Arena Lead FS2019
+ACM Game - Arena FS2019
 """
 
 import tkinter as tk
@@ -10,7 +10,7 @@ import tkinter.scrolledtext as tkst
 import googleapiclient.discovery
 import time
 import subprocess
-import os
+import pexpect # Using this instead of subprocess because it makes continuous communication with child process easy
 
 """
 Some important documentation:
@@ -45,30 +45,56 @@ Note: zone and region can also be changed when creating new servers. If you have
 want to use when inputting values into the gui.
 """
 
+"""
+ISSUES:
+S -> Needs to be done by megaminer
+A -> It would be nice to have done by megaminer but not required
+B -> It would make things easier
+C -> Cosmetic/form
+E -> Efficiency
+
+1. S - Change Arena code from stdin input to cmd line parameters
+2. S - Finish SSH code for individual servers, requires 1
+3. S - Make Bash script to start arena server and game server on different cores, requires 2
+4. A - Change cloud.machines to a dictionary so we can keep track of host
+5. B - Change Arena code to use environment variables for paths
+6. B - Split gui.py into different files
+7. C - Move tkinter placement code to bottom of section
+8. E - Change shh connection to start on button press instead of constantly running
+9. C - Change input process to be like the ssh command input code -> lambda event: func(p1, p2)
+        Allows use of key binds as well as functions with parameters
+10. B - Figure out how to stop gui from freezing. Move server functions to other cores?
+"""
+
 IMAGE_NAME = "host-client-starter"
 GAMES_FILE = "games.txt"
-USERNAME = "Arena" # the username that the google cloud servers will make in your /home file
+USERNAME = "Arena"  # the username that the google cloud servers will make in your /home file
 
-#read games into list, allows permanently adding games
-GAMES = [line.rstrip('\n') for line in open(GAMES_FILE, 'r')] # fancy one line file read into a list
+# read games into list, allows permanently adding games
+GAMES = [line.rstrip('\n') for line in open(GAMES_FILE, 'r')]  # fancy one line file read into a list
+
+# For string manipulation
 START = 'Start'
 STOP = 'Stop'
 DEL = 'Delete'
+
 
 class Cloud:
     def __init__(self):
         self.compute = googleapiclient.discovery.build('compute', 'v1')
         self.operation = None
-        self.machines = [] #change this to use a dictionary to keep track if host is started/created!!!!
-       #Possibly populate with machine objects to keep track of IPs, names, and other stuff
+        self.machines = []  # change this to use a dictionary to keep track if host is started/created!!!!
+
+    # Possibly populate with machine objects to keep track of IPs, names, and other stuff
 
     def create(self, project, zone, region, host):
         """
         host is boolean, true means launch host server, false: launch client server
         """
-        name = ("host-" if host else "client-") + str(time.time()).replace('.', '') # give server unique name using time
+        name = ("host-" if host else "client-") + str(time.time()).replace('.',
+                                                                           '')  # give server unique name using time
         self.machines.append(name)
-        self.operation = self.gen_config(project, zone, region, name) # use the api to start the server
+        self.operation = self.gen_config(project, zone, region, name)  # use the api to start the server
 
         return self.wait_for_operation(project, zone, self.operation['name'])
 
@@ -113,7 +139,7 @@ class Cloud:
         return self.wait_for_operation(project, zone, self.operation['name'])
 
     def wait_for_operation(self, project, zone, operation):
-        """ 
+        """
         Taken from google's api guides. It checks if the server has completed the operation yet and if there were errors
         """
         print('Waiting for operation to finish...')
@@ -137,7 +163,7 @@ class Cloud:
         """
         don't mess with this function unless you know exactly what you're doing
         modeled off of the REST generator on the cloud console
-        
+
         Not needed if using a custom disk image
 
         # Get the latest Debian Jessie image.
@@ -153,14 +179,14 @@ class Cloud:
             'name': name,
             'machineType': machine_type,
 
-            'displayDevice': { 'enableDisplay': False },
+            'displayDevice': {'enableDisplay': False},
 
             'metadata': {
                 'kind': 'compute#metadata',
                 'items': [
                     {
                         "key": "startup-script",
-                        #update apt and packages then pull latest from git
+                        # update apt and packages then pull latest from git
                         "value": "apt update && apt -y upgrade\n"
                                  "cd /home/%s/TheArena\n"
                                  "git pull\n"
@@ -187,7 +213,7 @@ class Cloud:
                     'autoDelete': True,
                     'deviceName': name,
                     'initializeParams': {
-                        #'sourceImage': source_disk_image, #original
+                        # 'sourceImage': source_disk_image, #original
                         'sourceImage': ('projects/%s/global/images/%s' % (project, IMAGE_NAME)),
                         'diskType': 'projects/%s/zones/%s/diskTypes/pd-standard' % (project, zone),
                         'diskSizeGb': '50'
@@ -201,7 +227,7 @@ class Cloud:
             'networkInterfaces': [
                 {
                     'kind': 'compute#networkInterface',
-                    'subnetwork': 'projects/%s/regions/%s/subnetworks/default' %(project, region),
+                    'subnetwork': 'projects/%s/regions/%s/subnetworks/default' % (project, region),
                     'accessConfigs': [
                         {
                             'kind': 'compute#accessConfig',
@@ -247,18 +273,19 @@ class Cloud:
             zone=zone,
             body=config).execute()
 
+
 class GUI:
     def __init__(self):
         self.compute = Cloud()
-        self.window = self.make_window() #build tk interface
-        self.configTabs = None #must be here so new tabs can be added in  other functions
-        self.make_tabs()   #build the tabs
+        self.window = self.make_window()  # build tk interface
+        self.configTabs = None  # must be here so new tabs can be added in  other functions
+        self.make_tabs()  # build the tabs
 
         self.project = ""
         self.region = ""
         self.zone = ""
         self.numClients = 0
-        self.game = "Chess" #default value, will change when user clicks game in drop down
+        self.game = "Chess"  # default value, will change when user clicks game in drop down
 
     # Tab/Window Creators#################################################
     @staticmethod
@@ -294,7 +321,7 @@ class GUI:
 
         # Project box
         projectBox = ttk.Entry(left)
-        projectBox.bind("<Return>", self.entry_project) # triggers function when user press <Return>
+        projectBox.bind("<Return>", self.entry_project)  # triggers function when user press <Return>
         # with the input_vals function these are redundant but handy to have
 
         # Region box
@@ -360,8 +387,8 @@ class GUI:
         right = ttk.LabelFrame(split, text="Monitor")
 
         # status box
-        statusBox = tkst.ScrolledText(right) # adds scroll bar, was previously just a Text widget
-        statusBox.configure(state='disabled') # makes it uneditable
+        statusBox = tkst.ScrolledText(right)  # adds scroll bar, was previously just a Text widget
+        statusBox.configure(state='disabled')  # makes it uneditable
         statusBox.pack(fill='both', expand=True)
 
         split.add(right)
@@ -388,12 +415,12 @@ class GUI:
         for m in range(len(self.compute.machines)):
             serverTabs.append(ttk.Frame(self.configTabs))
             self.configTabs.add(serverTabs[-1], text=('Host' if m == 0 else ('Client ' + str(m - 1))))
-            self.setup_monitor_client_tab(serverTabs[-1], m) #m is the index of the client in self.compute.machines
-                                                             #needed for doing actions of that server
+            self.setup_monitor_client_tab(serverTabs[-1], m)  # m is the index of the client in self.compute.machines
+            # needed for doing actions of that server
 
         self.configTabs.pack(expand=1, fill='both')
 
-    #/ setup tabs in monitor tab//////////////////////////////////////////
+    # / setup tabs in monitor tab//////////////////////////////////////////
 
     def setup_monitor_all_tab(self, parent):
         split = ttk.PanedWindow(parent, orient=VERTICAL)
@@ -402,7 +429,7 @@ class GUI:
         # Top#################################
         top = ttk.LabelFrame(split, text="Monitor")
 
-        messageBox = tkst.ScrolledText(top) # adds scroll bar, was previously just a Text widget
+        messageBox = tkst.ScrolledText(top)  # adds scroll bar, was previously just a Text widget
         messageBox.configure(state='disabled')  # make the box uneditable
         messageBox.pack(fill='both', expand=True)
 
@@ -435,7 +462,8 @@ class GUI:
         split.add(bottom)
 
     def setup_monitor_client_tab(self, parent, clientIndex):
-        NAME = self.compute.machines[clientIndex] # never change this. It is the name of this client server in self.compute.machines
+        NAME = self.compute.machines[
+            clientIndex]  # never change this. It is the name of this client server in self.compute.machines
         # without it the tab cannot do actions on that client server
 
         split = ttk.PanedWindow(parent, orient=VERTICAL)
@@ -446,7 +474,17 @@ class GUI:
 
         messageBox = tkst.ScrolledText(top)  # adds scroll bar, was previously just a Text widget
         messageBox.configure(state='disabled')  # make the box uneditable
+
+        # SSH Terminal
+        sshInputLabel = ttk.Label(top, text="SSH Input:")
+        sshInput = ttk.Entry(top)
+        sshTunnel = self.start_ssh(NAME) # Need to come up with a way to start SSH on button press instead of it always being on
+        sshInput.bind("<Return>", lambda event: self.entry_ssh_command(sshInput, sshTunnel, messageBox, top))
+
+        # Placement
         messageBox.pack(fill='both', expand=True)
+        sshInputLabel.pack(fill='both', expand=True)
+        sshInput.pack(fill='both', expand=True)
 
         self.copy_name(NAME, messageBox, top)
 
@@ -459,16 +497,11 @@ class GUI:
         howSSH = Label(bottom, text="To open ssh connection type in terminal: "
                                     "'gcloud compute ssh <serverName> --zone <zone>'")
 
-        # SSH Terminal
-        sshInputLabel = ttk.Label(bottom, text="SSH Input")
-        sshInput = ttk.Entry(bottom)
-
-
         # Button Creation ###
-        #sshStart = ttk.Button(bottom, command=lambda: self.start_ssh(), text="Open SSH")
 
         # Start server button
-        start = ttk.Button(bottom, command=lambda: self.action_single(START, NAME, messageBox, top), text="Start server")
+        start = ttk.Button(bottom, command=lambda: self.action_single(START, NAME, messageBox, top),
+                           text="Start server")
 
         # Stop server button
         stop = ttk.Button(bottom, command=lambda: self.action_single(STOP, NAME, messageBox, top), text="Stop server")
@@ -482,13 +515,12 @@ class GUI:
         #####################
 
         # Positioning #######
+        start.grid(row=2, column=0, padx=5, pady=5)
+        stop.grid(row=2, column=1, padx=5, pady=5)
+        kill.grid(row=2, column=2, padx=5, pady=5)
+        getName.grid(row=2, column=3, padx=5, pady=5)
 
-        start.grid(row=0, column=0, padx=5,  pady=5)
-        stop.grid(row=0, column=1, padx=5, pady=5)
-        kill.grid(row=0, column=2, padx=5, pady=5)
-        getName.grid(row=0, column=3, padx=5, pady=5)
-
-        howSSH.grid(row=1, column=0, padx=5, pady=5, columnspan=8)
+        howSSH.grid(row=3, column=0, padx=5, pady=5, columnspan=8)
         #####################
 
         split.add(bottom)
@@ -500,7 +532,8 @@ class GUI:
     def reconfigure_monitor_tabs(self, box, frame):
         self.text_edit("Reconfiguring GUI...", box, frame)
         self.setup_monitor_tab(self.configTabs)
-    #end setup for monitor tabs///////////////////////////////////////////
+
+    # end setup for monitor tabs///////////////////////////////////////////
 
     # end tab/window creators#############################################
 
@@ -520,7 +553,16 @@ class GUI:
     def entry_game(self, event):
         self.game = event
 
-    #ability to add a game to the drop down menu
+    def entry_ssh_command(self, sshInputBox, sshTunnel, box, frame):
+        sshCommand = str(sshInputBox.get()).strip()
+        print(sshCommand)
+        self.text_edit("ssh-send: %s" % sshCommand, box, frame)
+        sshOutput = sshTunnel.communicate(input=(str.encode("%s\n" % sshCommand)))[0]
+        self.text_edit(sshOutput.decode().strip(), box, frame)
+
+        return
+
+    # ability to add a game to the drop down menu
     @staticmethod
     def add_game(box, var, menu):
         game = box.get()
@@ -532,7 +574,7 @@ class GUI:
         with open(GAMES_FILE, 'a') as file:
             file.write(game + '\n')
 
-    #Now you don't have to press enter every time!
+    # Now you don't have to press enter every time!
     def input_vals(self, projectBox, regionBox, zoneBox, numClientsBox, box, frame):
         try:
             self.project = projectBox.get()
@@ -544,28 +586,34 @@ class GUI:
 
     @staticmethod
     def text_edit(s, box, frame):
-        #make box contents editable
+        # make box contents editable
         box.configure(state='normal')
-        #change contents
+        # change contents
         box.insert(INSERT, "->%s\n" % s)
-        #make uneditable again
+        # make uneditable again
         box.configure(state='disabled')
-        #push new changes
+        # push new changes
         frame.update()
 
     def copy_name(self, name, box, frame):
-        #copy NAME to clipboard
+        # copy NAME to clipboard
         self.window.clipboard_clear()
         self.window.clipboard_append(name)
         self.window.update()
 
         self.text_edit("%s has been copied." % name, box, frame)
+
     # end user input utils################################################
 
     # server manipulators#################################################
     # These aren't in the cloud class because they require the text edit function and stuff
 
     def start_ssh(self, serverName):
+        cmd = "gcloud compute ssh " + serverName + " --zone " + self.zone
+        cmd = cmd.split(' ')
+        ssh_tunnel = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+        return ssh_tunnel
 
     def action_all(self, action, box, frame):
         """
@@ -575,12 +623,12 @@ class GUI:
         if action is not START and action is not STOP and action is not DEL:
             raise ValueError("Incorrect action.")
 
-        #nothing to do
+        # nothing to do
         if len(self.compute.machines) <= 0:
             self.text_edit("No servers to %s." % action.lower(), box, frame)
             return
 
-        #status report to the box
+        # status report to the box
         self.text_edit(("%s %d servers..." % (action, len(self.compute.machines))), box, frame)
 
         # string manipulation is UGLY
@@ -617,15 +665,15 @@ class GUI:
         elif action == STOP:
             self.text_edit("All servers stopped.\n", box, frame)
         else:
-            self.compute.machines = [] # remove all machines since they no longer exist
+            self.compute.machines = []  # remove all machines since they no longer exist
             self.text_edit("All servers deleted.\n", box, frame)
-            self.reconfigure_monitor_tabs(box, frame) #remove tabs of machines that no longer exist
+            self.reconfigure_monitor_tabs(box, frame)  # remove tabs of machines that no longer exist
 
     def action_single(self, action, serverName, box, frame):
         if action is not START and action is not STOP and action is not DEL:
             raise ValueError("Incorrect action.")
 
-        #nothing to do
+        # nothing to do
         if len(self.compute.machines) <= 0:
             self.text_edit("No servers to %s." % action.lower(), box, frame)
             return
@@ -656,7 +704,7 @@ class GUI:
 
                 self.text_edit("Server deleted.", box, frame)
                 self.configTabs.forget(self.configTabs.select())  # remove tabs of machines that no longer exist
-                    # This ^ line only removes tab from window but not memory!!!!!!
+                # This ^ line only removes tab from window but not memory!!!!!!
         except Exception as e:
             self.text_edit("There was an error:\n" + str(e), box, frame)
 
@@ -664,20 +712,20 @@ class GUI:
         """
             creates the servers
         """
-        #delete existing servers
+        # delete existing servers
         self.action_all(DEL, box, frame)
 
         self.text_edit("Starting host server and " + str(self.numClients) + " client servers...", box, frame)
         self.text_edit("This window will be unresponsive until task completes.", box, frame)
         self.text_edit("Starting host server...", box, frame)
 
-        #create servers
+        # create servers
         try:
-            #create host
+            # create host
             self.compute.create(self.project, self.zone, self.region, True)
-            self.text_edit("Host server started.", box,  frame)
+            self.text_edit("Host server started.", box, frame)
 
-            #create client servers
+            # create client servers
             for i in range(self.numClients):
                 self.text_edit("Starting client server " + str(i) + "...", box, frame)
                 self.compute.create(self.project, self.zone, self.region, False)
@@ -685,12 +733,13 @@ class GUI:
 
             self.reconfigure_monitor_tabs(box, frame)  # add tabs of new servers
         except Exception as e:
-            self.compute.machines = self.compute.machines[:-1] # remove newly created machine name since it didn't pan out
+            self.compute.machines = self.compute.machines[
+                                    :-1]  # remove newly created machine name since it didn't pan out
             self.text_edit("There was an error:\n" + str(e), box, frame)
 
         self.text_edit("Done.\n", box, frame)
 
-    #starts the arena on the host server and the game server on the clients
+    # starts the arena on the host server and the game server on the clients
     def arena_servers(self):
 
         return
@@ -700,7 +749,8 @@ class GUI:
     def mainloop(self):
         self.window.mainloop()
 
+
 ui = GUI()
 
-#always goes at the bottom
+# always goes at the bottom
 ui.mainloop()
