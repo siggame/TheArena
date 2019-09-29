@@ -606,8 +606,8 @@ class GUI:
     # end user input utils################################################
 
     # server manipulators#################################################
-    # These aren't in the cloud class because they require the text edit function and stuff
-
+    # These aren't in the cloud class because they require the text edit function and stuff\
+    
     def start_ssh(self, serverName):
         cmd = "gcloud compute ssh " + serverName + " --zone " + self.zone
         cmd = cmd.split(' ')
@@ -749,8 +749,21 @@ class GUI:
     def mainloop(self):
         self.window.mainloop()
 
+<<<<<<< HEAD
 
 ui = GUI()
 
 # always goes at the bottom
 ui.mainloop()
+=======
+class Machine:
+    """ Object representation of machines. """
+    def __init__(self, name, ip=None):
+        self.name = name
+        self.ip = ip
+
+ui = GUI()
+
+#always goes at the bottom
+ui.mainloop()
+>>>>>>> 201e2d93b0748a1a1bc190f480bbc8797003c902

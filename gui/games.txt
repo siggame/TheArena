@@ -1,5 +1,6 @@
 Chess
 Checkers
+Necrowar
 Stardash
 Newtonian
 Pirates
