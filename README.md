@@ -1,5 +1,6 @@
 
 
+
     ████████╗██╗  ██╗███████╗     █████╗ ██████╗ ███████╗███╗   ██╗ █████╗ 
     ╚══██╔══╝██║  ██║██╔════╝    ██╔══██╗██╔══██╗██╔════╝████╗  ██║██╔══██╗
        ██║   ███████║█████╗      ███████║██████╔╝█████╗  ██╔██╗ ██║███████║
@@ -35,11 +36,10 @@ to update the bracket.
  7. Run `pip install --user --upgrade google-api-python-client`
  8. Run `git clone https://github.com/siggame/TheArena.git`
  9. Run `python gui.py`
- 10. (If you have never run this before) Create new image:
-     
+ 10. If you haven't run this before, create a new image:
 	(Optional): Change name of image in gui.py
-	1. Input all data in entry boxes in setup tab
-	2. Click create image button
+		1. Input all data in entry boxes in setup tab
+		2. Click create image button
 
 Regarding imports:
 If the googleapiclient is giving an error use `pip3` instead of `pip` in the install command.
