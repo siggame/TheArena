@@ -34,17 +34,11 @@ to update the bracket.
  6. Install pip
  7. Run `pip install --user --upgrade google-api-python-client`
  8. Run `git clone https://github.com/siggame/TheArena.git`
- 9. Run `python gui.py`
-
-To make a new image for the disk:
-1. Create a server with the old image using the "Create similar" option.
-2. 
-	2a: (If you are simply adding to the old image) Do the additions to the server created in step one. Shut off machine.
-	
-	2b: (If you are doing something completely different) In the create similar tab scroll to the disk section and change it to the Debian GNU/Linux 9 (stretch). Then do the needed operations. Shut off machine.
-4. Create a new image based off of the newly modified server.
-5. (Not needed but useful in case the image is deleted) Create a similar server to that created in step 2 but select the new image to use.
-6. Change the IMAGE_NAME value in code.
+ 9. (If you have never run this before) Create new image:
+	(Optional): Change name of image in gui.py
+	1. Input all data in entry boxes in setup tab
+	2. Click create image button
+ 10. Run `python gui.py`
 
 Regarding imports:
 If the googleapiclient is giving an error use `pip3` instead of `pip` in the install command.
