@@ -9,8 +9,8 @@ from tkinter import *
 import tkinter.scrolledtext as tkst
 import googleapiclient.discovery
 import time
-import subprocess
 import pexpect # Using this instead of subprocess because it makes continuous communication with child process easy
+import subprocess
 
 """
 Some important documentation:
@@ -64,11 +64,11 @@ E -> Efficiency
 9. C - Change input process to be like the ssh command input code -> lambda event: func(p1, p2)
         Allows use of key binds as well as functions with parameters
 10. B - Figure out how to stop gui from freezing. Move server functions to other cores?
+11. C - Figure out why text box outputs weird after ssh stuff
 """
 
-IMAGE_NAME = "host-client-starter"
+IMAGE_NAME = "official-image"
 GAMES_FILE = "games.txt"
-USERNAME = "Arena"  # the username that the google cloud servers will make in your /home file
 
 # read games into list, allows permanently adding games
 GAMES = [line.rstrip('\n') for line in open(GAMES_FILE, 'r')]  # fancy one line file read into a list
@@ -87,14 +87,24 @@ class Cloud:
 
     # Possibly populate with machine objects to keep track of IPs, names, and other stuff
 
-    def create(self, project, zone, region, host):
+    def create(self, project, zone, region, host, image):
         """
-        host is boolean, true means launch host server, false: launch client server
+        Creates a server
+        :param project: (str) parent project
+        :param zone: (str) which zone the server lives in
+        :param region: (str) which region the server lives in
+        :param host: (bool) if server is the host or not; True: launch host server, False: launch client server
+        :param image: (bool) create server for image creation
+        :return: operation status, pass/fail -> wait_for_operation()
         """
-        name = ("host-" if host else "client-") + str(time.time()).replace('.',
-                                                                           '')  # give server unique name using time
+        name = ("host-" if host else "client-") + str(time.time()).replace('.', '')  # give server unique name using time
+
+        if image:
+            name = IMAGE_NAME # change name of server that image is based on so it isn't confusing in server list
+
         self.machines.append(name)
-        self.operation = self.gen_config(project, zone, region, name)  # use the api to start the server
+
+        self.operation = self.gen_config(project, zone, region, name, image)  # use the api to start the server
 
         return self.wait_for_operation(project, zone, self.operation['name'])
 
@@ -159,13 +169,22 @@ class Cloud:
             print('...')  # print to console so that user knows it hasn't frozen. This will NOT update GUI
             time.sleep(1)
 
-    def gen_config(self, project, zone, region, name):
+    def gen_config(self, project, zone, region, name, image):
         """
+        This is what configures all the settings for the new server
         don't mess with this function unless you know exactly what you're doing
         modeled off of the REST generator on the cloud console
 
-        Not needed if using a custom disk image
+        :param project: (str) parent project of server
+        :param zone: (str) zone server will live in
+        :param region: (str) region server will live in
+        :param name: (str) name of server
+        :param image: (bool) will this be used to create an image or not
+        :return: wait for server to be created
+        """
 
+        """
+        Not needed if using a custom disk image:
         # Get the latest Debian Jessie image.
         image_response = self.compute.images().getFromFamily(
             project='debian-cloud', family='debian-9').execute()
@@ -186,13 +205,32 @@ class Cloud:
                 'items': [
                     {
                         "key": "startup-script",
-                        # update apt and packages then pull latest from git
-                        "value": "apt update && apt -y upgrade\n"
-                                 "cd /home/%s/TheArena\n"
-                                 "git pull\n"
-                                 "cd /home/%s/Cerveau\n"
-                                 "git pull\n"
-                                 "cd /home/%s" % (USERNAME, USERNAME, USERNAME)
+                        #Check if git is installed:
+                        #    if so: update apt and packages then pull latest
+                        #    if not: run through manual install from README and create new image
+                        "value": ("#!/bin/bash\n\n"
+                                  "apt update && apt -y upgrade\n" # update apt/packages
+                                  "if git --version 2>&1 >/dev/null\n" # check if git installed
+                                  "then\n" #git installed
+                                  "\techo \"GIT FOUND, UPDATING\"\n"
+                                  "\tcd /home/TheArena\n"
+                                  "\tgit pull\n"
+                                  "\tcd /home/Cerveau\n"
+                                  "\tgit pull\n"
+                                  "\techo \"DONE UPDATING\"\n"
+                                  "else\n" # git not installed
+                                  "\techo \"NO GIT, INSTALLING\"\n"
+                                  "\tapt -y install git\n"
+                                  "\tmkdir /home/TheArena\n"
+                                  "\tcd /home/TheArena/\n"
+                                  "\tgit clone https://github.com/siggame/TheArena.git\n"
+                                  "\t./TheArena/setup-new-machine.sh\n" # run machine setup
+                                  "\tmkdir /home/Cerveau\n"
+                                  "\tcd /home/Cerveau\n"
+                                  "\tgit clone https://github.com/siggame/Cerveau.git\n"
+                                  "\techo \"DONE INSTALLING\"\n"
+                                  "fi\n"
+                                  "echo \"STARTUP DONE\"\n")
                     }
                 ]
             },
@@ -214,7 +252,7 @@ class Cloud:
                     'deviceName': name,
                     'initializeParams': {
                         # 'sourceImage': source_disk_image, #original
-                        'sourceImage': ('projects/%s/global/images/%s' % (project, IMAGE_NAME)),
+                        'sourceImage': 'projects/%s/global/images/%s' % (project, IMAGE_NAME) if not image else "projects/debian-cloud/global/images/debian-9-stretch-v20190916",
                         'diskType': 'projects/%s/zones/%s/diskTypes/pd-standard' % (project, zone),
                         'diskSizeGb': '50'
                     },
@@ -345,6 +383,10 @@ class GUI:
         startWarning = ttk.Label(left, text="Kills all previously created servers.")
         start = ttk.Button(left, command=lambda: self.button_start(statusBox, left), text='Create servers')
 
+        #Create Image Button
+        imageLabel = ttk.Label(left, text="Use this if you need to create image")
+        imageButton = ttk.Button(left, command=lambda: self.button_create_image(statusBox, left), text='Create image')
+
         # Add game section#####
         addGameBox = ttk.Entry(left)
         newGame = ttk.Button(left, command=lambda: self.add_game(addGameBox, selection, popupMenu), text='Add game')
@@ -374,10 +416,14 @@ class GUI:
         startWarning.grid(row=6, column=0)
         start.grid(row=6, column=1, sticky=E, pady=50)
 
+        # image button
+        imageLabel.grid(row=7, column=0)
+        imageButton.grid(row=7, column=1, sticky=E, pady=5)
+
         # Add game
-        ttk.Label(left, text='Add game').grid(row=7, column=0, sticky=W, padx=(0, 20), pady=5)
-        addGameBox.grid(row=7, column=1, sticky=E, pady=5)
-        newGame.grid(row=8, column=1, sticky=E, pady=5)
+        ttk.Label(left, text='Add game').grid(row=8, column=0, sticky=W, padx=(0, 20), pady=5)
+        addGameBox.grid(row=8, column=1, sticky=E, pady=5)
+        newGame.grid(row=9, column=1, sticky=E, pady=5)
 
         # Always at bottom
         split.add(left)
@@ -462,8 +508,7 @@ class GUI:
         split.add(bottom)
 
     def setup_monitor_client_tab(self, parent, clientIndex):
-        NAME = self.compute.machines[
-            clientIndex]  # never change this. It is the name of this client server in self.compute.machines
+        NAME = self.compute.machines[clientIndex]  # never change this. It is the name of this client server in self.compute.machines
         # without it the tab cannot do actions on that client server
 
         split = ttk.PanedWindow(parent, orient=VERTICAL)
@@ -478,8 +523,14 @@ class GUI:
         # SSH Terminal
         sshInputLabel = ttk.Label(top, text="SSH Input:")
         sshInput = ttk.Entry(top)
-        sshTunnel = self.start_ssh(NAME) # Need to come up with a way to start SSH on button press instead of it always being on
-        sshInput.bind("<Return>", lambda event: self.entry_ssh_command(sshInput, sshTunnel, messageBox, top))
+        # Need to come up with a way to start SSH on button press or something instead of it always being on
+        sshTunnel = pexpect.spawn("gcloud compute ssh " + NAME + " --zone " + self.zone) #open ssh
+        sshTunnel.delaybeforesend = None
+        print(str(sshTunnel))
+        sshTunnel.expect("Warning:.*", timeout=None)
+        print(str(sshTunnel))
+        sshInput.bind("<Return>",
+                      lambda event: self.entry_ssh_command(NAME, sshInput, sshTunnel, messageBox, top))
 
         # Placement
         messageBox.pack(fill='both', expand=True)
@@ -553,14 +604,38 @@ class GUI:
     def entry_game(self, event):
         self.game = event
 
-    def entry_ssh_command(self, sshInputBox, sshTunnel, box, frame):
+    def entry_ssh_command(self, name, sshInputBox, sshTunnel, box, frame):
+        """
+        Send command from entry box to the server
+        :param name: (str) name of server
+        :param sshInputBox: (tk) entry box where command is
+        :param sshTunnel: (pexpect) the ssh connection
+        :param box: (tk) text box to put updates in
+        :param frame: (tk) from that box lives in
+        :return:
+        """
+        """Send command from entry box to server"""
+
+
+        sshCommand = str(sshInputBox.get()).strip() # get command from entry box
+        self.text_edit("ssh-send: %s" % sshCommand, box, frame) # put command into message box
+        sshTunnel.sendline(sshCommand) # send it to the server
+        #sshTunnel.expect("^(?!\s*$).+") # wait for a nonblank response
+        sshTunnel.expect(name, timeout=None)
+        sshOutput = str(sshTunnel.before).strip() # get result of sent command
+        self.text_edit("ssh-receive: %s" % sshOutput, box, frame) # put result into output box
+        box.delete(0, 'end') # clear entry box
+
+        """
+        For subprocess
         sshCommand = str(sshInputBox.get()).strip()
         print(sshCommand)
         self.text_edit("ssh-send: %s" % sshCommand, box, frame)
         sshOutput = sshTunnel.communicate(input=(str.encode("%s\n" % sshCommand)))[0]
         self.text_edit(sshOutput.decode().strip(), box, frame)
+        """
 
-        return
+        #return sshTunnel
 
     # ability to add a game to the drop down menu
     @staticmethod
@@ -607,13 +682,6 @@ class GUI:
 
     # server manipulators#################################################
     # These aren't in the cloud class because they require the text edit function and stuff\
-
-    def start_ssh(self, serverName):
-        cmd = "gcloud compute ssh " + serverName + " --zone " + self.zone
-        cmd = cmd.split(' ')
-        ssh_tunnel = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-
-        return ssh_tunnel
 
     def action_all(self, action, box, frame):
         """
@@ -722,19 +790,62 @@ class GUI:
         # create servers
         try:
             # create host
-            self.compute.create(self.project, self.zone, self.region, True)
+            self.compute.create(self.project, self.zone, self.region, True, False)
             self.text_edit("Host server started.", box, frame)
 
             # create client servers
             for i in range(self.numClients):
                 self.text_edit("Starting client server " + str(i) + "...", box, frame)
-                self.compute.create(self.project, self.zone, self.region, False)
+                self.compute.create(self.project, self.zone, self.region, False, False)
                 self.text_edit("Client " + str(i) + " started.", box, frame)
 
             self.reconfigure_monitor_tabs(box, frame)  # add tabs of new servers
         except Exception as e:
-            self.compute.machines = self.compute.machines[
-                                    :-1]  # remove newly created machine name since it didn't pan out
+            self.compute.machines = self.compute.machines[:-1]  # remove newly created machine name since it didn't pan out
+            self.text_edit("There was an error:\n" + str(e), box, frame)
+
+        self.text_edit("Done.\n", box, frame)
+
+    def button_create_image(self, box, frame):
+        """
+        Creates a new image with everything correctly installed according to README.md
+        WARNING: Images do not get deleted when server is deleted
+        :param box: text box to put status updates in
+        :param frame: parent frame of text box
+        :return: nothing
+        """
+
+        self.text_edit("Creating new image, this may take a while...", box, frame)
+
+        try:
+            self.compute.create(self.project, self.zone, self.region, host=False, image=True)
+
+            #wait until startup script is done:
+            self.text_edit("Server started. Waiting for startup script to finish...", box, frame)
+            cmd = '\'cat /var/log/syslog | grep "STARTUP DONE"\''
+            scriptStatus = ''
+            while scriptStatus == '':
+                #repeatedly ssh and read log file for "STARTUP DONE"
+                try:
+                    scriptStatus = subprocess.check_output('gcloud compute ssh %s --command=%s --zone %s'
+                                                       % (self.compute.machines[-1], cmd, self.zone), shell=True)
+                except subprocess.CalledProcessError: #except because grep throws exit error code 1 if it doesn't find string
+                    print("...")
+                    time.sleep(5)
+
+            self.text_edit("Startup script is done. Stopping server...", box, frame)
+            self.compute.stop(self.project, self.zone, self.compute.machines[-1]) # Google recommends stopping the server before making an image
+
+            """
+            doesn't use API because I am pretty sure it isn't implemented but if we want to try in the future:
+            POST https://www.googleapis.com/compute/beta/projects/[PROJECT_ID]/global/images
+            https://cloud.google.com/compute/docs/images/create-delete-deprecate-private-images
+            """
+            self.text_edit("Server stopped. Creating image...", box, frame)
+            subprocess.call("gcloud beta compute images create %s --source-disk %s --source-disk-zone %s --force"
+                            % (IMAGE_NAME, self.compute.machines[-1], self.zone), shell=True)
+        except Exception as e:
+            self.compute.machines = self.compute.machines[:-1]  # remove newly created machine name since it didn't pan out
             self.text_edit("There was an error:\n" + str(e), box, frame)
 
         self.text_edit("Done.\n", box, frame)
