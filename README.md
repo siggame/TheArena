@@ -35,6 +35,7 @@ to update the bracket.
  7. Run `pip install --user --upgrade google-api-python-client`
  8. Run `git clone https://github.com/siggame/TheArena.git`
  9. (If you have never run this before) Create new image:
+	
 	(Optional): Change name of image in gui.py
 	1. Input all data in entry boxes in setup tab
 	2. Click create image button
