@@ -165,9 +165,10 @@ class Cloud:
         return self.wait_for_operation(project, zone, self.operation['name'])
 
     def wait_for_operation(self, project, zone, operation):
-        """
+        """Check if the server has completed the operation yet and return status or errors.
+        
         Taken from google's api guides: https://cloud.google.com/compute/docs/tutorials/python-guide
-        Check if the server has completed the operation yet and return status or errors.
+
         :param project: (str) parent project
         :param zone: (str) zone the server lives in
         :param operation: (googleapiclient) operation to wait for
