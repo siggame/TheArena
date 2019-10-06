@@ -65,6 +65,8 @@ E -> Efficiency
         Allows use of key binds as well as functions with parameters
 10. B - Figure out how to stop gui from freezing. Move server functions to other cores?
 11. C - Figure out why text box outputs weird after ssh stuff
+12. A - Cloud class creates service account if one is not found, if one is found use that one
+13. C - Remove region entry box, zone contains region so just lift it from there: zone -> "us-central1-c" contains "us-central1"
 """
 
 IMAGE_NAME = "official-image"
@@ -82,14 +84,12 @@ DEL = 'Delete'
 class Cloud:
     def __init__(self):
         self.compute = googleapiclient.discovery.build('compute', 'v1')
-        self.operation = None
+        self.operation = None  # Stores the start/stop/delete/etc. operation for the wait_for_operation() function
         self.machines = []  # change this to use a dictionary to keep track if host is started/created!!!!
 
-    # Possibly populate with machine objects to keep track of IPs, names, and other stuff
-
     def create(self, project, zone, region, host, image):
-        """
-        Creates a server
+        """Create a server and return server response after waiting for server to be created.
+
         :param project: (str) parent project
         :param zone: (str) which zone the server lives in
         :param region: (str) which region the server lives in
@@ -97,24 +97,30 @@ class Cloud:
         :param image: (bool) create server for image creation
         :return: operation status, pass/fail -> wait_for_operation()
         """
-        name = ("host-" if host else "client-") + str(time.time()).replace('.', '')  # give server unique name using time
+
+        # give server unique name using time
+        name = ("host-" if host else "client-") + str(time.time()).replace('.', '')
 
         if image:
             name = IMAGE_NAME # change name of server that image is based on so it isn't confusing in server list
 
-        self.machines.append(name)
+        self.machines.append(name) # add new server to machines list
 
         self.operation = self.gen_config(project, zone, region, name, image)  # use the api to start the server
 
-        return self.wait_for_operation(project, zone, self.operation['name'])
+        return self.wait_for_operation(project, zone, self.operation['name'])  # wait for operation to finish
 
     def delete(self, project, zone, serverName):
-        """
+        """Delete a specified server and return server response after waiting for server to be deleted.
+
         DELETE https://www.googleapis.com/compute/v1/projects/<project>/zones/<zone>/instances/<serverName>
 
-        delete a specified server
-        serverName will almost always come from self.machines
+        :param project: (str) parent project
+        :param zone: (str) zone the server lives in
+        :param serverName: (str) unique name of server
+        :return: operation status, pass/fail -> wait_for_operation()
         """
+
         self.operation = self.compute.instances().delete(
             project=project,
             zone=zone,
@@ -123,11 +129,16 @@ class Cloud:
         return self.wait_for_operation(project, zone, self.operation['name'])
 
     def stop(self, project, zone, serverName):
-        """
+        """Stop a specified server and return server response after waiting for server to be stopped.
+
         POST https://www.googleapis.com/compute/v1/projects/<project>/zones/<zone>/instances/<serverName>/stop
 
-        stop a specified server
+        :param project: (str) parent project
+        :param zone: (str) zone the server lives in
+        :param serverName: (str) unique name of server
+        :return: operation status, pass/fail -> wait_for_operation()
         """
+
         self.operation = self.compute.instances().stop(
             project=project,
             zone=zone,
@@ -136,11 +147,16 @@ class Cloud:
         return self.wait_for_operation(project, zone, self.operation['name'])
 
     def start(self, project, zone, serverName):
-        """
+        """Start a specified server and return server response after waiting for server to be started.
+
         POST https://www.googleapis.com/compute/v1/projects/<project>/zones/<zone>/instances/<serverName>/start
 
-        start a specified server
+        :param project: (str) parent project
+        :param zone: (str) zone the server lives in
+        :param serverName: (str) unique name of server
+        :return: operation status, pass/fail -> wait_for_operation()
         """
+
         self.operation = self.compute.instances().start(
             project=project,
             zone=zone,
@@ -150,8 +166,14 @@ class Cloud:
 
     def wait_for_operation(self, project, zone, operation):
         """
-        Taken from google's api guides. It checks if the server has completed the operation yet and if there were errors
+        Taken from google's api guides: https://cloud.google.com/compute/docs/tutorials/python-guide
+        Check if the server has completed the operation yet and return status or errors.
+        :param project: (str) parent project
+        :param zone: (str) zone the server lives in
+        :param operation: (googleapiclient) operation to wait for
+        :return: response of server
         """
+
         print('Waiting for operation to finish...')
 
         while True:
@@ -170,10 +192,9 @@ class Cloud:
             time.sleep(1)
 
     def gen_config(self, project, zone, region, name, image):
-        """
-        This is what configures all the settings for the new server
-        don't mess with this function unless you know exactly what you're doing
-        modeled off of the REST generator on the cloud console
+        """Configure new servers and return insert operation.
+
+        Modeled off of the REST generator on the cloud console
 
         :param project: (str) parent project of server
         :param zone: (str) zone server will live in
@@ -183,48 +204,41 @@ class Cloud:
         :return: wait for server to be created
         """
 
-        """
-        Not needed if using a custom disk image:
-        # Get the latest Debian Jessie image.
-        image_response = self.compute.images().getFromFamily(
-            project='debian-cloud', family='debian-9').execute()
-        source_disk_image = image_response['selfLink']"""
-
-        # Configure the machine
-        # "custom-2-6656" -> 2CPU, 6.5 GB of memory
-        machine_type = "projects/%s/zones/%s/machineTypes/custom-2-6656" % (project, zone)
-
         config = {
             'name': name,
-            'machineType': machine_type,
 
+            # "custom-2-6656" -> 2CPU, 6.5 GB of memory
+            'machineType': "projects/%s/zones/%s/machineTypes/custom-2-6656" % (project, zone),
+
+            # We don't need displays
             'displayDevice': {'enableDisplay': False},
 
+            # Data for the instance for self configuration
             'metadata': {
                 'kind': 'compute#metadata',
                 'items': [
                     {
                         "key": "startup-script",
-                        #Check if git is installed:
+                        # Check if git is installed:
                         #    if so: update apt and packages then pull latest
                         #    if not: run through manual install from README and create new image
                         "value": ("#!/bin/bash\n\n"
-                                  "apt update && apt -y upgrade\n" # update apt/packages
-                                  "if git --version 2>&1 >/dev/null\n" # check if git installed
-                                  "then\n" #git installed
-                                  "\techo \"GIT FOUND, UPDATING\"\n"
+                                  "apt update && apt -y upgrade\n"  # update apt/packages
+                                  "if git --version 2>&1 >/dev/null\n"  # check if git installed
+                                  "then\n"  # git installed
+                                  "\techo \"GIT FOUND, UPDATING\"\n"  # for easy grepping of log files
                                   "\tcd /home/TheArena\n"
                                   "\tgit pull\n"
                                   "\tcd /home/Cerveau\n"
                                   "\tgit pull\n"
                                   "\techo \"DONE UPDATING\"\n"
-                                  "else\n" # git not installed
+                                  "else\n"  # git not installed
                                   "\techo \"NO GIT, INSTALLING\"\n"
                                   "\tapt -y install git\n"
                                   "\tmkdir /home/TheArena\n"
                                   "\tcd /home/TheArena/\n"
                                   "\tgit clone https://github.com/siggame/TheArena.git\n"
-                                  "\t./TheArena/setup-new-machine.sh\n" # run machine setup
+                                  "\t./TheArena/scripts/setup-new-machine.sh\n"  # run machine setup
                                   "\tmkdir /home/Cerveau\n"
                                   "\tcd /home/Cerveau\n"
                                   "\tgit clone https://github.com/siggame/Cerveau.git\n"
@@ -235,6 +249,7 @@ class Cloud:
                 ]
             },
 
+            # Open connections
             'tags': {
                 'items': [
                     'http-server',
@@ -242,6 +257,7 @@ class Cloud:
                 ]
             },
 
+            # Specify the boot disk and the image to use as a source.
             'disks': [
                 {
                     'kind': 'compute#attachedDisk',
@@ -252,7 +268,8 @@ class Cloud:
                     'deviceName': name,
                     'initializeParams': {
                         # 'sourceImage': source_disk_image, #original
-                        'sourceImage': 'projects/%s/global/images/%s' % (project, IMAGE_NAME) if not image else "projects/debian-cloud/global/images/debian-9-stretch-v20190916",
+                        'sourceImage': 'projects/%s/global/images/%s' % (project, IMAGE_NAME) if not image
+                        else "projects/debian-cloud/global/images/debian-9-stretch-v20190916",
                         'diskType': 'projects/%s/zones/%s/diskTypes/pd-standard' % (project, zone),
                         'diskSizeGb': '50'
                     },
@@ -260,8 +277,10 @@ class Cloud:
                 }
             ],
 
+            # Forward IP
             'canIpForward': True,
 
+            # Specify a network interface with NAT to access the public internet.
             'networkInterfaces': [
                 {
                     'kind': 'compute#networkInterface',
@@ -291,6 +310,7 @@ class Cloud:
 
             'deletionProtection': False,
 
+            # Allow the instance to access cloud storage, logging, and apis
             'serviceAccounts': [
                 {
                     'email': 'default',
@@ -328,6 +348,11 @@ class GUI:
     # Tab/Window Creators#################################################
     @staticmethod
     def make_window():
+        """Create Tk object window, configure the geometry, and return window object.
+
+        :return: (tk) Window object
+        """
+
         window = tk.Tk()  # create window instance
         window.title("Arena Manager")  # name it
         window.geometry("1000x600+150+150")
@@ -335,6 +360,11 @@ class GUI:
         return window
 
     def make_tabs(self):
+        """Create tabs at top of window.
+
+        :return: None
+        """
+
         tabControl = ttk.Notebook(self.window)  # create tab control
 
         # setup tab setup
@@ -347,10 +377,15 @@ class GUI:
         tabControl.add(monitorTab, text='Monitoring')  # add tab with name "Host Setup"
         self.setup_monitor_tab(monitorTab)
 
-        ######################################-After tab setup
         tabControl.pack(expand=1, fill='both')  # Makes it visible
 
     def setup_setup_tab(self, parent):
+        """Add all buttons, labels, and text boxes in setup tab.
+
+        :param parent: (tk) Master tab object in make_tabs()
+        :return: None
+        """
+
         split = ttk.PanedWindow(parent, orient=HORIZONTAL)
         split.pack(fill=BOTH, expand=1)
 
@@ -383,7 +418,7 @@ class GUI:
         startWarning = ttk.Label(left, text="Kills all previously created servers.")
         start = ttk.Button(left, command=lambda: self.button_start(statusBox, left), text='Create servers')
 
-        #Create Image Button
+        # Create Image Button
         imageLabel = ttk.Label(left, text="Use this if you need to create image")
         imageButton = ttk.Button(left, command=lambda: self.button_create_image(statusBox, left), text='Create image')
 
@@ -449,6 +484,12 @@ class GUI:
         inputVals.grid(row=4, column=1, sticky=E, pady=5)
 
     def setup_monitor_tab(self, parent):
+        """Create tabs for every created server in the monitor tab.
+
+        :param parent: (tk) Master tab object in make_tabs()
+        :return: None
+        """
+
         self.configTabs = ttk.Notebook(parent)
 
         # All server actions tab
@@ -469,6 +510,12 @@ class GUI:
     # / setup tabs in monitor tab//////////////////////////////////////////
 
     def setup_monitor_all_tab(self, parent):
+        """Add buttons, frames, and text boxes to all tab in monitor tab.
+
+        :param parent: (tk) Master tab object in setup_monitor_tab()
+        :return: None
+        """
+
         split = ttk.PanedWindow(parent, orient=VERTICAL)
         split.pack(fill=BOTH, expand=1)
 
@@ -508,8 +555,16 @@ class GUI:
         split.add(bottom)
 
     def setup_monitor_client_tab(self, parent, clientIndex):
-        NAME = self.compute.machines[clientIndex]  # never change this. It is the name of this client server in self.compute.machines
+        """Add buttons, labels, frames, and text boxes in corresponding server tab in monitoring tab.
+
+        :param parent: (tk) Master tab object in setup_monitor_tab()
+        :param clientIndex: (int) Index of server in self.compute.machines
+        :return: None
+        """
+
+        # Treat as constant. It is the name of this client server in self.compute.machines
         # without it the tab cannot do actions on that client server
+        NAME = self.compute.machines[clientIndex]
 
         split = ttk.PanedWindow(parent, orient=VERTICAL)
         split.pack(fill=BOTH, expand=True)
@@ -524,7 +579,7 @@ class GUI:
         sshInputLabel = ttk.Label(top, text="SSH Input:")
         sshInput = ttk.Entry(top)
         # Need to come up with a way to start SSH on button press or something instead of it always being on
-        sshTunnel = pexpect.spawn("gcloud compute ssh " + NAME + " --zone " + self.zone) #open ssh
+        sshTunnel = pexpect.spawn("gcloud compute ssh " + NAME + " --zone " + self.zone)  # open ssh
         sshTunnel.delaybeforesend = None
         print(str(sshTunnel))
         sshTunnel.expect("Warning:.*", timeout=None)
@@ -537,7 +592,8 @@ class GUI:
         sshInputLabel.pack(fill='both', expand=True)
         sshInput.pack(fill='both', expand=True)
 
-        self.copy_name(NAME, messageBox, top)
+        # print server name for copy/pasting
+        self.text_edit("%s has been created.", messageBox, top)
 
         split.add(top)
         ######################################
@@ -576,11 +632,17 @@ class GUI:
 
         split.add(bottom)
 
-    # adds or removes tabs depending on contents of self.compute.machines
-    # just reruns the setup for the monitor tabs
-    # it does delete all entries in the monitor text box...
-    # improvement: find a way so it doesn't delete all of those then restore it after refresh
     def reconfigure_monitor_tabs(self, box, frame):
+        """Add or remove tab depending on contents of self.compute.machines.
+
+        Rerun setup_monitor_tab(). This process deletes then restores all tabs in monitor tab.
+        Improvements: Don't delete all tabs then restore them.
+
+        :param box: (tk) Text box to send updates to
+        :param frame: (tk) Frame the text box lives in
+        :return: None
+        """
+
         self.text_edit("Reconfiguring GUI...", box, frame)
         self.setup_monitor_tab(self.configTabs)
 
@@ -590,37 +652,77 @@ class GUI:
 
     # user input utils####################################################
     def entry_project(self, event):
+        """Get project text from project box.
+
+        Set self.project to contents of project box in setup tab.
+
+        :param event: (tk) Key bind event
+        :return: None
+        """
+
         self.project = event.widget.get()
 
     def entry_region(self, event):
+        """Get region text from region box.
+
+        Set self.region to contents of region box in setup tab.
+
+        :param event: (tk) Key bind event
+        :return: None
+        """
+
         self.region = event.widget.get()
 
     def entry_zone(self, event):
+        """Get zone text from zone box.
+
+        Set self.zone to contents of zone box in setup tab.
+
+        :param event: (tk) Key bind event
+        :return: None
+        """
+
         self.zone = event.widget.get()
 
     def entry_num_clients(self, event):
+        """Get number of clients from numClients box.
+
+        Set self.numClients to contents in numClients box.
+
+        :param event: (tk) Key bind event
+        :return: None
+        """
+
         self.numClients = int(event.widget.get())
 
     def entry_game(self, event):
+        """Get game name from game drop down.
+
+        Set self.game to selected game name from game drop down.
+
+        :param event: (tk) Selection change event
+        :return: None
+        """
+
         self.game = event
 
     def entry_ssh_command(self, name, sshInputBox, sshTunnel, box, frame):
-        """
-        Send command from entry box to the server
-        :param name: (str) name of server
-        :param sshInputBox: (tk) entry box where command is
-        :param sshTunnel: (pexpect) the ssh connection
-        :param box: (tk) text box to put updates in
-        :param frame: (tk) from that box lives in
-        :return:
-        """
-        """Send command from entry box to server"""
+        """Send command from entry box to the server.
 
+        UNFINISHED
 
-        sshCommand = str(sshInputBox.get()).strip() # get command from entry box
+        :param name: (str) Name of server
+        :param sshInputBox: (tk) Entry box where command is
+        :param sshTunnel: (pexpect) The ssh connection
+        :param box: (tk) Text box to put updates in
+        :param frame: (tk) Frame that box lives in
+        :return: None
+        """
+
+        sshCommand = str(sshInputBox.get()).strip()  # get command from entry box
         self.text_edit("ssh-send: %s" % sshCommand, box, frame) # put command into message box
         sshTunnel.sendline(sshCommand) # send it to the server
-        #sshTunnel.expect("^(?!\s*$).+") # wait for a nonblank response
+        # sshTunnel.expect("^(?!\s*$).+") # wait for a nonblank response
         sshTunnel.expect(name, timeout=None)
         sshOutput = str(sshTunnel.before).strip() # get result of sent command
         self.text_edit("ssh-receive: %s" % sshOutput, box, frame) # put result into output box
@@ -640,17 +742,38 @@ class GUI:
     # ability to add a game to the drop down menu
     @staticmethod
     def add_game(box, var, menu):
-        game = box.get()
+        """Add game name to game drop down and save to file.
 
-        GAMES.append(game)
-        menu['menu'].add_command(label=game, command=tk._setit(var, game))
+        :param box: (tk) Text box to get name from
+        :param var: (tk) Current selected game
+        :param menu: (tk) Game drop down menu
+        :return: None
+        """
 
-        # saves game for next time the software is used
+        game = box.get()  # retrieve new game name from entry box
+
+        GAMES.append(game)  # add new game to GAMES list
+        menu['menu'].add_command(label=game, command=tk._setit(var, game))  # select it
+
+        # saves game to file for next time the software is used
         with open(GAMES_FILE, 'a') as file:
             file.write(game + '\n')
 
     # Now you don't have to press enter every time!
     def input_vals(self, projectBox, regionBox, zoneBox, numClientsBox, box, frame):
+        """Save values to corresponding variables.
+
+        If there are errors send error text to text box.
+
+        :param projectBox: (tk) Entry box that project text is typed in
+        :param regionBox: (tk) Entry box that region text is typed in
+        :param zoneBox: (tk) Entry box that zone text is typed in
+        :param numClientsBox: (tk) Entry box that the amount of clients is typed in
+        :param box: (tk) Text box to send updates to
+        :param frame: (tk) Frame text box lives in
+        :return: None
+        """
+
         try:
             self.project = projectBox.get()
             self.region = regionBox.get()
@@ -661,6 +784,16 @@ class GUI:
 
     @staticmethod
     def text_edit(s, box, frame):
+        """Add s to box.
+
+        Allow editing of box, add "->" to s, insert s at end of box, disable editing of text in box, update gui to show
+        changes.
+
+        :param s: (str) String to be inserted
+        :param box: (tk) Text box to send s to
+        :param frame: (tk) Frame to update to show new text
+        :return: None
+        """
         # make box contents editable
         box.configure(state='normal')
         # change contents
@@ -671,6 +804,14 @@ class GUI:
         frame.update()
 
     def copy_name(self, name, box, frame):
+        """Copy name to clipboard and update box
+
+        :param name: (str) Name to be copied to clipboard
+        :param box: (tk) Text box to send updates to
+        :param frame: (tk) Frame text box lives in
+        :return: None
+        """
+
         # copy NAME to clipboard
         self.window.clipboard_clear()
         self.window.clipboard_append(name)
@@ -684,10 +825,16 @@ class GUI:
     # These aren't in the cloud class because they require the text edit function and stuff\
 
     def action_all(self, action, box, frame):
+        """Start, stop, or delete all servers.
+
+        Complete action on all servers, use START, STOP, or DEL to modify string to send to box.
+
+        :param action: (str) Signify what action to do; domain: START, STOP, DEL
+        :param box: (tk) Text box to send updates to
+        :param frame: (tk) Frame text box lives in
+        :return: None
         """
-        start, stop, or delete all servers.
-        action can be START, STOP, or DEL
-        """
+
         if action is not START and action is not STOP and action is not DEL:
             raise ValueError("Incorrect action.")
 
@@ -738,6 +885,16 @@ class GUI:
             self.reconfigure_monitor_tabs(box, frame)  # remove tabs of machines that no longer exist
 
     def action_single(self, action, serverName, box, frame):
+        """Start, stop, or delete single server.
+
+        Complete action on single server, use START, STOP, or DEL to modify string to send to box.
+
+        :param action: (str) Signify what action to do; domain: START, STOP, DEL
+        :param serverName: (str) Name of server to do action on
+        :param box: (tk) Text box to send updates to
+        :param frame: (tk) Frame text box lives in
+        :return: None
+        """
         if action is not START and action is not STOP and action is not DEL:
             raise ValueError("Incorrect action.")
 
@@ -777,9 +934,15 @@ class GUI:
             self.text_edit("There was an error:\n" + str(e), box, frame)
 
     def button_start(self, box, frame):
+        """Create numClients + 1 servers and update box with status.
+
+        Delete all existing servers, update box with how many servers to make, create self.numClients + 1 servers.
+
+        :param box: (tk) Text box to send updates to
+        :param frame: (tk) Frame text box lives in
+        :return: None
         """
-            creates the servers
-        """
+
         # delete existing servers
         self.action_all(DEL, box, frame)
 
@@ -801,17 +964,19 @@ class GUI:
 
             self.reconfigure_monitor_tabs(box, frame)  # add tabs of new servers
         except Exception as e:
-            self.compute.machines = self.compute.machines[:-1]  # remove newly created machine name since it didn't pan out
+            # remove newly created machine name since it didn't pan out
+            self.compute.machines = self.compute.machines[:-1]
             self.text_edit("There was an error:\n" + str(e), box, frame)
 
         self.text_edit("Done.\n", box, frame)
 
     def button_create_image(self, box, frame):
-        """
-        Creates a new image with everything correctly installed according to README.md
-        WARNING: Images do not get deleted when server is deleted
-        :param box: text box to put status updates in
-        :param frame: parent frame of text box
+        """Create a new image with everything correctly installed according to README.md.
+
+        WARNING: Images do not get deleted when server is deleted.
+
+        :param box: (tk) Text box to put status updates in
+        :param frame: (tk) Parent frame of text box
         :return: nothing
         """
 
@@ -820,21 +985,24 @@ class GUI:
         try:
             self.compute.create(self.project, self.zone, self.region, host=False, image=True)
 
-            #wait until startup script is done:
+            # wait until startup script is done:
             self.text_edit("Server started. Waiting for startup script to finish...", box, frame)
             cmd = '\'cat /var/log/syslog | grep "STARTUP DONE"\''
             scriptStatus = ''
             while scriptStatus == '':
-                #repeatedly ssh and read log file for "STARTUP DONE"
+                # repeatedly ssh and read log file for "STARTUP DONE"
                 try:
                     scriptStatus = subprocess.check_output('gcloud compute ssh %s --command=%s --zone %s'
                                                        % (self.compute.machines[-1], cmd, self.zone), shell=True)
-                except subprocess.CalledProcessError: #except because grep throws exit error code 1 if it doesn't find string
+                except subprocess.CalledProcessError:
+                    # except because grep throws exit error code 1 if it doesn't find string
                     print("...")
                     time.sleep(5)
 
             self.text_edit("Startup script is done. Stopping server...", box, frame)
-            self.compute.stop(self.project, self.zone, self.compute.machines[-1]) # Google recommends stopping the server before making an image
+
+            # Google recommends stopping the server before making an image
+            self.compute.stop(self.project, self.zone, self.compute.machines[-1])
 
             """
             doesn't use API because I am pretty sure it isn't implemented but if we want to try in the future:
@@ -845,7 +1013,8 @@ class GUI:
             subprocess.call("gcloud beta compute images create %s --source-disk %s --source-disk-zone %s --force"
                             % (IMAGE_NAME, self.compute.machines[-1], self.zone), shell=True)
         except Exception as e:
-            self.compute.machines = self.compute.machines[:-1]  # remove newly created machine name since it didn't pan out
+            # remove newly created machine name since it didn't pan out
+            self.compute.machines = self.compute.machines[:-1]
             self.text_edit("There was an error:\n" + str(e), box, frame)
 
         self.text_edit("Done.\n", box, frame)
@@ -858,7 +1027,12 @@ class GUI:
     # end server manipulators#############################################
 
     def mainloop(self):
+        """Run Tkinter mainloop function.
+
+        :return: None
+        """
         self.window.mainloop()
+
 
 class Machine:
     """ Object representation of machines. """
@@ -866,7 +1040,8 @@ class Machine:
         self.name = name
         self.ip = ip
 
+
 ui = GUI()
 
-#always goes at the bottom
+# always goes at the bottom
 ui.mainloop()

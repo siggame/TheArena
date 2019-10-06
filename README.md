@@ -13,13 +13,13 @@
                  August-November 2018 and January-April 2019
                             @Missouri S&T
                  
-Currently builds and runs on Windows and Linux, but Windows functionality is only 25-40% done. Could be updated in future semesters.
+Currently builds and runs on Linux.
 Instructions for Linux on Google Cloud are below!!!!
 
 There are two forms of TheArena - Host and Client. The form runs automatically based on the given IPs (more specificially described in instructions).
 
 The Host runs no battles, but receives AI zip files from the webserver through FTP,
-generates brackets for tournaments, keeps track of all available and clients, and sends battles to run to the clients to advance the
+generates brackets for tournaments, keeps track of all available clients, and sends battles to run to the clients to advance the
 bracket.
 
 The client starts and continously waits for the host to send it files. When the host sends files, it will eventually send a RUN_GAME signal
