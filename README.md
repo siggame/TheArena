@@ -39,10 +39,16 @@ to update the bracket.
  10. If you haven't run this before, create a new image:  
 	(Optional): Change name of image in gui.py
 		1. Input all data in entry boxes in setup tab
-		2. Click create image button
+		2. Click create image button  
+
+
+If you created a new project:  
+Make sure the project id is something easily typable and memorable.  
+Enable the compute engine API.
 
 Regarding imports:
-If the googleapiclient is giving an error use `pip3` instead of `pip` in the install command.
+If the googleapiclient is giving an error use `pip3` instead of `pip` in the install command.  
+If tkinter doesn't work: `python3 gui.py`
 
 Startup script info:
 `nano /var/log/syslog` on cloud server to see if startup script ran.
