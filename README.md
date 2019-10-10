@@ -35,8 +35,9 @@ to update the bracket.
  6. Install pip
  7. Run `pip install --user --upgrade google-api-python-client`
  8. Run `git clone https://github.com/siggame/TheArena.git`
- 9. Run `python gui.py`
- 10. If you haven't run this before, create a new image:  
+ 9. If you made a new project congiure it using the instructions below.
+ 10. Run `python gui.py`
+ 11. If you haven't run this before, create a new image:  
 	(Optional): Change name of image in gui.py
 		1. Input all data in entry boxes in setup tab
 		2. Click create image button  
@@ -44,7 +45,8 @@ to update the bracket.
 
 If you created a new project:  
 Make sure the project id is something easily typable and memorable.  
-Enable the compute engine API.
+Enable the compute engine API.  
+Run `gcloud config set project <your-project-id>`
 
 Regarding imports:
 If the googleapiclient is giving an error use `pip3` instead of `pip` in the install command.  
