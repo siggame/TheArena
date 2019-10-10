@@ -63,14 +63,21 @@ E -> Efficiency
 8. E - Change shh connection to start on button press instead of constantly running
 9. C - Change input process to be like the ssh command input code -> lambda event: func(p1, p2)
         Allows use of key binds as well as functions with parameters
-10. B - Figure out how to stop gui from freezing. Move server functions to other cores?
+10. B - Figure out how to stop gui from freezing. Move server functions to other cores? Maybe async?
 11. C - Figure out why text box outputs weird after ssh stuff
 12. A - Cloud class creates service account if one is not found, if one is found use that one
 13. C - Remove region entry box, zone contains region so just lift it from there: zone -> "us-central1-c" contains "us-central1"
+14. C - Make all boxes copyable
 """
 
 IMAGE_NAME = "official-image"
 GAMES_FILE = "games.txt"
+USERNAME = "siggame"
+REGEX_STRING = "The programs included with the Debian GNU/Linux system are free software;.*" \
+               "the exact distribution terms for each program are described in the.*" \
+               "individual files in /usr/share/doc/\*/copyright\..*" \
+               "Debian GNU/Linux comes with ABSOLUTELY NO WARRANTY, to the extent.*" \
+               "permitted by applicable law\."
 
 # read games into list, allows permanently adding games
 GAMES = [line.rstrip('\n') for line in open(GAMES_FILE, 'r')]  # fancy one line file read into a list
@@ -166,7 +173,7 @@ class Cloud:
 
     def wait_for_operation(self, project, zone, operation):
         """Check if the server has completed the operation yet and return status or errors.
-        
+
         Taken from google's api guides: https://cloud.google.com/compute/docs/tutorials/python-guide
 
         :param project: (str) parent project
@@ -195,7 +202,7 @@ class Cloud:
     def gen_config(self, project, zone, region, name, image):
         """Configure new servers and return insert operation.
 
-        Modeled off of the REST generator on the cloud console
+        Modeled off of the REST generator on the cloud console.
 
         :param project: (str) parent project of server
         :param zone: (str) zone server will live in
@@ -429,7 +436,7 @@ class GUI:
 
         # Placements
         # Project box
-        ttk.Label(left, text='Project Name').grid(row=0, column=0, sticky=W, pady=5)
+        ttk.Label(left, text='Project ID').grid(row=0, column=0, sticky=W, pady=5)
         projectBox.grid(row=0, column=1, sticky=E, pady=5)
 
         # region box
@@ -471,6 +478,7 @@ class GUI:
         # status box
         statusBox = tkst.ScrolledText(right)  # adds scroll bar, was previously just a Text widget
         statusBox.configure(state='disabled')  # makes it uneditable
+        statusBox.bind("<Control-c>", self.general_copy)  # make selction copyable
         statusBox.pack(fill='both', expand=True)
 
         split.add(right)
@@ -525,6 +533,7 @@ class GUI:
 
         messageBox = tkst.ScrolledText(top)  # adds scroll bar, was previously just a Text widget
         messageBox.configure(state='disabled')  # make the box uneditable
+        messageBox.bind("<Control-c>", self.general_copy)  # Make selection copyable
         messageBox.pack(fill='both', expand=True)
 
         split.add(top)
@@ -575,16 +584,20 @@ class GUI:
 
         messageBox = tkst.ScrolledText(top)  # adds scroll bar, was previously just a Text widget
         messageBox.configure(state='disabled')  # make the box uneditable
+        messageBox.bind("<Control-c>", self.general_copy)
 
         # SSH Terminal
         sshInputLabel = ttk.Label(top, text="SSH Input:")
         sshInput = ttk.Entry(top)
         # Need to come up with a way to start SSH on button press or something instead of it always being on
-        sshTunnel = pexpect.spawn("gcloud compute ssh " + NAME + " --zone " + self.zone)  # open ssh
+        sshTunnel = pexpect.spawn("gcloud compute ssh " + USERNAME + "@" + NAME + " --zone " + self.zone)  # open ssh
         sshTunnel.delaybeforesend = None
         print(str(sshTunnel))
-        sshTunnel.expect("Warning:.*", timeout=None)
+        #sshTunnel.expect(REGEX_STRING, timeout=None)
+        #sshTunnel.expect("%s@%s:~$" % (USERNAME, NAME), timeout=None)
+        sshTunnel.expect("[A-Za-z0-9][A-Za-z0-9]*@(([a-z]{4})|([a-z]{6}))-[0-9]+:", timeout=None)
         print(str(sshTunnel))
+        print("\n\n\n------------\n%s\n------------\n\n\n" % sshTunnel.before.decode("utf-8"))
         sshInput.bind("<Return>",
                       lambda event: self.entry_ssh_command(NAME, sshInput, sshTunnel, messageBox, top))
 
@@ -594,7 +607,7 @@ class GUI:
         sshInput.pack(fill='both', expand=True)
 
         # print server name for copy/pasting
-        self.text_edit("%s has been created.", messageBox, top)
+        self.text_edit("%s has been created." % NAME, messageBox, top)
 
         split.add(top)
         ######################################
@@ -644,7 +657,7 @@ class GUI:
         :return: None
         """
 
-        self.text_edit("Reconfiguring GUI...", box, frame)
+        self.text_edit("Running tab setup...", box, frame)
         self.setup_monitor_tab(self.configTabs)
 
     # end setup for monitor tabs///////////////////////////////////////////
@@ -672,7 +685,7 @@ class GUI:
         :return: None
         """
 
-        self.region = event.widget.get()
+        self.region = event.widget.get().lower()
 
     def entry_zone(self, event):
         """Get zone text from zone box.
@@ -683,7 +696,7 @@ class GUI:
         :return: None
         """
 
-        self.zone = event.widget.get()
+        self.zone = event.widget.get().lower()
 
     def entry_num_clients(self, event):
         """Get number of clients from numClients box.
@@ -720,25 +733,14 @@ class GUI:
         :return: None
         """
 
-        sshCommand = str(sshInputBox.get()).strip()  # get command from entry box
-        self.text_edit("ssh-send: %s" % sshCommand, box, frame) # put command into message box
-        sshTunnel.sendline(sshCommand) # send it to the server
-        # sshTunnel.expect("^(?!\s*$).+") # wait for a nonblank response
-        sshTunnel.expect(name, timeout=None)
-        sshOutput = str(sshTunnel.before).strip() # get result of sent command
-        self.text_edit("ssh-receive: %s" % sshOutput, box, frame) # put result into output box
-        box.delete(0, 'end') # clear entry box
-
-        """
-        For subprocess
-        sshCommand = str(sshInputBox.get()).strip()
-        print(sshCommand)
-        self.text_edit("ssh-send: %s" % sshCommand, box, frame)
-        sshOutput = sshTunnel.communicate(input=(str.encode("%s\n" % sshCommand)))[0]
-        self.text_edit(sshOutput.decode().strip(), box, frame)
-        """
-
-        #return sshTunnel
+        sshCommand = sshInputBox.get()  # get command from entry box
+        self.text_edit("ssh-send: %s" % sshCommand, box, frame)  # put command into message box
+        self.text_edit("\tWaiting for response...", box, frame)
+        sshTunnel.sendline(sshCommand)  # send it to the server
+        sshTunnel.expect("[A-Za-z0-9][A-Za-z0-9]*@(([a-z]{4})|([a-z]{6}))-[0-9]+:", timeout=30)
+        sshOutput = sshTunnel.before.decode("utf-8").strip()  # get result of sent command
+        self.text_edit("ssh-receive: %s" % sshOutput, box, frame)  # put result into output box
+        sshInputBox.delete(0, 'end')  # clear entry box
 
     # ability to add a game to the drop down menu
     @staticmethod
@@ -783,6 +785,8 @@ class GUI:
         except Exception as e:
             self.text_edit("There was an error:\n" + str(e), box, frame)
 
+        self.text_edit("Values have been saved.", box, frame)
+
     @staticmethod
     def text_edit(s, box, frame):
         """Add s to box.
@@ -819,6 +823,11 @@ class GUI:
         self.window.update()
 
         self.text_edit("%s has been copied." % name, box, frame)
+
+    def general_copy(self, event, textBox):
+        copied = event.widget.selection_get()
+        self.window.clipboard_clear()
+        self.window.clipboard_append(copied)
 
     # end user input utils################################################
 
@@ -1012,7 +1021,7 @@ class GUI:
             """
             self.text_edit("Server stopped. Creating image...", box, frame)
             subprocess.call("gcloud beta compute images create %s --source-disk %s --source-disk-zone %s --force"
-                            % (IMAGE_NAME, self.compute.machines[-1], self.zone), shell=True)
+                            % (IMAGE_NAME, IMAGE_NAME, self.zone), shell=True)
         except Exception as e:
             # remove newly created machine name since it didn't pan out
             self.compute.machines = self.compute.machines[:-1]
