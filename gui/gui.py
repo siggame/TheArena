@@ -9,7 +9,7 @@ from tkinter import *
 import tkinter.scrolledtext as tkst
 import googleapiclient.discovery
 import time
-import pexpect # Using this instead of subprocess because it makes continuous communication with child process easy
+import pexpect # Using this instead of subprocess at times because it makes continuous communication with child process easy
 import subprocess
 
 """
@@ -66,8 +66,7 @@ E -> Efficiency
 10. B - Figure out how to stop gui from freezing. Move server functions to other cores? Maybe async?
 11. C - Figure out why text box outputs weird after ssh stuff
 12. A - Cloud class creates service account if one is not found, if one is found use that one
-13. C - Remove region entry box, zone contains region so just lift it from there: zone -> "us-central1-c" contains "us-central1"
-14. C - Make all boxes copyable
+13. C - Make all boxes copyable
 """
 
 IMAGE_NAME = "official-image"
@@ -405,10 +404,6 @@ class GUI:
         projectBox.bind("<Return>", self.entry_project)  # triggers function when user press <Return>
         # with the input_vals function these are redundant but handy to have
 
-        # Region box
-        regionBox = ttk.Entry(left)
-        regionBox.bind("<Return>", self.entry_region)
-
         # Zone box
         zoneBox = ttk.Entry(left)
         zoneBox.bind("<Return>", self.entry_zone)
@@ -438,10 +433,6 @@ class GUI:
         # Project box
         ttk.Label(left, text='Project ID').grid(row=0, column=0, sticky=W, pady=5)
         projectBox.grid(row=0, column=1, sticky=E, pady=5)
-
-        # region box
-        ttk.Label(left, text='Region').grid(row=1, column=0, sticky=W, pady=5)
-        regionBox.grid(row=1, column=1, sticky=E, pady=5)
 
         # zone box
         ttk.Label(left, text='Zone').grid(row=2, column=0, sticky=W, pady=5)
@@ -487,7 +478,7 @@ class GUI:
         # left side extras################################################
         # input values button
         # has to be down here so that all buttons are already created
-        inputVals = ttk.Button(left, command=lambda: self.input_vals(projectBox, regionBox,
+        inputVals = ttk.Button(left, command=lambda: self.input_vals(projectBox,
                                                                      zoneBox, numClientsBox, statusBox, left),
                                text='Input Values')
         inputVals.grid(row=4, column=1, sticky=E, pady=5)
@@ -763,13 +754,12 @@ class GUI:
             file.write(game + '\n')
 
     # Now you don't have to press enter every time!
-    def input_vals(self, projectBox, regionBox, zoneBox, numClientsBox, box, frame):
+    def input_vals(self, projectBox, zoneBox, numClientsBox, box, frame):
         """Save values to corresponding variables.
 
         If there are errors send error text to text box.
 
         :param projectBox: (tk) Entry box that project text is typed in
-        :param regionBox: (tk) Entry box that region text is typed in
         :param zoneBox: (tk) Entry box that zone text is typed in
         :param numClientsBox: (tk) Entry box that the amount of clients is typed in
         :param box: (tk) Text box to send updates to
@@ -779,8 +769,8 @@ class GUI:
 
         try:
             self.project = projectBox.get()
-            self.region = regionBox.get()
             self.zone = zoneBox.get()
+            self.region = '-'.join(self.zone.split('-')[:-1])
             self.numClients = int(numClientsBox.get())
         except Exception as e:
             self.text_edit("There was an error:\n" + str(e), box, frame)
