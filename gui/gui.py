@@ -586,7 +586,7 @@ class GUI:
         print(str(sshTunnel))
         #sshTunnel.expect(REGEX_STRING, timeout=None)
         #sshTunnel.expect("%s@%s:~$" % (USERNAME, NAME), timeout=None)
-        sshTunnel.expect("[A-Za-z0-9][A-Za-z0-9]*@(([a-z]{4})|([a-z]{6}))-[0-9]+:", timeout=None)
+        sshTunnel.expect("[A-Za-z0-9]+@(([a-z]{4})|([a-z]{6}))-[0-9]+:", timeout=None)
         print(str(sshTunnel))
         print("\n\n\n------------\n%s\n------------\n\n\n" % sshTunnel.before.decode("utf-8"))
         sshInput.bind("<Return>",
