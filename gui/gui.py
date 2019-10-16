@@ -478,8 +478,8 @@ class GUI:
         # left side extras################################################
         # input values button
         # has to be down here so that all buttons are already created
-        inputVals = ttk.Button(left, command=lambda: self.input_vals(projectBox,
-                                                                     zoneBox, numClientsBox, statusBox, left),
+        self.input_values = lambda: self.input_vals(projectBox, zoneBox, numClientsBox, statusBox, left)
+        inputVals = ttk.Button(left, command=self.input_values,
                                text='Input Values')
         inputVals.grid(row=4, column=1, sticky=E, pady=5)
 
@@ -728,7 +728,7 @@ class GUI:
         self.text_edit("ssh-send: %s" % sshCommand, box, frame)  # put command into message box
         self.text_edit("\tWaiting for response...", box, frame)
         sshTunnel.sendline(sshCommand)  # send it to the server
-        sshTunnel.expect("[A-Za-z0-9][A-Za-z0-9]*@(([a-z]{4})|([a-z]{6}))-[0-9]+:", timeout=30)
+        sshTunnel.expect("[A-Za-z0-9]+@(([a-z]{4})|([a-z]{6}))-[0-9]+:", timeout=30)
         sshOutput = sshTunnel.before.decode("utf-8").strip()  # get result of sent command
         self.text_edit("ssh-receive: %s" % sshOutput, box, frame)  # put result into output box
         sshInputBox.delete(0, 'end')  # clear entry box
@@ -775,7 +775,7 @@ class GUI:
         except Exception as e:
             self.text_edit("There was an error:\n" + str(e), box, frame)
 
-        self.text_edit("Values have been saved.", box, frame)
+        # self.text_edit("Values have been saved.", box, frame)
 
     @staticmethod
     def text_edit(s, box, frame):
@@ -942,7 +942,9 @@ class GUI:
         :param frame: (tk) Frame text box lives in
         :return: None
         """
-
+        
+        self.input_values()
+        
         # delete existing servers
         self.action_all(DEL, box, frame)
 
@@ -979,6 +981,8 @@ class GUI:
         :param frame: (tk) Parent frame of text box
         :return: nothing
         """
+        
+        self.input_values()
 
         self.text_edit("Creating new image, this may take a while...", box, frame)
 
