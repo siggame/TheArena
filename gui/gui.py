@@ -56,17 +56,20 @@ E -> Efficiency
 1. S - Change Arena code from stdin input to cmd line parameters
 2. S - Finish SSH code for individual servers, requires 1
 3. S - Make Bash script to start arena server and game server on different cores, requires 2
-4. A - Change cloud.machines to a dictionary so we can keep track of host
+4. A - Use if statements to keep track of whether index 0 is host or not
 5. B - Change Arena code to use environment variables for paths
 6. B - Split gui.py into different files
 7. C - Move tkinter placement code to bottom of section
 8. E - Change shh connection to start on button press instead of constantly running
-9. C - Change input process to be like the ssh command input code -> lambda event: func(p1, p2)
         Allows use of key binds as well as functions with parameters
 10. B - Figure out how to stop gui from freezing. Move server functions to other cores? Maybe async?
 11. C - Figure out why text box outputs weird after ssh stuff
 12. A - Cloud class creates service account if one is not found, if one is found use that one
 13. C - Make all boxes copyable
+14. A - Make error messages (like for inputs being missing) a bit more descriptive
+15. A - prevent sending exit ssh command
+16. C - Clean up code a bit
+17. B - Add tooltips? Or some kind of info pane
 """
 
 IMAGE_NAME = "official-image"
@@ -476,12 +479,7 @@ class GUI:
         ##################################################################
 
         # left side extras################################################
-        # input values button
-        # has to be down here so that all buttons are already created
         self.input_values = lambda: self.input_vals(projectBox, zoneBox, numClientsBox, statusBox, left)
-        inputVals = ttk.Button(left, command=self.input_values,
-                               text='Input Values')
-        inputVals.grid(row=4, column=1, sticky=E, pady=5)
 
     def setup_monitor_tab(self, parent):
         """Create tabs for every created server in the monitor tab.
