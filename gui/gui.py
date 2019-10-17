@@ -61,7 +61,6 @@ E -> Efficiency
 6. B - Split gui.py into different files
 7. C - Move tkinter placement code to bottom of section
 8. E - Change shh connection to start on button press instead of constantly running
-        Allows use of key binds as well as functions with parameters
 10. B - Figure out how to stop gui from freezing. Move server functions to other cores? Maybe async?
 11. C - Figure out why text box outputs weird after ssh stuff
 12. A - Cloud class creates service account if one is not found, if one is found use that one
