@@ -9,7 +9,7 @@ from tkinter import *
 import tkinter.scrolledtext as tkst
 import googleapiclient.discovery
 import time
-import pexpect # Using this instead of subprocess because it makes continuous communication with child process easy
+import pexpect  # Using this instead of subprocess because it makes continuous communication with child process easy
 import subprocess
 
 """
@@ -477,8 +477,12 @@ class GUI:
 
         # status box
         statusBox = tkst.ScrolledText(right)  # adds scroll bar, was previously just a Text widget
+        statusBox.bind("<Control-c>", lambda event: self.general_copy(statusBox))
+        #statusBox.bind("<Control-c>", lambda event: (statusBox.configure(state='normal'),
+        #                                             statusBox.event_generate('<<Copy>>'),
+        #                                             statusBox.configure(state='disabled')))
         statusBox.configure(state='disabled')  # makes it uneditable
-        statusBox.bind("<Control-c>", self.general_copy)  # make selction copyable
+        #statusBox.bind("<Control-c>", self.general_copy)  # make selection copyable
         statusBox.pack(fill='both', expand=True)
 
         split.add(right)
@@ -584,7 +588,7 @@ class GUI:
 
         messageBox = tkst.ScrolledText(top)  # adds scroll bar, was previously just a Text widget
         messageBox.configure(state='disabled')  # make the box uneditable
-        messageBox.bind("<Control-c>", self.general_copy)
+        messageBox.bind("<Control-c>", messageBox.event_generate("<<Copy>>"))
 
         # SSH Terminal
         sshInputLabel = ttk.Label(top, text="SSH Input:")
@@ -824,10 +828,18 @@ class GUI:
 
         self.text_edit("%s has been copied." % name, box, frame)
 
-    def general_copy(self, event, textBox):
-        copied = event.widget.selection_get()
-        self.window.clipboard_clear()
-        self.window.clipboard_append(copied)
+    #@staticmethod
+    def general_copy(self, textBox):
+        cs = textBox.curselection()
+
+        if cs:
+            self.window.clipboard_clear()
+            self.window.clipboard_append(cs)
+            self.window.update()
+
+        """textBox.configure(state='normal')
+        textBox.event_generate("<<Copy>>")
+        textBox.configure(state='disabled')"""
 
     # end user input utils################################################
 
