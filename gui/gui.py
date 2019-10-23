@@ -9,8 +9,7 @@ from tkinter import *
 import tkinter.scrolledtext as tkst
 import googleapiclient.discovery
 import time
-import pexpect  # Using this instead of subprocess because it makes continuous communication with child process easy
-import subprocess
+import pexpect # Using this instead of subprocess at times because it makes continuous communication with child process easy
 
 """
 Some important documentation:
@@ -56,18 +55,19 @@ E -> Efficiency
 1. S - Change Arena code from stdin input to cmd line parameters
 2. S - Finish SSH code for individual servers, requires 1
 3. S - Make Bash script to start arena server and game server on different cores, requires 2
-4. A - Change cloud.machines to a dictionary so we can keep track of host
+4. A - Use if statements to keep track of whether index 0 is host or not
 5. B - Change Arena code to use environment variables for paths
 6. B - Split gui.py into different files
 7. C - Move tkinter placement code to bottom of section
 8. E - Change shh connection to start on button press instead of constantly running
-9. C - Change input process to be like the ssh command input code -> lambda event: func(p1, p2)
-        Allows use of key binds as well as functions with parameters
 10. B - Figure out how to stop gui from freezing. Move server functions to other cores? Maybe async?
 11. C - Figure out why text box outputs weird after ssh stuff
 12. A - Cloud class creates service account if one is not found, if one is found use that one
-13. C - Remove region entry box, zone contains region so just lift it from there: zone -> "us-central1-c" contains "us-central1"
-14. C - Make all boxes copyable
+13. C - Make all boxes copyable
+14. A - Make error messages (like for inputs being missing) a bit more descriptive
+15. A - prevent sending exit ssh command
+16. C - Clean up code a bit
+17. B - Add tooltips? Or some kind of info pane
 """
 
 IMAGE_NAME = "official-image"
@@ -405,10 +405,6 @@ class GUI:
         projectBox.bind("<Return>", self.entry_project)  # triggers function when user press <Return>
         # with the input_vals function these are redundant but handy to have
 
-        # Region box
-        regionBox = ttk.Entry(left)
-        regionBox.bind("<Return>", self.entry_region)
-
         # Zone box
         zoneBox = ttk.Entry(left)
         zoneBox.bind("<Return>", self.entry_zone)
@@ -438,10 +434,6 @@ class GUI:
         # Project box
         ttk.Label(left, text='Project ID').grid(row=0, column=0, sticky=W, pady=5)
         projectBox.grid(row=0, column=1, sticky=E, pady=5)
-
-        # region box
-        ttk.Label(left, text='Region').grid(row=1, column=0, sticky=W, pady=5)
-        regionBox.grid(row=1, column=1, sticky=E, pady=5)
 
         # zone box
         ttk.Label(left, text='Zone').grid(row=2, column=0, sticky=W, pady=5)
@@ -489,12 +481,7 @@ class GUI:
         ##################################################################
 
         # left side extras################################################
-        # input values button
-        # has to be down here so that all buttons are already created
-        inputVals = ttk.Button(left, command=lambda: self.input_vals(projectBox, regionBox,
-                                                                     zoneBox, numClientsBox, statusBox, left),
-                               text='Input Values')
-        inputVals.grid(row=4, column=1, sticky=E, pady=5)
+        self.input_values = lambda: self.input_vals(projectBox, zoneBox, numClientsBox, statusBox, left)
 
     def setup_monitor_tab(self, parent):
         """Create tabs for every created server in the monitor tab.
@@ -599,7 +586,7 @@ class GUI:
         print(str(sshTunnel))
         #sshTunnel.expect(REGEX_STRING, timeout=None)
         #sshTunnel.expect("%s@%s:~$" % (USERNAME, NAME), timeout=None)
-        sshTunnel.expect("[A-Za-z0-9][A-Za-z0-9]*@(([a-z]{4})|([a-z]{6}))-[0-9]+:", timeout=None)
+        sshTunnel.expect("[A-Za-z0-9]+@(([a-z]{4})|([a-z]{6}))-[0-9]+:", timeout=None)
         print(str(sshTunnel))
         print("\n\n\n------------\n%s\n------------\n\n\n" % sshTunnel.before.decode("utf-8"))
         sshInput.bind("<Return>",
@@ -741,7 +728,7 @@ class GUI:
         self.text_edit("ssh-send: %s" % sshCommand, box, frame)  # put command into message box
         self.text_edit("\tWaiting for response...", box, frame)
         sshTunnel.sendline(sshCommand)  # send it to the server
-        sshTunnel.expect("[A-Za-z0-9][A-Za-z0-9]*@(([a-z]{4})|([a-z]{6}))-[0-9]+:", timeout=30)
+        sshTunnel.expect("[A-Za-z0-9]+@(([a-z]{4})|([a-z]{6}))-[0-9]+:", timeout=30)
         sshOutput = sshTunnel.before.decode("utf-8").strip()  # get result of sent command
         self.text_edit("ssh-receive: %s" % sshOutput, box, frame)  # put result into output box
         sshInputBox.delete(0, 'end')  # clear entry box
@@ -767,13 +754,12 @@ class GUI:
             file.write(game + '\n')
 
     # Now you don't have to press enter every time!
-    def input_vals(self, projectBox, regionBox, zoneBox, numClientsBox, box, frame):
+    def input_vals(self, projectBox, zoneBox, numClientsBox, box, frame):
         """Save values to corresponding variables.
 
         If there are errors send error text to text box.
 
         :param projectBox: (tk) Entry box that project text is typed in
-        :param regionBox: (tk) Entry box that region text is typed in
         :param zoneBox: (tk) Entry box that zone text is typed in
         :param numClientsBox: (tk) Entry box that the amount of clients is typed in
         :param box: (tk) Text box to send updates to
@@ -783,13 +769,13 @@ class GUI:
 
         try:
             self.project = projectBox.get()
-            self.region = regionBox.get()
             self.zone = zoneBox.get()
+            self.region = '-'.join(self.zone.split('-')[:-1])
             self.numClients = int(numClientsBox.get())
         except Exception as e:
             self.text_edit("There was an error:\n" + str(e), box, frame)
 
-        self.text_edit("Values have been saved.", box, frame)
+        # self.text_edit("Values have been saved.", box, frame)
 
     @staticmethod
     def text_edit(s, box, frame):
@@ -964,7 +950,9 @@ class GUI:
         :param frame: (tk) Frame text box lives in
         :return: None
         """
-
+        
+        self.input_values()
+        
         # delete existing servers
         self.action_all(DEL, box, frame)
 
@@ -1001,6 +989,8 @@ class GUI:
         :param frame: (tk) Parent frame of text box
         :return: nothing
         """
+        
+        self.input_values()
 
         self.text_edit("Creating new image, this may take a while...", box, frame)
 
