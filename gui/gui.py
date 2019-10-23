@@ -9,7 +9,9 @@ from tkinter import *
 import tkinter.scrolledtext as tkst
 import googleapiclient.discovery
 import time
-import pexpect # Using this instead of subprocess at times because it makes continuous communication with child process easy
+import pexpect  # For continuous communication with a child process --> SSH
+import subprocess  # For when continuous communication is not needed --> Commands
+import re
 
 """
 Some important documentation:
@@ -52,8 +54,7 @@ B -> It would make things easier
 C -> Cosmetic/form
 E -> Efficiency
 
-1. S - Change Arena code from stdin input to cmd line parameters
-2. S - Finish SSH code for individual servers, requires 1
+2. S - Finish SSH code for individual servers
 3. S - Make Bash script to start arena server and game server on different cores, requires 2
 4. A - Use if statements to keep track of whether index 0 is host or not
 5. B - Change Arena code to use environment variables for paths
@@ -73,11 +74,11 @@ E -> Efficiency
 IMAGE_NAME = "official-image"
 GAMES_FILE = "games.txt"
 USERNAME = "siggame"
-REGEX_STRING = "The programs included with the Debian GNU/Linux system are free software;.*" \
-               "the exact distribution terms for each program are described in the.*" \
-               "individual files in /usr/share/doc/\*/copyright\..*" \
-               "Debian GNU/Linux comes with ABSOLUTELY NO WARRANTY, to the extent.*" \
-               "permitted by applicable law\."
+
+# both of these were taken from errors when giving gcloud blank project id and zone parameters
+PROJECT_REGEX = "(?:(?:[-a-z0-9]{1,63}\.)*(?:[a-z](?:[-a-z0-9]{0,61}[a-z0-9])?):)?(?:[0-9]{1,19}|" \
+                "(?:[a-z0-9](?:[-a-z0-9]{0,61}[a-z0-9])?))"
+ZONE_REGEX = "[a-z](?:[-a-z0-9]{0,61}[a-z0-9])?"
 
 # read games into list, allows permanently adding games
 GAMES = [line.rstrip('\n') for line in open(GAMES_FILE, 'r')]  # fancy one line file read into a list
@@ -469,18 +470,13 @@ class GUI:
 
         # status box
         statusBox = tkst.ScrolledText(right)  # adds scroll bar, was previously just a Text widget
-        statusBox.bind("<Control-c>", lambda event: self.general_copy(statusBox))
-        #statusBox.bind("<Control-c>", lambda event: (statusBox.configure(state='normal'),
-        #                                             statusBox.event_generate('<<Copy>>'),
-        #                                             statusBox.configure(state='disabled')))
         statusBox.configure(state='disabled')  # makes it uneditable
-        #statusBox.bind("<Control-c>", self.general_copy)  # make selection copyable
         statusBox.pack(fill='both', expand=True)
 
         split.add(right)
         ##################################################################
 
-        # left side extras################################################
+        # left side extras ###############################################
         self.input_values = lambda: self.input_vals(projectBox, zoneBox, numClientsBox, statusBox, left)
 
     def setup_monitor_tab(self, parent):
@@ -524,7 +520,6 @@ class GUI:
 
         messageBox = tkst.ScrolledText(top)  # adds scroll bar, was previously just a Text widget
         messageBox.configure(state='disabled')  # make the box uneditable
-        messageBox.bind("<Control-c>", self.general_copy)  # Make selection copyable
         messageBox.pack(fill='both', expand=True)
 
         split.add(top)
@@ -584,8 +579,6 @@ class GUI:
         sshTunnel = pexpect.spawn("gcloud compute ssh " + USERNAME + "@" + NAME + " --zone " + self.zone)  # open ssh
         sshTunnel.delaybeforesend = None
         print(str(sshTunnel))
-        #sshTunnel.expect(REGEX_STRING, timeout=None)
-        #sshTunnel.expect("%s@%s:~$" % (USERNAME, NAME), timeout=None)
         sshTunnel.expect("[A-Za-z0-9]+@(([a-z]{4})|([a-z]{6}))-[0-9]+:", timeout=None)
         print(str(sshTunnel))
         print("\n\n\n------------\n%s\n------------\n\n\n" % sshTunnel.before.decode("utf-8"))
@@ -768,14 +761,38 @@ class GUI:
         """
 
         try:
+            # get the values
             self.project = projectBox.get()
             self.zone = zoneBox.get()
             self.region = '-'.join(self.zone.split('-')[:-1])
-            self.numClients = int(numClientsBox.get())
+            numClientsStr = numClientsBox.get()
+
+            # test values against regex
+            # project
+            if re.search(PROJECT_REGEX, self.project) is None:
+                self.project = ""
+                raise ValueError("Project")
+
+            # zone
+            if re.search(ZONE_REGEX, self.zone) is None:
+                self.zone = ""
+                self.region = ""
+                raise ValueError("Zone")
+
+            # numClients
+            if re.search("[0-9]+", numClientsStr) is None:
+                self.numClients = 0
+                raise ValueError("Number of clients")
+            else:
+                self.numClients = int(numClientsStr)
+
+            return True
+        except ValueError as v:
+            self.text_edit("%s box has an invalid value." % str(v), box, frame)
         except Exception as e:
             self.text_edit("There was an error:\n" + str(e), box, frame)
 
-        # self.text_edit("Values have been saved.", box, frame)
+        return False
 
     @staticmethod
     def text_edit(s, box, frame):
@@ -813,19 +830,6 @@ class GUI:
         self.window.update()
 
         self.text_edit("%s has been copied." % name, box, frame)
-
-    #@staticmethod
-    def general_copy(self, textBox):
-        cs = textBox.curselection()
-
-        if cs:
-            self.window.clipboard_clear()
-            self.window.clipboard_append(cs)
-            self.window.update()
-
-        """textBox.configure(state='normal')
-        textBox.event_generate("<<Copy>>")
-        textBox.configure(state='disabled')"""
 
     # end user input utils################################################
 
@@ -950,8 +954,10 @@ class GUI:
         :param frame: (tk) Frame text box lives in
         :return: None
         """
-        
-        self.input_values()
+
+        # exit if input_values has an error
+        if not self.input_values():
+            return
         
         # delete existing servers
         self.action_all(DEL, box, frame)
@@ -976,6 +982,11 @@ class GUI:
         except Exception as e:
             # remove newly created machine name since it didn't pan out
             self.compute.machines = self.compute.machines[:-1]
+
+            #if 'does not match the pattern' in str(e):
+            #    self.text_edit("There was an error:\n%s box has an invalid value."
+            #                   % str(e).split()[1][1:-1], box, frame)
+            #else:
             self.text_edit("There was an error:\n" + str(e), box, frame)
 
         self.text_edit("Done.\n", box, frame)
@@ -989,8 +1000,10 @@ class GUI:
         :param frame: (tk) Parent frame of text box
         :return: nothing
         """
-        
-        self.input_values()
+
+        # exit if input_values has an error
+        if not self.input_values():
+            return
 
         self.text_edit("Creating new image, this may take a while...", box, frame)
 
