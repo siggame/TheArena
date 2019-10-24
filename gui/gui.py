@@ -529,7 +529,7 @@ class GUI:
         bottom = ttk.LabelFrame(parent, text="Control")
 
         # Warning Message
-        ttk.Label(bottom, text='Warning: these act on ALL servers.').grid(row=0, column=0, columnspan=10,
+        ttk.Label(bottom, text='Warning: These act on ALL servers.').grid(row=0, column=0, columnspan=10,
                                                                           sticky=W, padx=(0, 20), pady=5)
 
         # Start servers button
@@ -578,12 +578,11 @@ class GUI:
         # Need to come up with a way to start SSH on button press or something instead of it always being on
         sshTunnel = pexpect.spawn("gcloud compute ssh " + USERNAME + "@" + NAME + " --zone " + self.zone)  # open ssh
         sshTunnel.delaybeforesend = None
-        print(str(sshTunnel))
+        # print(str(sshTunnel))  # This is handy for debugging but it breaks print
+                                 # for the rest of the program if you use it
         sshTunnel.expect("[A-Za-z0-9]+@(([a-z]{4})|([a-z]{6}))-[0-9]+:", timeout=None)
-        print(str(sshTunnel))
-        print("\n\n\n------------\n%s\n------------\n\n\n" % sshTunnel.before.decode("utf-8"))
         sshInput.bind("<Return>",
-                      lambda event: self.entry_ssh_command(NAME, sshInput, sshTunnel, messageBox, top))
+                      lambda event: self.entry_ssh_command(sshInput, sshTunnel, messageBox, top))
 
         # Placement
         messageBox.pack(fill='both', expand=True)
@@ -640,9 +639,12 @@ class GUI:
         :param frame: (tk) Frame the text box lives in
         :return: None
         """
+        print("Running tab setup...")
 
         self.text_edit("Running tab setup...", box, frame)
         self.setup_monitor_tab(self.configTabs)
+
+        print("Tabs done.")
 
     # end setup for monitor tabs///////////////////////////////////////////
 
@@ -659,17 +661,6 @@ class GUI:
         """
 
         self.project = event.widget.get()
-
-    def entry_region(self, event):
-        """Get region text from region box.
-
-        Set self.region to contents of region box in setup tab.
-
-        :param event: (tk) Key bind event
-        :return: None
-        """
-
-        self.region = event.widget.get().lower()
 
     def entry_zone(self, event):
         """Get zone text from zone box.
@@ -704,12 +695,12 @@ class GUI:
 
         self.game = event
 
-    def entry_ssh_command(self, name, sshInputBox, sshTunnel, box, frame):
+    def entry_ssh_command(self, sshInputBox, sshTunnel, box, frame):
         """Send command from entry box to the server.
 
-        UNFINISHED
+        Gets the command from the command box and send it to the server. Filters out bash return characters and color
+        codes and stuff.
 
-        :param name: (str) Name of server
         :param sshInputBox: (tk) Entry box where command is
         :param sshTunnel: (pexpect) The ssh connection
         :param box: (tk) Text box to put updates in
@@ -717,14 +708,36 @@ class GUI:
         :return: None
         """
 
+        COMMAND_REGEX = '[A-Za-z0-9]+@(([a-z]{4})|([a-z]{6}))-[0-9]+:'
+        COLOR_REGEX = re.compile(r'\x1b[@-_][0-?]*[ -/]*[@-~]', re.VERBOSE)
+
         sshCommand = sshInputBox.get()  # get command from entry box
+        sshInputBox.delete(0, 'end')  # clear entry box
         self.text_edit("ssh-send: %s" % sshCommand, box, frame)  # put command into message box
         self.text_edit("\tWaiting for response...", box, frame)
         sshTunnel.sendline(sshCommand)  # send it to the server
-        sshTunnel.expect("[A-Za-z0-9]+@(([a-z]{4})|([a-z]{6}))-[0-9]+:", timeout=30)
-        sshOutput = sshTunnel.before.decode("utf-8").strip()  # get result of sent command
-        self.text_edit("ssh-receive: %s" % sshOutput, box, frame)  # put result into output box
-        sshInputBox.delete(0, 'end')  # clear entry box
+        sshTunnel.expect(COMMAND_REGEX, timeout=30)
+
+        # Manipulate response to be readable
+        sshOutput = sshTunnel.before.decode('utf-8').strip()  # get result of sent command
+        sshOutput = sshOutput[sshOutput.find(sshCommand)+len(sshCommand)+1:-6]  # get rid of sent command and characters
+                                                                                # at end of line
+
+        # remove random chars from end of lines
+        if len(sshOutput) > 0:
+            sshOutputList = sshOutput.split('\n')
+
+            for s in range(len(sshOutputList)):
+                # remove bash return character -> \r if it exists
+                if '\r' in sshOutputList[s]:
+                    sshOutputList[s] = sshOutputList[s][:-1]
+
+                # remove bash color codes sequences -> \x1b[<nums>;<nums>m
+                sshOutputList[s] = re.sub(COLOR_REGEX, '', sshOutputList[s])
+
+            sshOutput = '\n'.join(sshOutputList)  # add \n back in
+
+        self.text_edit("ssh-receive{ %s" % sshOutput, box, frame)  # put result into output box
 
     # ability to add a game to the drop down menu
     @staticmethod
@@ -780,7 +793,7 @@ class GUI:
                 raise ValueError("Zone")
 
             # numClients
-            if re.search("[0-9]+", numClientsStr) is None:
+            if re.search("[0-9]+", numClientsStr) is None or int(numClientsStr) < 0:
                 self.numClients = 0
                 raise ValueError("Number of clients")
             else:
@@ -1057,13 +1070,6 @@ class GUI:
         :return: None
         """
         self.window.mainloop()
-
-
-class Machine:
-    """ Object representation of machines. """
-    def __init__(self, name, ip=None):
-        self.name = name
-        self.ip = ip
 
 
 ui = GUI()
