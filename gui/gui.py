@@ -54,8 +54,7 @@ B -> It would make things easier
 C -> Cosmetic/form
 E -> Efficiency
 
-2. S - Finish SSH code for individual servers
-3. S - Make Bash script to start arena server and game server on different cores, requires 2
+3. S - Make Bash script to start arena server and game server on different cores
 4. A - Use if statements to keep track of whether index 0 is host or not
 5. B - Change Arena code to use environment variables for paths
 6. B - Split gui.py into different files
@@ -213,6 +212,8 @@ class Cloud:
         :return: wait for server to be created
         """
 
+        # Debian 9 Stretch
+
         config = {
             'name': name,
 
@@ -231,23 +232,27 @@ class Cloud:
                         # Check if git is installed:
                         #    if so: update apt and packages then pull latest
                         #    if not: run through manual install from README and create new image
-                        "value": ("#!/bin/bash\n\n"
-                                  "apt update && apt -y upgrade\n"  # update apt/packages
+                        "value": ("echo \"STARTING\"\n"
+                                  "#!/bin/bash\n\n"
+                                  "apt-get update && apt -y upgrade\n"  # update apt/packages
                                   "if git --version 2>&1 >/dev/null\n"  # check if git installed
                                   "then\n"  # git installed
                                   "\techo \"GIT FOUND, UPDATING\"\n"  # for easy grepping of log files
-                                  "\tcd /home/TheArena\n"
+                                  "\tcd /home/TheArena/TheArena\n"
+                                  "\tgit checkout gui\n"
                                   "\tgit pull\n"
-                                  "\tcd /home/Cerveau\n"
+                                  "\tcd /home/Cerveau/Cerveau\n"
                                   "\tgit pull\n"
                                   "\techo \"DONE UPDATING\"\n"
                                   "else\n"  # git not installed
                                   "\techo \"NO GIT, INSTALLING\"\n"
-                                  "\tapt -y install git\n"
+                                  "\tapt-get -y install git\n"
                                   "\tmkdir /home/TheArena\n"
                                   "\tcd /home/TheArena/\n"
-                                  "\tgit clone https://github.com/siggame/TheArena.git\n"
-                                  "\t./TheArena/scripts/setup-new-machine.sh\n"  # run machine setup
+                                  "\tsudo git clone -b gui --single-branch https://github.com/siggame/TheArena.git\n"
+                                  "\tcd /TheArena\n"
+                                  "\tgit checkout gui"
+                                  "\t./scripts/setup-new-machine.sh\n"  # run machine setup
                                   "\tmkdir /home/Cerveau\n"
                                   "\tcd /home/Cerveau\n"
                                   "\tgit clone https://github.com/siggame/Cerveau.git\n"
@@ -737,7 +742,7 @@ class GUI:
 
             sshOutput = '\n'.join(sshOutputList)  # add \n back in
 
-        self.text_edit("ssh-receive{ %s" % sshOutput, box, frame)  # put result into output box
+        self.text_edit("ssh-receive: %s" % sshOutput, box, frame)  # put result into output box
 
     # ability to add a game to the drop down menu
     @staticmethod
