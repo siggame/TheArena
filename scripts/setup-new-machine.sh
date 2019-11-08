@@ -13,7 +13,7 @@ chown root:root /etc/apt/trusted.gpg.d/microsoft.asc.gpg
 chown root:root /etc/apt/sources.list.d/microsoft-prod.list
 apt-get -y install apt-transport-https
 apt-get -y update
-apt-get -y install dotnet-sdk-3.0
+apt-get -y install dotnet-sdk-2.0
 
 echo "STATUS - RUNNING client-install.sh"
 
