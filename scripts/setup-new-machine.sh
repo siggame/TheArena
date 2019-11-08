@@ -17,4 +17,4 @@ apt-get -y install dotnet-sdk-2.0
 
 echo "STATUS - RUNNING client-install.sh"
 
-bash /home/TheArena/TheArena/scripts/client-install.sh
+bash /home/TheArena/scripts/client-install.sh
