@@ -28,8 +28,8 @@ namespace TheArena
     public partial class Runner
     {
         //Not constants so please dont change these
-        static string HOST_ADDR = "35.239.194.206";
-        static string ARENA_FILES_PATH = @"/home/sjkyv5/ArenaFiles/";
+        static string HOST_ADDR = "127.0.0.1";
+        static string ARENA_FILES_PATH = @"/home/ArenaFiles/";
         static string DA_GAME = "newtonian";
         const int HOST_PORT = 21;
         const int UDP_ASK_PORT = 234;
@@ -45,10 +45,9 @@ namespace TheArena
         {
             try
             {
-                //Command line flags, run like: sudo dotnet TheArena.dll <ip address> <"path"> <"game name">
+                //Command line flags, run like: sudo dotnet TheArena.dll <ip address> <"game name">
                 HOST_ADDR = args[0];
-                ARENA_FILES_PATH = @args[1];
-                DA_GAME = args[2];
+                DA_GAME = args[1];
 
                 Log.TraceMessage(Log.Nav.NavIn, "START", Log.LogType.Info);
                 Log.TraceMessage(Log.Nav.NavIn, "HOST ADDRESS is " + HOST_ADDR, Log.LogType.Info);
