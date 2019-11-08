@@ -12,14 +12,14 @@ luarocks install luasocket
 # Use Node Package Manager to install a tool which compiles native Node.js modules (written in C or C++ and therefore need to be compiled)
 npm install -g node-gyp
 
-# Download Python 3.7.3 as a compressed TAR file
-wget https://www.python.org/ftp/python/3.7.3/Python-3.7.3.tgz
+# Download Python 3.8.0 as a compressed TAR file
+wget https://www.python.org/ftp/python/3.8.0/Python-3.8.0.tgz
 
 # Unzip the Python files
-tar -xzvf Python-3.7.3.tgz
+tar -xzvf Python-3.8.0.tgz
 
 # Enter the Python folder
-cd Python-3.7.3
+cd Python-3.8.0
 
 # Create a directory called build and enter it
 mkdir build
@@ -37,10 +37,10 @@ make -j8
 echo "STATUS - altinstall"
 make altinstall
 
-# Forces python to refer to python3.7 with a priority of 50 (source: https://linux.die.net/man/8/update-alternatives)
-update-alternatives --install /usr/bin/python python /usr/local/bin/python3.7 50
+# Forces python to refer to python3.8 with a priority of 50 (source: https://linux.die.net/man/8/update-alternatives)
+update-alternatives --install /usr/bin/python python /usr/local/bin/python3.8 50
 
 # Adds pip and python aliases
-alias pip=pip3.7
-alias pip3=pip3.7
+alias pip=pip3.8
+alias pip3=pip3.8
 alias python3=python

@@ -109,9 +109,9 @@ class Cloud:
         name = ("host-" if host else "client-") + str(time.time()).replace('.', '')
 
         if image:
-            name = IMAGE_NAME # change name of server that image is based on so it isn't confusing in server list
+            name = IMAGE_NAME  # change name of server that image is based on so it isn't confusing in server list
 
-        self.machines.append(name) # add new server to machines list
+        self.machines.append(name)  # add new server to machines list
 
         self.operation = self.gen_config(project, zone, region, name, image)  # use the api to start the server
 
@@ -232,30 +232,31 @@ class Cloud:
                         # Check if git is installed:
                         #    if so: update apt and packages then pull latest
                         #    if not: run through manual install from README and create new image
+
+                        # IF YOU CHANGE THIS YOU HAVE TO MAKE A NEW IMAGE
+                        # please only use absolute paths
                         "value": ("echo \"STARTING\"\n"
                                   "#!/bin/bash\n\n"
-                                  "apt-get update && apt -y upgrade\n"  # update apt/packages
+                                  "apt-get -y update && apt-get -y upgrade\n"  # update apt/packages
                                   "if git --version 2>&1 >/dev/null\n"  # check if git installed
                                   "then\n"  # git installed
                                   "\techo \"GIT FOUND, UPDATING\"\n"  # for easy grepping of log files
-                                  "\tcd /home/TheArena/TheArena\n"
-                                  "\tgit checkout gui\n"
-                                  "\tgit pull\n"
-                                  "\tcd /home/Cerveau/Cerveau\n"
-                                  "\tgit pull\n"
+                                  "\tgit --git-dir=/home/TheArena/.git checkout gui\n"
+                                  "\tgit --git-dir=/home/TheArena/.git pull\n"
+                                  "\tgit --git-dir=/home/Cerveau/Cerveau/.git pull\n"
                                   "\techo \"DONE UPDATING\"\n"
                                   "else\n"  # git not installed
                                   "\techo \"NO GIT, INSTALLING\"\n"
                                   "\tapt-get -y install git\n"
                                   "\tmkdir /home/TheArena\n"
-                                  "\tcd /home/TheArena/\n"
-                                  "\tsudo git clone -b gui --single-branch https://github.com/siggame/TheArena.git\n"
-                                  "\tcd /TheArena\n"
-                                  "\tgit checkout gui"
-                                  "\t./scripts/setup-new-machine.sh\n"  # run machine setup
+                                  # install gui branch of repo
+                                  "\tsudo git clone --progress -b gui --single-branch "
+                                  "https://github.com/siggame/TheArena.git /home/TheArena\n"
+                                  "\tchmod +x /home/TheArena/scripts/setup-new-machine.sh\n"
+                                  "\tchmod +x /home/TheArena/scripts/start-arena.sh\n"
+                                  "\tbash /home/TheArena/scripts/setup-new-machine.sh\n"
                                   "\tmkdir /home/Cerveau\n"
-                                  "\tcd /home/Cerveau\n"
-                                  "\tgit clone https://github.com/siggame/Cerveau.git\n"
+                                  "\tgit clone https://github.com/siggame/Cerveau.git /home/Cerveau\n"
                                   "\techo \"DONE INSTALLING\"\n"
                                   "fi\n"
                                   "echo \"STARTUP DONE\"\n")
@@ -988,23 +989,27 @@ class GUI:
         try:
             # create host
             self.compute.create(self.project, self.zone, self.region, True, False)
-            self.text_edit("Host server started.", box, frame)
+
+            self.text_edit("Host server started. Waiting for startup script to finish...", box, frame)
+
+            self.wait_for_script('DONE INSTALLING')
+
+            self.text_edit("Host is ready.", box, frame)
 
             # create client servers
             for i in range(self.numClients):
-                self.text_edit("Starting client server " + str(i) + "...", box, frame)
+                self.text_edit("Starting client server %d ..." % i, box, frame)
                 self.compute.create(self.project, self.zone, self.region, False, False)
-                self.text_edit("Client " + str(i) + " started.", box, frame)
+
+                self.text_edit("Client server %d Started. Waiting for startup script to finish..." % i, box, frame)
+                self.wait_for_script('DONE INSTALLING')
+
+                self.text_edit("Client %d is ready." % i, box, frame)
 
             self.reconfigure_monitor_tabs(box, frame)  # add tabs of new servers
         except Exception as e:
             # remove newly created machine name since it didn't pan out
             self.compute.machines = self.compute.machines[:-1]
-
-            #if 'does not match the pattern' in str(e):
-            #    self.text_edit("There was an error:\n%s box has an invalid value."
-            #                   % str(e).split()[1][1:-1], box, frame)
-            #else:
             self.text_edit("There was an error:\n" + str(e), box, frame)
 
         self.text_edit("Done.\n", box, frame)
@@ -1026,25 +1031,31 @@ class GUI:
         self.text_edit("Creating new image, this may take a while...", box, frame)
 
         try:
-            self.compute.create(self.project, self.zone, self.region, host=False, image=True)
+            try:
+                print("Creating server...")
+                self.compute.create(self.project, self.zone, self.region, host=False, image=True)
+            except Exception as e:  # catch httperror 409
+                print(str(e))
+                if 'already exists' in str(e):  # denotes that a IMAGE_NAME server already exists
+                    self.compute.machines = self.compute.machines[:-1]  # remove failed one
+
+                    print("Deleting old %s server..." % IMAGE_NAME)
+                    self.compute.delete(self.project, self.zone, IMAGE_NAME)  # delete existing server
+
+                    print("Creating new server...")
+                    self.compute.create(self.project, self.zone, self.region, host=False, image=True)  # Create new one
+                else:  # if that wasn't the error, raise to outer except block
+                    raise
 
             # wait until startup script is done:
             self.text_edit("Server started. Waiting for startup script to finish...", box, frame)
-            cmd = '\'cat /var/log/syslog | grep "STARTUP DONE"\''
-            scriptStatus = ''
-            while scriptStatus == '':
-                # repeatedly ssh and read log file for "STARTUP DONE"
-                try:
-                    scriptStatus = subprocess.check_output('gcloud compute ssh %s --command=%s --zone %s'
-                                                       % (self.compute.machines[-1], cmd, self.zone), shell=True)
-                except subprocess.CalledProcessError:
-                    # except because grep throws exit error code 1 if it doesn't find string
-                    print("...")
-                    time.sleep(5)
+
+            self.wait_for_script('DONE INSTALLING')
 
             self.text_edit("Startup script is done. Stopping server...", box, frame)
 
             # Google recommends stopping the server before making an image
+            print("Stopping server...")
             self.compute.stop(self.project, self.zone, self.compute.machines[-1])
 
             """
@@ -1053,8 +1064,22 @@ class GUI:
             https://cloud.google.com/compute/docs/images/create-delete-deprecate-private-images
             """
             self.text_edit("Server stopped. Creating image...", box, frame)
-            subprocess.call("gcloud beta compute images create %s --source-disk %s --source-disk-zone %s --force"
-                            % (IMAGE_NAME, IMAGE_NAME, self.zone), shell=True)
+
+            try:
+                print("Creating image...")
+                subprocess.check_call("gcloud beta compute images create -q %s --source-disk %s "
+                                      "--source-disk-zone %s --force" % (IMAGE_NAME, IMAGE_NAME, self.zone), shell=True)
+            except subprocess.CalledProcessError:  # image already exists
+                print("Deleting old image...")
+                # delete old image
+                subprocess.check_call("gcloud beta compute images delete -q %s " % IMAGE_NAME, shell=True)
+
+                print("Creating new image...")
+                # make new image
+                subprocess.check_call("gcloud beta compute images create -q %s --source-disk %s "
+                                      "--source-disk-zone %s --force" % (IMAGE_NAME, IMAGE_NAME, self.zone),
+                                      shell=True)
+
         except Exception as e:
             # remove newly created machine name since it didn't pan out
             self.compute.machines = self.compute.machines[:-1]
@@ -1066,6 +1091,19 @@ class GUI:
     def arena_servers(self):
 
         return
+
+    def wait_for_script(self, grepString):
+        cmd = '\'cat /var/log/syslog | grep "%s"\'' % grepString
+        scriptStatus = ''
+        while scriptStatus == '':
+            # repeatedly ssh and read log file for "STARTUP DONE"
+            try:
+                scriptStatus = subprocess.check_output('gcloud compute ssh %s --command=%s --zone %s'
+                                                       % (self.compute.machines[-1], cmd, self.zone), shell=True)
+            except subprocess.CalledProcessError:
+                # except because grep throws exit error code 1 if it doesn't find string
+                print("...")
+                time.sleep(5)
 
     # end server manipulators#############################################
 
