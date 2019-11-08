@@ -56,7 +56,7 @@ Make sure if you are running on Google Cloud that you enable IP Forwarding, and 
 recently worked install commands (use pip3.8 install ....):
 
     sudo bash
-    curl -sL https://deb.nodesource.com/setup_11.x | bash -
+    curl -sL https://deb.nodesource.com/setup_13.x | bash -
     apt-get install -y luajit luarocks nodejs g++ cmake default-jre default-jdk libncursesw5-dev libssl-dev libsqlite3-dev tk-dev libgdbm-dev libc6-dev libbz2-dev build-essential zlib1g-dev libbz2-dev liblzma-dev libncurses5-dev libreadline6-dev libsqlite3-dev libssl-dev libgdbm-dev liblzma-dev tk8.5-dev lzma lzma-dev libgdbm-dev uuid-dev python3-dev python3-setuptools libffi-dev libunwind-dev maven
     luarocks install luasocket
     npm install -g node-gyp
