@@ -26,12 +26,15 @@ mkdir build
 cd build
 
 # Configures Python to optimize code on and ensures pip is installed
-../configure --enable-optimizations --with-ensurepip=install
+# ../configure --enable-optimizations --with-ensurepip=install
+../configure --with-ensurepip=install
 
 # Configures the make command to run using 8 simultaneous jobs
+echo "STATUS - J8"
 make -j8
 
 # Builds Python without masquerading the python3 binary (source: https://docs.python.org/3/using/unix.html#building-python)
+echo "STATUS - altinstall"
 make altinstall
 
 # Forces python to refer to python3.7 with a priority of 50 (source: https://linux.die.net/man/8/update-alternatives)
