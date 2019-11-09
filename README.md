@@ -13,7 +13,7 @@
                  August-November 2018 and January-April 2019
                             @Missouri S&T
                  
-START ARENA BUTTON DOES NOT WORK - WORKAROUND:
+START ARENA BUTTON DOES NOT WORK - WORKAROUND:  
 ssh into host  
 run `sudo dotnet build /home/TheArena/TheArena/TheArena --configuration Release`  
 then run `sudo dotnet /home/TheArena/TheArena/TheArena/bin/Release/netcoreapp2.0/TheArena.dll [this internal IP] [game lowercase]`  
