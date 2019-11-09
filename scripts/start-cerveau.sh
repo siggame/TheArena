@@ -1,6 +1,6 @@
 #!/bin/bash
 
 cd /home/Cerveau
-npm install
-npm run build
-npm start
+sudo npm install
+sudo npm run build
+sudo npm start
