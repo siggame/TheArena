@@ -116,7 +116,7 @@ namespace Logger
 
             if (iCnt == 1)
             {
-                Stream myFile = File.Create("Log.txt");
+                Stream myFile = File.Create("/home/TheArena/Log.txt");
                 Trace.AutoFlush = true;
                 Trace.Listeners.Add(new TextWriterTraceListener(myFile));
             }

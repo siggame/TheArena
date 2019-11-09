@@ -13,6 +13,19 @@
                  August-November 2018 and January-April 2019
                             @Missouri S&T
                  
+START ARENA BUTTON DOES NOT WORK - WORKAROUND:  
+ssh into host --> `gcloud compute ssh [server name] --zone [zone]`  
+run `sudo dotnet build /home/TheArena/TheArena/TheArena --configuration Release`  
+then run `sudo dotnet /home/TheArena/TheArena/TheArena/bin/Release/netcoreapp2.0/TheArena.dll [this internal IP] [game lowercase]`  
+disconnect from host  
+connect to client  
+run `screen -S arena`
+run `sudo dotnet /home/TheArena/TheArena/TheArena/bin/Release/netcoreapp2.0/TheArena.dll [HOST internal IP] [game lowercase]`  
+`CTRL+A+D`  
+run `screen -S game`  
+run `sudo bash /home/TheArena/scripts/start-cerveau.sh`  
+Do this for all clients  
+  
 Currently builds and runs on Linux.
 Instructions for Linux on Google Cloud are below!!!!
 
