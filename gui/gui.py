@@ -79,6 +79,11 @@ PROJECT_REGEX = "(?:(?:[-a-z0-9]{1,63}\.)*(?:[a-z](?:[-a-z0-9]{0,61}[a-z0-9])?):
                 "(?:[a-z0-9](?:[-a-z0-9]{0,61}[a-z0-9])?))"
 ZONE_REGEX = "[a-z](?:[-a-z0-9]{0,61}[a-z0-9])?"
 
+# Arena command line strings
+BUILD_CMD = 'sudo dotnet build /home/TheArena/TheArena/TheArena --configuration Release'
+# RUN_CMD does not include command line parameters, must do those where this variable is used
+RUN_CMD = 'sudo dotnet /home/TheArena/TheArena/TheArena/bin/Release/netcoreapp2.0/TheArena.dll'
+
 # read games into list, allows permanently adding games
 GAMES = [line.rstrip('\n') for line in open(GAMES_FILE, 'r')]  # fancy one line file read into a list
 
@@ -243,19 +248,20 @@ class Cloud:
                                   "\techo \"GIT FOUND, UPDATING\"\n"  # for easy grepping of log files
                                   "\tgit --git-dir=/home/TheArena/.git checkout gui\n"
                                   "\tgit --git-dir=/home/TheArena/.git pull\n"
-                                  "\tgit --git-dir=/home/Cerveau/Cerveau/.git pull\n"
+                                  "\tgit --git-dir=/home/Cerveau/.git pull\n"
                                   "\techo \"DONE UPDATING\"\n"
                                   "else\n"  # git not installed
                                   "\techo \"NO GIT, INSTALLING\"\n"
                                   "\tapt-get -y install git\n"
                                   "\tmkdir /home/TheArena\n"
+                                  "\tmkdir /home/Cerveau\n"
+                                  "\tmkdir /home/ArenaFiles\n"
                                   # install gui branch of repo
                                   "\tsudo git clone --progress -b gui --single-branch "
                                   "https://github.com/siggame/TheArena.git /home/TheArena\n"
                                   "\tchmod +x /home/TheArena/scripts/setup-new-machine.sh\n"
-                                  "\tchmod +x /home/TheArena/scripts/start-arena.sh\n"
+                                  "\tchmod +x /home/TheArena/scripts/start-cerveau.sh\n"
                                   "\tbash /home/TheArena/scripts/setup-new-machine.sh\n"
-                                  "\tmkdir /home/Cerveau\n"
                                   "\tgit clone https://github.com/siggame/Cerveau.git /home/Cerveau\n"
                                   "\techo \"DONE INSTALLING\"\n"
                                   "fi\n"
@@ -551,7 +557,7 @@ class GUI:
         kill.grid(row=1, column=2, sticky=E, padx=5, pady=5)
 
         # Start Arena on all servers button
-        arena = ttk.Button(bottom, command=lambda: self.arena_servers(), text='OPEN THE ARENA')
+        arena = ttk.Button(bottom, command=lambda: self.arena_servers(messageBox, bottom), text='OPEN THE ARENA')
         arena.grid(row=1, column=3, sticky=E, padx=5, pady=5)
 
         split.add(bottom)
@@ -700,6 +706,7 @@ class GUI:
         """
 
         self.game = event
+        self.game = self.game.lower()
 
     def entry_ssh_command(self, sshInputBox, sshTunnel, box, frame):
         """Send command from entry box to the server.
@@ -886,6 +893,7 @@ class GUI:
                                    box, frame)
 
                     self.compute.start(self.project, self.zone, self.compute.machines[m])
+                    self.wait_for_script('DONE INSTALLING', self.compute.machines[m])
 
                     self.text_edit(("Host" if m == 0 else ("Client " + str(m - 1))) + " started.", box, frame)
                 elif action == STOP:
@@ -992,7 +1000,7 @@ class GUI:
 
             self.text_edit("Host server started. Waiting for startup script to finish...", box, frame)
 
-            self.wait_for_script('DONE INSTALLING')
+            self.wait_for_script('DONE INSTALLING', self.compute.machines[-1])
 
             self.text_edit("Host is ready.", box, frame)
 
@@ -1002,7 +1010,7 @@ class GUI:
                 self.compute.create(self.project, self.zone, self.region, False, False)
 
                 self.text_edit("Client server %d Started. Waiting for startup script to finish..." % i, box, frame)
-                self.wait_for_script('DONE INSTALLING')
+                self.wait_for_script('DONE INSTALLING', self.compute.machines[-1])
 
                 self.text_edit("Client %d is ready." % i, box, frame)
 
@@ -1050,7 +1058,7 @@ class GUI:
             # wait until startup script is done:
             self.text_edit("Server started. Waiting for startup script to finish...", box, frame)
 
-            self.wait_for_script('DONE INSTALLING')
+            self.wait_for_script('DONE INSTALLING', self.compute.machines[-1])
 
             self.text_edit("Startup script is done. Stopping server...", box, frame)
 
@@ -1088,18 +1096,56 @@ class GUI:
         self.text_edit("Done.\n", box, frame)
 
     # starts the arena on the host server and the game server on the clients
-    def arena_servers(self):
+    def arena_servers(self, box, frame):
+        # zonal DNS: [INSTANCE_NAME].[ZONE].c.[PROJECT_ID].internal
+        # https://cloud.google.com/compute/docs/ip-addresses/
+        getIPCmd = '\'ip addr | grep "inet.*eth0" | grep -Eo "[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*" | head -n 1\''
 
-        return
+        hostIP = str(subprocess.check_output('gcloud compute ssh %s --command=%s --zone %s'
+                                             % (self.compute.machines[0], getIPCmd, self.zone), shell=True),
+                     'utf-8').strip()
 
-    def wait_for_script(self, grepString):
+        buildAndRun = "%s && %s %s %s < /home/TheArena/scripts/arenaTourneyCmd.txt"\
+                      % (BUILD_CMD, RUN_CMD, hostIP, self.game)
+
+        arenaCmd = 'gcloud compute ssh %s --command="%s" --zone %s' % (self.compute.machines[0], buildAndRun, self.zone)
+
+        cerveauCmd = 'gcloud compute ssh %s --command="%s" --zone %s'\
+                     % (self.compute.machines[0], 'sudo bash /home/TheArena/scripts/start-cerveau.sh', self.zone)
+
+        for s in self.compute.machines:
+            try:
+                if 'host' in s:  # this is the host server, don't start cerveau
+                    print("HOST")
+                    self.text_edit("Starting Arena on host...", box, frame)
+                    subprocess.Popen(arenaCmd, shell=True, stdin=None, stdout=None, stderr=None)
+                    self.text_edit("Arena started on host.", box, frame)
+                    print("HOST DONE")
+
+                elif 'client' in s:  # this is a client, start cerveau
+                    print("CLIENT")
+                    clientNum = self.compute.machines.index(s)
+
+                    self.text_edit("Starting Arena on client %d..." % clientNum, box, frame)
+                    subprocess.Popen(arenaCmd, shell=True, stdin=None, stdout=None, stderr=None)
+                    self.text_edit("Arena started on %d." % clientNum, box, frame)
+
+                    self.text_edit("Starting Cerveau on client %d..." % clientNum, box, frame)
+                    subprocess.Popen(cerveauCmd, shell=True, stdin=None, stdout=None, stderr=None)
+                    self.text_edit("Cerveau started on client %d." % clientNum, box, frame)
+                    print("CLIENT DONE")
+
+            except subprocess.CalledProcessError as e:
+                self.text_edit("There was an error:\n%s" % str(e), box, frame)
+
+    def wait_for_script(self, grepString, name):
         cmd = '\'cat /var/log/syslog | grep "%s"\'' % grepString
         scriptStatus = ''
         while scriptStatus == '':
             # repeatedly ssh and read log file for "STARTUP DONE"
             try:
                 scriptStatus = subprocess.check_output('gcloud compute ssh %s --command=%s --zone %s'
-                                                       % (self.compute.machines[-1], cmd, self.zone), shell=True)
+                                                       % (name, cmd, self.zone), shell=True)
             except subprocess.CalledProcessError:
                 # except because grep throws exit error code 1 if it doesn't find string
                 print("...")
