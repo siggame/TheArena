@@ -38,7 +38,7 @@ echo "STATUS - altinstall"
 make altinstall
 
 # Forces python to refer to python3.8 with a priority of 50 (source: https://linux.die.net/man/8/update-alternatives)
-update-alternatives --install /usr/bin/python python /usr/local/bin/python3.8 50
+#update-alternatives --install /usr/bin/python python /usr/local/bin/python3.8 50
 
 # Adds pip and python aliases
 alias pip=pip3.8
