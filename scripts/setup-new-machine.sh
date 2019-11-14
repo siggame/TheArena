@@ -2,6 +2,10 @@
 
 #basically just scripting the manual part of the readme
 
+#install and upgrade pip
+apt-get -y install python3-pip
+pip3 install upgrade pip
+
 echo "STATUS - INSTALLING DOTNET"
 
 #install .NET according to https://dotnet.microsoft.com/download/linux-package-manager/debian10/sdk-current
