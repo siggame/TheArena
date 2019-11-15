@@ -70,7 +70,7 @@ E -> Efficiency
 17. B - Add tooltips? Or some kind of info pane
 """
 
-IMAGE_NAME = "official-image"
+IMAGE_NAME = "official-image154"
 GAMES_FILE = "games.txt"
 USERNAME = "siggame"
 
@@ -83,7 +83,7 @@ ZONE_REGEX = "[a-z](?:[-a-z0-9]{0,61}[a-z0-9])?"
 BUILD_CMD = 'sudo dotnet build /home/TheArena/TheArena/TheArena --configuration Release'
 # RUN_CMD does not include command line parameters, must do those where this variable is used
 RUN_CMD = 'sudo dotnet /home/TheArena/TheArena/TheArena/bin/Release/netcoreapp2.0/TheArena.dll'
-
+# 10.128.15.198
 # read games into list, allows permanently adding games
 GAMES = [line.rstrip('\n') for line in open(GAMES_FILE, 'r')]  # fancy one line file read into a list
 
@@ -242,6 +242,8 @@ class Cloud:
                         # please only use absolute paths
                         "value": ("echo \"STARTING\"\n"
                                   "#!/bin/bash\n\n"
+                                  # skip upgrading google packages
+                                  "apt-mark hold google-cloud-packages-archive-keyring google-cloud-sdk google-compute-engine google-compute-engine-oslogin python-google-compute-engine python3-google-compute-engine\n"
                                   "apt-get -y update && apt-get -y upgrade\n"  # update apt/packages
                                   "if git --version 2>&1 >/dev/null\n"  # check if git installed
                                   "then\n"  # git installed
@@ -1113,6 +1115,9 @@ class GUI:
         cerveauCmd = 'gcloud compute ssh %s --command="%s" --zone %s'\
                      % (self.compute.machines[0], 'sudo bash /home/TheArena/scripts/start-cerveau.sh', self.zone)
 
+        print(self.compute.machines)
+        input('')
+
         for s in self.compute.machines:
             try:
                 if 'host' in s:  # this is the host server, don't start cerveau
@@ -1126,13 +1131,13 @@ class GUI:
                     print("CLIENT")
                     clientNum = self.compute.machines.index(s)
 
-                    self.text_edit("Starting Arena on client %d..." % clientNum, box, frame)
-                    subprocess.Popen(arenaCmd, shell=True, stdin=None, stdout=None, stderr=None)
-                    self.text_edit("Arena started on %d." % clientNum, box, frame)
-
                     self.text_edit("Starting Cerveau on client %d..." % clientNum, box, frame)
                     subprocess.Popen(cerveauCmd, shell=True, stdin=None, stdout=None, stderr=None)
                     self.text_edit("Cerveau started on client %d." % clientNum, box, frame)
+
+                    self.text_edit("Starting Arena on client %d..." % clientNum, box, frame)
+                    subprocess.Popen(arenaCmd, shell=True, stdin=None, stdout=None, stderr=None)
+                    self.text_edit("Arena started on %d." % clientNum, box, frame)
                     print("CLIENT DONE")
 
             except subprocess.CalledProcessError as e:
