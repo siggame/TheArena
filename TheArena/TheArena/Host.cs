@@ -109,10 +109,7 @@ namespace TheArena
             Log.TraceMessage(Log.Nav.NavOut, "Starting Tourney with " + people_per_game + " per game.", Log.LogType.Info);
             eligible_players = new List<PlayerInfo>();
 
-            if (!FillEligiblePlayers())
-            {
-                return;
-            }
+            FillEligiblePlayers();
 
             Tournament t = new Tournament(eligible_players, people_per_game);
             currentlyRunningTourney = t;
@@ -235,10 +232,6 @@ namespace TheArena
 
                     AddPlayerToArena(x.Key, x.Value.Item2+"", x.Value.Item1);
                 }
-            }
-            else
-            {
-                return false;
             }
 
             return true;
