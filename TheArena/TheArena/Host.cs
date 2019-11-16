@@ -108,7 +108,12 @@ namespace TheArena
         {
             Log.TraceMessage(Log.Nav.NavOut, "Starting Tourney with " + people_per_game + " per game.", Log.LogType.Info);
             eligible_players = new List<PlayerInfo>();
-            FillEligiblePlayers();
+
+            if (!FillEligiblePlayers())
+            {
+                return;
+            }
+
             Tournament t = new Tournament(eligible_players, people_per_game);
             currentlyRunningTourney = t;
             while (!t.IsDone)
@@ -182,7 +187,7 @@ namespace TheArena
             }
         }
 
-        static void FillEligiblePlayers()
+        static bool FillEligiblePlayers()
         {
             Log.TraceMessage(Log.Nav.NavIn, "Checking in Arena Directory for files to create eligible players...", Log.LogType.Info);
             if (!Directory.Exists(ARENA_FILES_PATH))
@@ -231,6 +236,12 @@ namespace TheArena
                     AddPlayerToArena(x.Key, x.Value.Item2+"", x.Value.Item1);
                 }
             }
+            else
+            {
+                return false;
+            }
+
+            return true;
         }
 
         static void RunHost()
