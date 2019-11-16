@@ -191,7 +191,8 @@ namespace TheArena
                 Directory.CreateDirectory(ARENA_FILES_PATH);
             }
             var files = Directory.GetFiles(ARENA_FILES_PATH);
-            Log.TraceMessage(Log.Nav.NavOut, "FilesPath " + files, Log.LogType.Info);
+            Log.TraceMessage(Log.Nav.NavOut, "FilesPath " + ARENA_FILES_PATH, Log.LogType.Info);
+            Log.TraceMessage(Log.Nav.NavOut, "Files " + files, Log.LogType.Info);
             if (files != null && files.Length > 0)
             {
                 Log.TraceMessage(Log.Nav.NavOut, files.Length + " Files existed in Arena Files Directory.", Log.LogType.Info);
