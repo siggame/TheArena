@@ -15,9 +15,9 @@ namespace TheArena
 {
     public class MyPacket
     {
-        public string gameName;
-        public string session;
-        public gameSettings gameSettings;
+        //public string gameName;
+        //public string session;
+        //public gameSettings gameSettings;
 
         public string status;
         public string winReason;
@@ -58,13 +58,13 @@ namespace TheArena
     public class Winner
     {
         public string teamName;
-        public string version;
+        public int version;
     }
 
     public class Loser
     {
         public string teamName;
-        public string version;
+        public int version;
     }
 
     public class HTTP
@@ -153,11 +153,12 @@ new StringContent(serialized, Encoding.UTF8, "application/json"));
             }
         }
 
-        public static void HTTPPostSendToWeb(string status, string winReason, string loseReason, string logURL, string winnerTeamName, string winnerVersion, string loserTeamName, string loserVersion)
+        public static void HTTPPostSendToWeb(string gamesession, gameSettings gameSettings, string status, string winReason, string loseReason, string logURL, string winnerTeamName, string winnerVersion, string loserTeamName, string loserVersion)
         {
-            MyPacket p = new MyPacket() { status = status, loseReason = loseReason, winReason = winReason, logUrl = logURL, winner = new Winner() { teamName = winnerTeamName, version = winnerVersion }, loser = new Loser() { teamName = loserTeamName, version = loserVersion } };
+
+            MyPacket p = new KevinsPacket() { status = status, loseReason = loseReason, winReason = winReason, logUrl = logURL, winner = new Winner() { teamName = winnerTeamName, version = Int32.Parse(winnerVersion) }, loser = new Loser() { teamName = loserTeamName, version = Int32.Parse(loserVersion) } };
             string serialized = JsonConvert.SerializeObject(p);
-            Console.WriteLine(serialized);
+            Console.WriteLine("KEVIN: " + serialized);
             using (var client = new HttpClient())
             {
                 try
