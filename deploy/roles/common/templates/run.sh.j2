@@ -1,0 +1,10 @@
+export GAME_NAME=Necrowar 
+export DB_HOST=mmai-server.siggame.io 
+export DB_PASS="" 
+export DOCKERFILE_PATH="../joueur"
+export RUN_FOREVER="True"
+export LOGFILE_PATH=/tmp/pyrena_logs
+export SUBMISSION_CACHE_PATH=/tmp/submission_cache
+export DROOPY_URL="http://{{hostvars[inventory_hostname]['ansible_host']}}:8000/"
+
+python3 pyrena.py

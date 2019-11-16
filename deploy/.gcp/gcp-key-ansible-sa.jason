@@ -1,0 +1,12 @@
+{
+  "type": "service_account",
+  "project_id": "arena-team",
+  "private_key_id": "fc7606be7218c0459d97a9edcdaa0bb8c53e2ded",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCitkN7vGqeDcbt\nV7vbNfh5c+Bxnqzn+vmrEt9KE0KfghAjxL6xqR2XeRWQYHoYHifRKRMFmgLkP+PM\nNyDG+Elz9uj/FtXfjd+BsJDHkyJvjqgs84bgTOee32bUOqN7TGGCh4XffatQJTyM\nxZEu4Spqv3f9cFDPeafccXVabxF8L7+hV0upfzviwJMdCdcl2GObXLkYKT9257Cv\nb6l1e7zkC0OBNAdHWrhzpyJipvAmip8OFyRrg2+kpJDlAQnsJSZBK6t3qwa/5jNM\nu/JLztJfTeqmXUOi+4jBLa3+jAnLZuXu/IO11EA5IrofmJmSCg4LOOLM9wFpgltJ\nZt9jhe3LAgMBAAECggEABvILyGTfEjcZVjlIAg/4Nsr8+iyhSde7P5OzJ1jSH7fw\nE27LCw9ifXxEMOEFZTEoVvPPZY5Q8EhP44A47HVdwU75XCYv4/aM417Tl0lPD38B\n68VLbRirTGtR2t5T6yf0A5vgWY1mOioUvxeR3nPrGRpqN03LjUeupCjNrxoNn4Ti\n0xlfTfIqzWH9Sld01/2KUXTL6bdynOw/dytUOw+J/JO0MFZaZM57Yld8F81Ei43c\nFUWFyTHRc5JgvayZYXMqP97O7Fubm7SeNWN0kOr4AEfgnw1NyDF2G/JVQAewdWmy\nDKKzXJNzC6jMOo4IZFD7I6+aH4vZxpDA1uwlJQB1dQKBgQDU9e57lTm6s5NjiErl\nSZ+5w3gPEQs0u4sdsj/eEH+BSgfcDMGt1kuNbHTeO/tQtT2/ovJ31aQDLV5nO4cf\nM95hq+jB8o8wvM4WZsbrMKc6UlTrryBFdPcKY5HoLveYice+hUDT/3+DMdTuqOJy\nG+9xDTZKLjhFPu7fF+GOAYMNhQKBgQDDmJYHF+87xOgItGLG5qoENcWzLXkQgkWd\nhTCU3UvvFqIDSwjRH1oY+JETq45agYGdqAie+e4Bl4wMSE6U7KlxiMPSw7LsLLXu\nIsvl5kIvYsZO6A3tEU6LI8d/IbdDWsXdw0DJ0Cd5tngJebUbTeWWS/Rt9nXFmXvi\nWTzV7AuHDwKBgC09OTYjkynoL+067L4cj8PElGKO+lRvarQaQ5sG4i8y7MyAITyu\ng0o9ue3jzBVvCvkEwoFWbwsFvkIr0R59xEX3YPCieGygDx+PIb6gjUXEa6nNgAuB\nN2GLmVk7cPmEe1wrroPaiNnz4gn48nHPIWRgrCHCA84h+liGGDI0fASJAoGAGBK1\nlFXryc1oSXn6FkTZc/8yP+U+2ztNWh/EZO3/pIOCmSkpAqP7MMuW/3bD5Hu/+ilu\nNjLIikWepPxZP5cJG8IbZ9tSMCMomRCLS9ZVGwPrKFcDL8RLiHB04z7BEXcglzSq\nyqvlz+MXTwM9uQiTUzYx9T66LAHB74/QHvwYRx0CgYEAgTkPFt0AtOVucHWAqO6f\nGy4Jydog+WbbOhnjU9L1z67bPIPIFLfBIndm2tS+pYuAUEW3kLPZQEIYDDV45nkT\nNCSAt7FZPgvs2KOtIYPpCx/1r7BQJgSXobA8RxQB2fFoteYrKAnkHct8p6kVIzfN\nFNe2HlEmJi6miHR0zPtfQoo=\n-----END PRIVATE KEY-----\n",
+  "client_email": "terraform@arena-team.iam.gserviceaccount.com",
+  "client_id": "114579662785634286291",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/terraform%40arena-team.iam.gserviceaccount.com"
+}

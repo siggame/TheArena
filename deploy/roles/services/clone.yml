@@ -1,0 +1,24 @@
+- name: "Clone the siggame Joueur repo"
+  # for cloning to /opt
+  become: true
+  git:
+    repo: "https://github.com/siggame/Joueur.git"
+    dest: "{{src_dir}}/joueur"
+    version: master
+    accept_hostkey: yes
+
+- name: "Clone the siggame Cerveau repo"
+  become: true
+  git:
+    repo: "https://github.com/kevinschoonover/Cerveau.git"
+    dest: "{{src_dir}}/cerveau"
+    version: master
+    accept_hostkey: yes
+
+- name: "Clone the siggame pyrena repo"
+  become: true
+  git:
+    repo: "https://github.com/siggame/pyrena.git"
+    dest: "{{src_dir}}/pyrena"
+    version: master
+    accept_hostkey: yes
