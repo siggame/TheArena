@@ -155,6 +155,7 @@ new StringContent(serialized, Encoding.UTF8, "application/json"));
 
         public static void HTTPPostSendToWeb(string status, string winReason, string loseReason, string logURL, string winnerTeamName, string winnerVersion, string loserTeamName, string loserVersion)
         {
+            token = File.ReadAllText("/home/TheArena/token.txt");
             MyPacket p = new MyPacket() { status = status, loseReason = loseReason, winReason = winReason, logUrl = logURL, winner = new Winner() { teamName = winnerTeamName, version = winnerVersion }, loser = new Loser() { teamName = loserTeamName, version = loserVersion } };
             string serialized = JsonConvert.SerializeObject(p);
             Console.WriteLine(serialized);
@@ -163,7 +164,7 @@ new StringContent(serialized, Encoding.UTF8, "application/json"));
                 try
                 {
                     List<Task> allGames = new List<Task>();
-                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IlNldGhBZG1pbiIsImlkIjo0LCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE1NTUwMjU0NDQsImV4cCI6MTU1NTQ1NzQ0NH0.m4bOU5k5hH2YTnDT0094oDA1XDHxsQqMxNkSQQFCaHE");
+                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
                     allGames.Add(Task.Run(() => client.PostAsync(
                         "https://mmai-server.siggame.io/games/",
                          new StringContent(serialized, Encoding.UTF8, "application/json"))));
