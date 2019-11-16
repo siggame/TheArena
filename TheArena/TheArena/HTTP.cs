@@ -156,6 +156,7 @@ new StringContent(serialized, Encoding.UTF8, "application/json"));
         public static void HTTPPostSendToWeb(string status, string winReason, string loseReason, string logURL, string winnerTeamName, string winnerVersion, string loserTeamName, string loserVersion)
         {
             token = File.ReadAllText("/home/TheArena/token.txt");
+            Console.WriteLine(token);
             MyPacket p = new MyPacket() { status = status, loseReason = loseReason, winReason = winReason, logUrl = logURL, winner = new Winner() { teamName = winnerTeamName, version = winnerVersion }, loser = new Loser() { teamName = loserTeamName, version = loserVersion } };
             string serialized = JsonConvert.SerializeObject(p);
             Console.WriteLine(serialized);
