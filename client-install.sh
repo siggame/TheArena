@@ -8,7 +8,7 @@ tar -xzvf Python-3.7.3.tgz
 cd Python-3.7.3
 mkdir build
 cd build
-../configure --enable-optimizations --with-ensurepip=install
+../configure --with-ensurepip=install
 make -j8
 make altinstall
 update-alternatives --install /usr/bin/python python /usr/local/bin/python3.7 50
