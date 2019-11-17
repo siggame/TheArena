@@ -154,9 +154,25 @@ new StringContent(serialized, Encoding.UTF8, "application/json"));
         }
 
         public static void HTTPPostSendToWeb(string status, string winReason, string loseReason, string logURL, string winnerTeamName, string winnerVersion, string loserTeamName, string loserVersion)
-        {
+        {   
+            int intWinnerVersion;
+            int intLoserVersion;
 
-            MyPacket p = new MyPacket() { status = status, loseReason = loseReason, winReason = winReason, logUrl = logURL, winner = new Winner() { teamName = winnerTeamName, version = Int32.Parse(winnerVersion) }, loser = new Loser() { teamName = loserTeamName, version = Int32.Parse(loserVersion) } };
+            try{
+                intWinnerVersion = Int32.Parse(winnerVersion);
+            }
+            catch(System.FormatException e){
+                intWinnerVersion = 1;
+            }
+
+            try{
+                intLoserVersion = Int32.Parse(loserVersion);
+            }
+            catch(System.FormatException e){
+                intLoserVersion = 1;
+            }
+
+            MyPacket p = new MyPacket() { status = status, loseReason = loseReason, winReason = winReason, logUrl = logURL, winner = new Winner() { teamName = winnerTeamName, version = intWinnerVersion }, loser = new Loser() { teamName = loserTeamName, version = intLoserVersion } };
             string serialized = JsonConvert.SerializeObject(p);
             Console.WriteLine("KEVIN: " + serialized);
             using (var client = new HttpClient())

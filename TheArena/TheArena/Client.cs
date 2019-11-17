@@ -41,36 +41,48 @@ namespace TheArena
                         {
                             try
                             {
-                                IPEndPoint remoteEP;
+                                IPEndPoint remoteEP = new IPEndPoint(IPAddress.Parse(HOST_ADDR), UDP_CONFIRM_PORT);
+
                                 if (resultStr == "") //Not told to run game yet, so just send ping that we are here
                                 {
                                     Log.TraceMessage(Log.Nav.NavIn, "Sending Ping...", Log.LogType.Info);
-                                    remoteEP = new IPEndPoint(IPAddress.Parse(HOST_ADDR), UDP_CONFIRM_PORT);
+                                    //remoteEP = new IPEndPoint(IPAddress.Parse(HOST_ADDR), UDP_CONFIRM_PORT);
                                     ping.SendTo(new byte[] { 1 }, remoteEP); // Ping -- we are still here
                                 }
-                                else //We finished running a game, send the host the results
+                                /*else //We finished running a game, send the host the results
                                 {
                                     Log.TraceMessage(Log.Nav.NavIn, "Sending Results...", Log.LogType.Info);
+
                                     remoteEP = new IPEndPoint(IPAddress.Parse(HOST_ADDR), UDP_CONFIRM_PORT);
                                     byte[] toSendResults = Encoding.ASCII.GetBytes(resultStr);
+
                                     Log.TraceMessage(Log.Nav.NavIn, "Sending toSendResults: " + resultStr + " as bytes=" + toSendResults.Length, Log.LogType.Info);
+
                                     resultsSocket.SendTo(toSendResults, remoteEP); // Send Results
-                                }
+                                }*/
+
                                 Log.TraceMessage(Log.Nav.NavIn, "Waiting for game...", Log.LogType.Info);
+
                                 byte[] data = ask_for_game.Receive(ref remoteEP); //Will wait for 5 seconds for data from host before returning to the top of the while loop because of try{}catch{TIMEOUTEXCEPTION}
                                 string str_data = System.Text.Encoding.Default.GetString(data); //If we do get data within 5 seconds it's first byte will either be 1 or 0
+
                                 if (data != null && data.Length == 1 && data[0] == 1) //If it's a 1, our results have been recorded and we can reset/move on to the next game
                                 {
                                     Log.TraceMessage(Log.Nav.NavIn, "Host received results-clearing results.", Log.LogType.Info);
+
                                     resultStr = "";
                                     Directory.Delete(ARENA_FILES_PATH, true);  //RESET by deleting all files in the arena directories.
                                     Directory.CreateDirectory(ARENA_FILES_PATH);
                                 }
+
                                 if (data != null && data.Length == 1 && data[0] == 0) //If it's a 0, the host has finished sending us files and wants us to run them
                                 {
                                     Log.TraceMessage(Log.Nav.NavIn, "We have been told to run game--LET'S GO!", Log.LogType.Info);
+
                                     List<string> results = BuildAndRunGame(); //All of the hard stuff happens in this function all of the winning info is returned as a string array
+                                    
                                     Log.TraceMessage(Log.Nav.NavIn, "Results returned with size" + results.Count(), Log.LogType.Info); 
+
                                     string status = "finished";
                                     string winReason = results[0];
                                     string loseReason = results[1];
@@ -79,17 +91,31 @@ namespace TheArena
                                     string loserName = results[4];
                                     string loserSubmissionNumber = results[5];
                                     string logURL = "http://vis.siggame.io/?log=http://35.222.122.90:3080/gamelog/"+results[6];
+
                                     Log.TraceMessage(Log.Nav.NavOut, status + " " + winReason + " " + loseReason + " " + logURL + " " + winnerName + " " + winnerSubmissionNumber + " " + loserName + " " + loserSubmissionNumber, Log.LogType.Info);
+                                    
                                     HTTP.HTTPPostSendToWeb(status, winReason, loseReason, logURL, winnerName, winnerSubmissionNumber, loserName, loserSubmissionNumber); //Send Info To Webserver
                                     resultStr = winnerName + ";" + logURL; //This will be sent to Host on next while(true) loop iteration
-				                    Thread.Sleep(3000); //Wait 3 seconds for post to go through
+				                    
+                                    Log.TraceMessage(Log.Nav.NavIn, "End Game Sending Results...", Log.LogType.Info);
+
+                                    remoteEP = new IPEndPoint(IPAddress.Parse(HOST_ADDR), UDP_CONFIRM_PORT);
+                                    byte[] toSendResults = Encoding.ASCII.GetBytes(resultStr);
+
+                                    Log.TraceMessage(Log.Nav.NavIn, "End Game Sending toSendResults: " + resultStr + " as bytes=" + toSendResults.Length, Log.LogType.Info);
+
+                                    resultsSocket.SendTo(toSendResults, remoteEP); // Send Results
+
+                                    Thread.Sleep(3000); //Wait 3 seconds for post to go through
 				                    Directory.Delete(ARENA_FILES_PATH, true);
                                     Directory.CreateDirectory(ARENA_FILES_PATH);
                                 }
                             }
-                            catch
+                            catch(Exception e)
                             {
                                 Log.TraceMessage(Log.Nav.NavIn, "5 second timeout on receiving game...", Log.LogType.Info);
+                                Log.TraceMessage(Log.Nav.NavIn, "Error: " + e.Message, Log.LogType.Info);
+
                             }
                         }
                     }
