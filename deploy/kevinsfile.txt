@@ -1,0 +1,815 @@
+{
+    "_meta": {
+        "hostvars": {
+            "10.128.0.24": {
+                "ansible_python_interpreter": "/usr/bin/python3",
+                "ansible_ssh_private_key_file": "~/.ssh/mstacm-digitalocean",
+                "ansible_ssh_user": "root",
+                "canIpForward": false,
+                "cpuPlatform": "Unknown CPU Platform",
+                "creationTimestamp": "2019-11-16T18:02:42.834-08:00",
+                "deletionProtection": false,
+                "description": "",
+                "displayDevice": {
+                    "enableDisplay": false
+                },
+                "id": "3625148177524266158",
+                "image": null,
+                "kind": "compute#instance",
+                "labelFingerprint": "42WmSpB8rSM=",
+                "machineType": "n1-standard-1",
+                "machineType_selflink": "https://www.googleapis.com/compute/v1/projects/arena-team/zones/us-central1-c/machineTypes/n1-standard-1",
+                "metadata": {},
+                "name": "arena2",
+                "networkInterfaces": [
+                    {
+                        "accessConfigs": [
+                            {
+                                "kind": "compute#accessConfig",
+                                "name": "External NAT",
+                                "networkTier": "PREMIUM",
+                                "type": "ONE_TO_ONE_NAT"
+                            }
+                        ],
+                        "fingerprint": "eeJ0CVKf448=",
+                        "kind": "compute#networkInterface",
+                        "name": "nic0",
+                        "network": {
+                            "name": "default",
+                            "region": "global",
+                            "selfLink": "https://www.googleapis.com/compute/v1/projects/arena-team/global/networks/default"
+                        },
+                        "networkIP": "10.128.0.24",
+                        "subnetwork": {
+                            "name": "default",
+                            "region": "us-central1",
+                            "selfLink": "https://www.googleapis.com/compute/v1/projects/arena-team/regions/us-central1/subnetworks/default"
+                        }
+                    }
+                ],
+                "project": "arena-team",
+                "reservationAffinity": {
+                    "consumeReservationType": "ANY_RESERVATION"
+                },
+                "scheduling": {
+                    "automaticRestart": true,
+                    "onHostMaintenance": "MIGRATE",
+                    "preemptible": false
+                },
+                "selfLink": "https://www.googleapis.com/compute/v1/projects/arena-team/zones/us-central1-c/instances/arena2",
+                "serviceAccounts": [
+                    {
+                        "email": "209625519492-compute@developer.gserviceaccount.com",
+                        "scopes": [
+                            "https://www.googleapis.com/auth/devstorage.read_only",
+                            "https://www.googleapis.com/auth/logging.write",
+                            "https://www.googleapis.com/auth/monitoring.write",
+                            "https://www.googleapis.com/auth/servicecontrol",
+                            "https://www.googleapis.com/auth/service.management.readonly",
+                            "https://www.googleapis.com/auth/trace.append"
+                        ]
+                    }
+                ],
+                "startRestricted": false,
+                "status": "TERMINATED",
+                "tags": {
+                    "fingerprint": "xC0jWwPdPmw=",
+                    "items": [
+                        "allow-8000",
+                        "allow-all",
+                        "http-server",
+                        "https-server"
+                    ]
+                },
+                "zone": "us-central1-c",
+                "zone_selflink": "https://www.googleapis.com/compute/v1/projects/arena-team/zones/us-central1-c"
+            },
+            "34.67.9.222": {
+                "ansible_python_interpreter": "/usr/bin/python3",
+                "ansible_ssh_private_key_file": "~/.ssh/mstacm-digitalocean",
+                "ansible_ssh_user": "root",
+                "canIpForward": false,
+                "cpuPlatform": "Intel Haswell",
+                "creationTimestamp": "2019-11-16T23:05:47.523-08:00",
+                "deletionProtection": false,
+                "disks": [
+                    {
+                        "autoDelete": true,
+                        "boot": true,
+                        "deviceName": "persistent-disk-0",
+                        "guestOsFeatures": [
+                            {
+                                "type": "VIRTIO_SCSI_MULTIQUEUE"
+                            }
+                        ],
+                        "index": 0,
+                        "interface": "SCSI",
+                        "kind": "compute#attachedDisk",
+                        "licenses": [
+                            "https://www.googleapis.com/compute/v1/projects/ubuntu-os-cloud/global/licenses/ubuntu-1804-lts"
+                        ],
+                        "mode": "READ_WRITE",
+                        "source": "https://www.googleapis.com/compute/v1/projects/arena-team/zones/us-central1-c/disks/arena-worker-0",
+                        "type": "PERSISTENT"
+                    }
+                ],
+                "id": "5607515239508430757",
+                "image": null,
+                "kind": "compute#instance",
+                "labelFingerprint": "42WmSpB8rSM=",
+                "machineType": "n1-standard-2",
+                "machineType_selflink": "https://www.googleapis.com/compute/v1/projects/arena-team/zones/us-central1-c/machineTypes/n1-standard-2",
+                "metadata": {},
+                "name": "arena-worker-0",
+                "networkInterfaces": [
+                    {
+                        "accessConfigs": [
+                            {
+                                "kind": "compute#accessConfig",
+                                "name": "external-nat",
+                                "natIP": "34.67.9.222",
+                                "networkTier": "PREMIUM",
+                                "type": "ONE_TO_ONE_NAT"
+                            }
+                        ],
+                        "fingerprint": "nPYVO19oFN0=",
+                        "kind": "compute#networkInterface",
+                        "name": "nic0",
+                        "network": {
+                            "name": "default",
+                            "region": "global",
+                            "selfLink": "https://www.googleapis.com/compute/v1/projects/arena-team/global/networks/default"
+                        },
+                        "networkIP": "10.128.0.36",
+                        "subnetwork": {
+                            "name": "default",
+                            "region": "us-central1",
+                            "selfLink": "https://www.googleapis.com/compute/v1/projects/arena-team/regions/us-central1/subnetworks/default"
+                        }
+                    }
+                ],
+                "project": "arena-team",
+                "scheduling": {
+                    "automaticRestart": true,
+                    "onHostMaintenance": "MIGRATE",
+                    "preemptible": false
+                },
+                "selfLink": "https://www.googleapis.com/compute/v1/projects/arena-team/zones/us-central1-c/instances/arena-worker-0",
+                "startRestricted": false,
+                "status": "RUNNING",
+                "tags": {
+                    "fingerprint": "DYx7eH_2KNQ=",
+                    "items": [
+                        "allow-all"
+                    ]
+                },
+                "zone": "us-central1-c",
+                "zone_selflink": "https://www.googleapis.com/compute/v1/projects/arena-team/zones/us-central1-c"
+            },
+            "35.184.47.98": {
+                "ansible_python_interpreter": "/usr/bin/python3",
+                "ansible_ssh_private_key_file": "~/.ssh/mstacm-digitalocean",
+                "ansible_ssh_user": "root",
+                "canIpForward": false,
+                "cpuPlatform": "Intel Haswell",
+                "creationTimestamp": "2019-11-16T23:02:38.026-08:00",
+                "deletionProtection": false,
+                "disks": [
+                    {
+                        "autoDelete": true,
+                        "boot": true,
+                        "deviceName": "persistent-disk-0",
+                        "guestOsFeatures": [
+                            {
+                                "type": "VIRTIO_SCSI_MULTIQUEUE"
+                            }
+                        ],
+                        "index": 0,
+                        "interface": "SCSI",
+                        "kind": "compute#attachedDisk",
+                        "licenses": [
+                            "https://www.googleapis.com/compute/v1/projects/ubuntu-os-cloud/global/licenses/ubuntu-1804-lts"
+                        ],
+                        "mode": "READ_WRITE",
+                        "source": "https://www.googleapis.com/compute/v1/projects/arena-team/zones/us-central1-c/disks/arena-worker-2",
+                        "type": "PERSISTENT"
+                    }
+                ],
+                "id": "7189950241267600994",
+                "image": null,
+                "kind": "compute#instance",
+                "labelFingerprint": "42WmSpB8rSM=",
+                "machineType": "n1-standard-2",
+                "machineType_selflink": "https://www.googleapis.com/compute/v1/projects/arena-team/zones/us-central1-c/machineTypes/n1-standard-2",
+                "metadata": {},
+                "name": "arena-worker-2",
+                "networkInterfaces": [
+                    {
+                        "accessConfigs": [
+                            {
+                                "kind": "compute#accessConfig",
+                                "name": "external-nat",
+                                "natIP": "35.184.47.98",
+                                "networkTier": "PREMIUM",
+                                "type": "ONE_TO_ONE_NAT"
+                            }
+                        ],
+                        "fingerprint": "u9D5iFplk3c=",
+                        "kind": "compute#networkInterface",
+                        "name": "nic0",
+                        "network": {
+                            "name": "default",
+                            "region": "global",
+                            "selfLink": "https://www.googleapis.com/compute/v1/projects/arena-team/global/networks/default"
+                        },
+                        "networkIP": "10.128.0.32",
+                        "subnetwork": {
+                            "name": "default",
+                            "region": "us-central1",
+                            "selfLink": "https://www.googleapis.com/compute/v1/projects/arena-team/regions/us-central1/subnetworks/default"
+                        }
+                    }
+                ],
+                "project": "arena-team",
+                "scheduling": {
+                    "automaticRestart": true,
+                    "onHostMaintenance": "MIGRATE",
+                    "preemptible": false
+                },
+                "selfLink": "https://www.googleapis.com/compute/v1/projects/arena-team/zones/us-central1-c/instances/arena-worker-2",
+                "startRestricted": false,
+                "status": "RUNNING",
+                "tags": {
+                    "fingerprint": "DYx7eH_2KNQ=",
+                    "items": [
+                        "allow-all"
+                    ]
+                },
+                "zone": "us-central1-c",
+                "zone_selflink": "https://www.googleapis.com/compute/v1/projects/arena-team/zones/us-central1-c"
+            },
+            "35.222.229.165": {
+                "ansible_python_interpreter": "/usr/bin/python3",
+                "ansible_ssh_private_key_file": "~/.ssh/mstacm-digitalocean",
+                "ansible_ssh_user": "root",
+                "canIpForward": false,
+                "cpuPlatform": "Intel Haswell",
+                "creationTimestamp": "2019-11-16T23:02:37.850-08:00",
+                "deletionProtection": false,
+                "disks": [
+                    {
+                        "autoDelete": true,
+                        "boot": true,
+                        "deviceName": "persistent-disk-0",
+                        "guestOsFeatures": [
+                            {
+                                "type": "VIRTIO_SCSI_MULTIQUEUE"
+                            }
+                        ],
+                        "index": 0,
+                        "interface": "SCSI",
+                        "kind": "compute#attachedDisk",
+                        "licenses": [
+                            "https://www.googleapis.com/compute/v1/projects/ubuntu-os-cloud/global/licenses/ubuntu-1804-lts"
+                        ],
+                        "mode": "READ_WRITE",
+                        "source": "https://www.googleapis.com/compute/v1/projects/arena-team/zones/us-central1-c/disks/arena-worker-4",
+                        "type": "PERSISTENT"
+                    }
+                ],
+                "id": "4083763557030514274",
+                "image": null,
+                "kind": "compute#instance",
+                "labelFingerprint": "42WmSpB8rSM=",
+                "machineType": "n1-standard-2",
+                "machineType_selflink": "https://www.googleapis.com/compute/v1/projects/arena-team/zones/us-central1-c/machineTypes/n1-standard-2",
+                "metadata": {},
+                "name": "arena-worker-4",
+                "networkInterfaces": [
+                    {
+                        "accessConfigs": [
+                            {
+                                "kind": "compute#accessConfig",
+                                "name": "external-nat",
+                                "natIP": "35.222.229.165",
+                                "networkTier": "PREMIUM",
+                                "type": "ONE_TO_ONE_NAT"
+                            }
+                        ],
+                        "fingerprint": "s590iKhMgqw=",
+                        "kind": "compute#networkInterface",
+                        "name": "nic0",
+                        "network": {
+                            "name": "default",
+                            "region": "global",
+                            "selfLink": "https://www.googleapis.com/compute/v1/projects/arena-team/global/networks/default"
+                        },
+                        "networkIP": "10.128.0.31",
+                        "subnetwork": {
+                            "name": "default",
+                            "region": "us-central1",
+                            "selfLink": "https://www.googleapis.com/compute/v1/projects/arena-team/regions/us-central1/subnetworks/default"
+                        }
+                    }
+                ],
+                "project": "arena-team",
+                "scheduling": {
+                    "automaticRestart": true,
+                    "onHostMaintenance": "MIGRATE",
+                    "preemptible": false
+                },
+                "selfLink": "https://www.googleapis.com/compute/v1/projects/arena-team/zones/us-central1-c/instances/arena-worker-4",
+                "startRestricted": false,
+                "status": "RUNNING",
+                "tags": {
+                    "fingerprint": "DYx7eH_2KNQ=",
+                    "items": [
+                        "allow-all"
+                    ]
+                },
+                "zone": "us-central1-c",
+                "zone_selflink": "https://www.googleapis.com/compute/v1/projects/arena-team/zones/us-central1-c"
+            },
+            "35.222.238.180": {
+                "ansible_python_interpreter": "/usr/bin/python3",
+                "ansible_ssh_private_key_file": "~/.ssh/mstacm-digitalocean",
+                "ansible_ssh_user": "root",
+                "canIpForward": false,
+                "cpuPlatform": "Intel Haswell",
+                "creationTimestamp": "2019-11-16T23:05:27.314-08:00",
+                "deletionProtection": false,
+                "disks": [
+                    {
+                        "autoDelete": true,
+                        "boot": true,
+                        "deviceName": "persistent-disk-0",
+                        "guestOsFeatures": [
+                            {
+                                "type": "VIRTIO_SCSI_MULTIQUEUE"
+                            }
+                        ],
+                        "index": 0,
+                        "interface": "SCSI",
+                        "kind": "compute#attachedDisk",
+                        "licenses": [
+                            "https://www.googleapis.com/compute/v1/projects/ubuntu-os-cloud/global/licenses/ubuntu-1804-lts"
+                        ],
+                        "mode": "READ_WRITE",
+                        "source": "https://www.googleapis.com/compute/v1/projects/arena-team/zones/us-central1-c/disks/arena-worker-1",
+                        "type": "PERSISTENT"
+                    }
+                ],
+                "id": "8407902021796843481",
+                "image": null,
+                "kind": "compute#instance",
+                "labelFingerprint": "42WmSpB8rSM=",
+                "machineType": "n1-standard-2",
+                "machineType_selflink": "https://www.googleapis.com/compute/v1/projects/arena-team/zones/us-central1-c/machineTypes/n1-standard-2",
+                "metadata": {},
+                "name": "arena-worker-1",
+                "networkInterfaces": [
+                    {
+                        "accessConfigs": [
+                            {
+                                "kind": "compute#accessConfig",
+                                "name": "external-nat",
+                                "natIP": "35.222.238.180",
+                                "networkTier": "PREMIUM",
+                                "type": "ONE_TO_ONE_NAT"
+                            }
+                        ],
+                        "fingerprint": "7WyGCwCd0Yw=",
+                        "kind": "compute#networkInterface",
+                        "name": "nic0",
+                        "network": {
+                            "name": "default",
+                            "region": "global",
+                            "selfLink": "https://www.googleapis.com/compute/v1/projects/arena-team/global/networks/default"
+                        },
+                        "networkIP": "10.128.0.35",
+                        "subnetwork": {
+                            "name": "default",
+                            "region": "us-central1",
+                            "selfLink": "https://www.googleapis.com/compute/v1/projects/arena-team/regions/us-central1/subnetworks/default"
+                        }
+                    }
+                ],
+                "project": "arena-team",
+                "scheduling": {
+                    "automaticRestart": true,
+                    "onHostMaintenance": "MIGRATE",
+                    "preemptible": false
+                },
+                "selfLink": "https://www.googleapis.com/compute/v1/projects/arena-team/zones/us-central1-c/instances/arena-worker-1",
+                "startRestricted": false,
+                "status": "RUNNING",
+                "tags": {
+                    "fingerprint": "DYx7eH_2KNQ=",
+                    "items": [
+                        "allow-all"
+                    ]
+                },
+                "zone": "us-central1-c",
+                "zone_selflink": "https://www.googleapis.com/compute/v1/projects/arena-team/zones/us-central1-c"
+            },
+            "35.226.228.144": {
+                "ansible_python_interpreter": "/usr/bin/python3",
+                "ansible_ssh_private_key_file": "~/.ssh/mstacm-digitalocean",
+                "ansible_ssh_user": "root",
+                "canIpForward": false,
+                "cpuPlatform": "Intel Haswell",
+                "creationTimestamp": "2018-03-06T12:25:40.597-08:00",
+                "deletionProtection": false,
+                "description": "",
+                "disks": [
+                    {
+                        "autoDelete": true,
+                        "boot": true,
+                        "deviceName": "vivi",
+                        "guestOsFeatures": [
+                            {
+                                "type": "VIRTIO_SCSI_MULTIQUEUE"
+                            }
+                        ],
+                        "index": 0,
+                        "interface": "SCSI",
+                        "kind": "compute#attachedDisk",
+                        "licenses": [
+                            "https://www.googleapis.com/compute/v1/projects/debian-cloud/global/licenses/debian-9-stretch"
+                        ],
+                        "mode": "READ_WRITE",
+                        "source": "https://www.googleapis.com/compute/v1/projects/arena-team/zones/us-central1-c/disks/vivi",
+                        "type": "PERSISTENT"
+                    }
+                ],
+                "id": "3557485284229859244",
+                "image": null,
+                "kind": "compute#instance",
+                "labelFingerprint": "42WmSpB8rSM=",
+                "machineType": "f1-micro",
+                "machineType_selflink": "https://www.googleapis.com/compute/v1/projects/arena-team/zones/us-central1-c/machineTypes/f1-micro",
+                "metadata": {},
+                "name": "vivi",
+                "networkInterfaces": [
+                    {
+                        "accessConfigs": [
+                            {
+                                "kind": "compute#accessConfig",
+                                "name": "External NAT",
+                                "natIP": "35.226.228.144",
+                                "networkTier": "PREMIUM",
+                                "type": "ONE_TO_ONE_NAT"
+                            }
+                        ],
+                        "fingerprint": "D47QnBhyhIg=",
+                        "kind": "compute#networkInterface",
+                        "name": "nic0",
+                        "network": {
+                            "name": "default",
+                            "region": "global",
+                            "selfLink": "https://www.googleapis.com/compute/v1/projects/arena-team/global/networks/default"
+                        },
+                        "networkIP": "10.128.0.2",
+                        "subnetwork": {
+                            "name": "default",
+                            "region": "us-central1",
+                            "selfLink": "https://www.googleapis.com/compute/v1/projects/arena-team/regions/us-central1/subnetworks/default"
+                        }
+                    }
+                ],
+                "project": "arena-team",
+                "scheduling": {
+                    "automaticRestart": true,
+                    "onHostMaintenance": "MIGRATE",
+                    "preemptible": false
+                },
+                "selfLink": "https://www.googleapis.com/compute/v1/projects/arena-team/zones/us-central1-c/instances/vivi",
+                "serviceAccounts": [
+                    {
+                        "email": "209625519492-compute@developer.gserviceaccount.com",
+                        "scopes": [
+                            "https://www.googleapis.com/auth/devstorage.read_only",
+                            "https://www.googleapis.com/auth/logging.write",
+                            "https://www.googleapis.com/auth/monitoring.write",
+                            "https://www.googleapis.com/auth/servicecontrol",
+                            "https://www.googleapis.com/auth/service.management.readonly",
+                            "https://www.googleapis.com/auth/trace.append"
+                        ]
+                    }
+                ],
+                "startRestricted": false,
+                "status": "RUNNING",
+                "tags": {
+                    "fingerprint": "42WmSpB8rSM="
+                },
+                "zone": "us-central1-c",
+                "zone_selflink": "https://www.googleapis.com/compute/v1/projects/arena-team/zones/us-central1-c"
+            },
+            "35.238.134.1": {
+                "ansible_python_interpreter": "/usr/bin/python3",
+                "ansible_ssh_private_key_file": "~/.ssh/mstacm-digitalocean",
+                "ansible_ssh_user": "root",
+                "canIpForward": false,
+                "cpuPlatform": "Intel Haswell",
+                "creationTimestamp": "2019-11-16T23:02:37.621-08:00",
+                "deletionProtection": false,
+                "disks": [
+                    {
+                        "autoDelete": true,
+                        "boot": true,
+                        "deviceName": "persistent-disk-0",
+                        "guestOsFeatures": [
+                            {
+                                "type": "VIRTIO_SCSI_MULTIQUEUE"
+                            }
+                        ],
+                        "index": 0,
+                        "interface": "SCSI",
+                        "kind": "compute#attachedDisk",
+                        "licenses": [
+                            "https://www.googleapis.com/compute/v1/projects/ubuntu-os-cloud/global/licenses/ubuntu-1804-lts"
+                        ],
+                        "mode": "READ_WRITE",
+                        "source": "https://www.googleapis.com/compute/v1/projects/arena-team/zones/us-central1-c/disks/arena-worker-5",
+                        "type": "PERSISTENT"
+                    }
+                ],
+                "id": "8559075155400019555",
+                "image": null,
+                "kind": "compute#instance",
+                "labelFingerprint": "42WmSpB8rSM=",
+                "machineType": "n1-standard-2",
+                "machineType_selflink": "https://www.googleapis.com/compute/v1/projects/arena-team/zones/us-central1-c/machineTypes/n1-standard-2",
+                "metadata": {},
+                "name": "arena-worker-5",
+                "networkInterfaces": [
+                    {
+                        "accessConfigs": [
+                            {
+                                "kind": "compute#accessConfig",
+                                "name": "external-nat",
+                                "natIP": "35.238.134.1",
+                                "networkTier": "PREMIUM",
+                                "type": "ONE_TO_ONE_NAT"
+                            }
+                        ],
+                        "fingerprint": "GmNyb3V91zk=",
+                        "kind": "compute#networkInterface",
+                        "name": "nic0",
+                        "network": {
+                            "name": "default",
+                            "region": "global",
+                            "selfLink": "https://www.googleapis.com/compute/v1/projects/arena-team/global/networks/default"
+                        },
+                        "networkIP": "10.128.0.33",
+                        "subnetwork": {
+                            "name": "default",
+                            "region": "us-central1",
+                            "selfLink": "https://www.googleapis.com/compute/v1/projects/arena-team/regions/us-central1/subnetworks/default"
+                        }
+                    }
+                ],
+                "project": "arena-team",
+                "scheduling": {
+                    "automaticRestart": true,
+                    "onHostMaintenance": "MIGRATE",
+                    "preemptible": false
+                },
+                "selfLink": "https://www.googleapis.com/compute/v1/projects/arena-team/zones/us-central1-c/instances/arena-worker-5",
+                "startRestricted": false,
+                "status": "RUNNING",
+                "tags": {
+                    "fingerprint": "DYx7eH_2KNQ=",
+                    "items": [
+                        "allow-all"
+                    ]
+                },
+                "zone": "us-central1-c",
+                "zone_selflink": "https://www.googleapis.com/compute/v1/projects/arena-team/zones/us-central1-c"
+            },
+            "35.238.16.114": {
+                "ansible_python_interpreter": "/usr/bin/python3",
+                "ansible_ssh_private_key_file": "~/.ssh/mstacm-digitalocean",
+                "ansible_ssh_user": "root",
+                "canIpForward": false,
+                "cpuPlatform": "Intel Haswell",
+                "creationTimestamp": "2019-11-16T23:02:37.681-08:00",
+                "deletionProtection": false,
+                "disks": [
+                    {
+                        "autoDelete": true,
+                        "boot": true,
+                        "deviceName": "persistent-disk-0",
+                        "guestOsFeatures": [
+                            {
+                                "type": "VIRTIO_SCSI_MULTIQUEUE"
+                            }
+                        ],
+                        "index": 0,
+                        "interface": "SCSI",
+                        "kind": "compute#attachedDisk",
+                        "licenses": [
+                            "https://www.googleapis.com/compute/v1/projects/ubuntu-os-cloud/global/licenses/ubuntu-1804-lts"
+                        ],
+                        "mode": "READ_WRITE",
+                        "source": "https://www.googleapis.com/compute/v1/projects/arena-team/zones/us-central1-c/disks/arena-worker-3",
+                        "type": "PERSISTENT"
+                    }
+                ],
+                "id": "9097386036790382178",
+                "image": null,
+                "kind": "compute#instance",
+                "labelFingerprint": "42WmSpB8rSM=",
+                "machineType": "n1-standard-2",
+                "machineType_selflink": "https://www.googleapis.com/compute/v1/projects/arena-team/zones/us-central1-c/machineTypes/n1-standard-2",
+                "metadata": {},
+                "name": "arena-worker-3",
+                "networkInterfaces": [
+                    {
+                        "accessConfigs": [
+                            {
+                                "kind": "compute#accessConfig",
+                                "name": "external-nat",
+                                "natIP": "35.238.16.114",
+                                "networkTier": "PREMIUM",
+                                "type": "ONE_TO_ONE_NAT"
+                            }
+                        ],
+                        "fingerprint": "E5OH2Sx0fQA=",
+                        "kind": "compute#networkInterface",
+                        "name": "nic0",
+                        "network": {
+                            "name": "default",
+                            "region": "global",
+                            "selfLink": "https://www.googleapis.com/compute/v1/projects/arena-team/global/networks/default"
+                        },
+                        "networkIP": "10.128.0.34",
+                        "subnetwork": {
+                            "name": "default",
+                            "region": "us-central1",
+                            "selfLink": "https://www.googleapis.com/compute/v1/projects/arena-team/regions/us-central1/subnetworks/default"
+                        }
+                    }
+                ],
+                "project": "arena-team",
+                "scheduling": {
+                    "automaticRestart": true,
+                    "onHostMaintenance": "MIGRATE",
+                    "preemptible": false
+                },
+                "selfLink": "https://www.googleapis.com/compute/v1/projects/arena-team/zones/us-central1-c/instances/arena-worker-3",
+                "startRestricted": false,
+                "status": "RUNNING",
+                "tags": {
+                    "fingerprint": "DYx7eH_2KNQ=",
+                    "items": [
+                        "allow-all"
+                    ]
+                },
+                "zone": "us-central1-c",
+                "zone_selflink": "https://www.googleapis.com/compute/v1/projects/arena-team/zones/us-central1-c"
+            },
+            "35.238.78.221": {
+                "ansible_python_interpreter": "/usr/bin/python3",
+                "ansible_ssh_private_key_file": "~/.ssh/mstacm-digitalocean",
+                "ansible_ssh_user": "root",
+                "canIpForward": false,
+                "cpuPlatform": "Intel Haswell",
+                "creationTimestamp": "2019-11-16T22:34:16.283-08:00",
+                "deletionProtection": false,
+                "description": "",
+                "disks": [
+                    {
+                        "autoDelete": true,
+                        "boot": true,
+                        "deviceName": "arena3",
+                        "guestOsFeatures": [
+                            {
+                                "type": "VIRTIO_SCSI_MULTIQUEUE"
+                            }
+                        ],
+                        "index": 0,
+                        "interface": "SCSI",
+                        "kind": "compute#attachedDisk",
+                        "licenses": [
+                            "https://www.googleapis.com/compute/v1/projects/ubuntu-os-cloud/global/licenses/ubuntu-1804-lts"
+                        ],
+                        "mode": "READ_WRITE",
+                        "source": "https://www.googleapis.com/compute/v1/projects/arena-team/zones/us-central1-c/disks/arena3",
+                        "type": "PERSISTENT"
+                    },
+                    {
+                        "autoDelete": false,
+                        "boot": false,
+                        "deviceName": "arena2",
+                        "guestOsFeatures": [
+                            {
+                                "type": "VIRTIO_SCSI_MULTIQUEUE"
+                            }
+                        ],
+                        "index": 1,
+                        "interface": "SCSI",
+                        "kind": "compute#attachedDisk",
+                        "licenses": [
+                            "https://www.googleapis.com/compute/v1/projects/debian-cloud/global/licenses/debian-9-stretch"
+                        ],
+                        "mode": "READ_WRITE",
+                        "source": "https://www.googleapis.com/compute/v1/projects/arena-team/zones/us-central1-c/disks/arena2",
+                        "type": "PERSISTENT"
+                    }
+                ],
+                "displayDevice": {
+                    "enableDisplay": false
+                },
+                "id": "7641474496624154376",
+                "image": null,
+                "kind": "compute#instance",
+                "labelFingerprint": "42WmSpB8rSM=",
+                "machineType": "n1-standard-2",
+                "machineType_selflink": "https://www.googleapis.com/compute/v1/projects/arena-team/zones/us-central1-c/machineTypes/n1-standard-2",
+                "metadata": {},
+                "name": "arena3",
+                "networkInterfaces": [
+                    {
+                        "accessConfigs": [
+                            {
+                                "kind": "compute#accessConfig",
+                                "name": "External NAT",
+                                "natIP": "35.238.78.221",
+                                "networkTier": "PREMIUM",
+                                "type": "ONE_TO_ONE_NAT"
+                            }
+                        ],
+                        "fingerprint": "k02dbUSgLPw=",
+                        "kind": "compute#networkInterface",
+                        "name": "nic0",
+                        "network": {
+                            "name": "default",
+                            "region": "global",
+                            "selfLink": "https://www.googleapis.com/compute/v1/projects/arena-team/global/networks/default"
+                        },
+                        "networkIP": "10.128.0.28",
+                        "subnetwork": {
+                            "name": "default",
+                            "region": "us-central1",
+                            "selfLink": "https://www.googleapis.com/compute/v1/projects/arena-team/regions/us-central1/subnetworks/default"
+                        }
+                    }
+                ],
+                "project": "arena-team",
+                "reservationAffinity": {
+                    "consumeReservationType": "ANY_RESERVATION"
+                },
+                "scheduling": {
+                    "automaticRestart": true,
+                    "onHostMaintenance": "MIGRATE",
+                    "preemptible": false
+                },
+                "selfLink": "https://www.googleapis.com/compute/v1/projects/arena-team/zones/us-central1-c/instances/arena3",
+                "serviceAccounts": [
+                    {
+                        "email": "209625519492-compute@developer.gserviceaccount.com",
+                        "scopes": [
+                            "https://www.googleapis.com/auth/devstorage.read_only",
+                            "https://www.googleapis.com/auth/logging.write",
+                            "https://www.googleapis.com/auth/monitoring.write",
+                            "https://www.googleapis.com/auth/servicecontrol",
+                            "https://www.googleapis.com/auth/service.management.readonly",
+                            "https://www.googleapis.com/auth/trace.append"
+                        ]
+                    }
+                ],
+                "startRestricted": false,
+                "status": "RUNNING",
+                "tags": {
+                    "fingerprint": "rcs-Bn0jJlU=",
+                    "items": [
+                        "allow-8000",
+                        "http-server",
+                        "https-server"
+                    ]
+                },
+                "zone": "us-central1-c",
+                "zone_selflink": "https://www.googleapis.com/compute/v1/projects/arena-team/zones/us-central1-c"
+            }
+        }
+    },
+    "all": {
+        "children": [
+            "ungrouped"
+        ]
+    },
+    "ungrouped": {
+        "hosts": [
+            "10.128.0.24",
+            "34.67.9.222",
+            "35.184.47.98",
+            "35.222.229.165",
+            "35.222.238.180",
+            "35.226.228.144",
+            "35.238.134.1",
+            "35.238.16.114",
+            "35.238.78.221"
+        ]
+    }
+}

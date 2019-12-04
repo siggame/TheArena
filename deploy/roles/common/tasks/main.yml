@@ -1,0 +1,71 @@
+---
+- name: Update all system packages
+  become: true
+  apt:
+    state: latest
+    update_cache: yes
+    autoclean: yes
+    autoremove: yes
+
+- name: Install required system packages
+  become: true
+  apt:
+    state: latest
+    update_cache: yes
+    name:
+      - python3
+      - python3-pip
+      - tmux
+
+- name: Install required pip modules
+  become: true
+  pip:
+    name: psycopg2-binary
+    executable: pip3
+
+- name: nodejs - add repository key
+  become: true
+  apt_key:
+    url: "{{ item }}"
+  with_items:
+    - "http://deb.nodesource.com/gpgkey/nodesource.gpg.key"
+    - "https://dl.yarnpkg.com/debian/pubkey.gpg"
+
+- name: nodejs - add repository
+  become: true
+  apt_repository:
+    repo: "{{ item }}"
+    state: present
+    update_cache: yes
+  with_items:
+    - "deb http://deb.nodesource.com/node_12.x {{ ansible_lsb.codename }} main"
+    - "deb-src http://deb.nodesource.com/node_12.x {{ ansible_lsb.codename }} main"
+
+- name: nodejs - install
+  become: true
+  apt:
+    name: "nodejs"
+    state: "present"
+
+- name: Recursively change ownership of a directory
+  file:
+    path: /etc/foo
+    state: directory
+    recurse: yes
+    owner: foo
+    group: foo
+
+- name: Template run.sh file to ~/pyrena/run.sh
+  template:
+    src: run.sh.j2
+    dest: ~/pyrena/run.sh
+
+- name: Template run.sh file to ~/pyrena/run-tournament.sh
+  template:
+    src: run-tournament.sh.j2
+    dest: ~/pyrena/run-tournament.sh
+
+- name: Install npm for Cerveau
+  become: true
+  npm:
+    path: ~/Cerveau

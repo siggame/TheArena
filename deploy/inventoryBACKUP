@@ -1,0 +1,16 @@
+arena-worker-0 ansible_host=35.184.47.98
+arena-worker-1 ansible_host=35.238.134.1
+arena-worker-2 ansible_host=35.238.16.114
+arena-worker-3 ansible_host=35.193.125.148
+
+arena-worker-4 ansible_host=35.222.229.165
+arena-worker-5 ansible_host=104.154.146.135
+arena-worker-6 ansible_host=35.224.102.246
+arena-worker-7 ansible_host=34.70.184.162
+arena-worker-8 ansible_host=35.202.137.238
+arena-worker-9 ansible_host=34.70.5.187
+arena-worker-10 ansible_host=35.226.106.1
+arena-worker-11 ansible_host=35.223.204.64
+arena-worker-12 ansible_host=34.68.220.151
+arena-worker-13 ansible_host=35.222.2.48
+arena-worker-14 ansible_host=34.66.136.255
